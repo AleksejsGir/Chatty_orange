@@ -40,9 +40,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # --- Ваши приложения ---
+    # --- приложения ---
     'users.apps.UsersConfig', # Добавляем приложение users
-    # <!-- AI-TODO: Добавлять сюда новые приложения (posts, subscriptions) по мере их создания -->
+    'posts.apps.PostsConfig',          # Добавлено
+    'subscriptions.apps.SubscriptionsConfig', # Добавлено
+
 ]
 
 MIDDLEWARE = [
