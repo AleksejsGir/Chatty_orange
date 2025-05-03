@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная страница</title>
+</head>
+<body>
+    <header>
+        <h1>Добро пожаловать!</h1>
+        <nav>
+            {% if is_authenticated %}
+                <p>Привет, {{ user.username }}!</p>
+                <a href="{% url 'feed' %}">Перейти в ленту</a>
+            {% else %}
+                <p>Пожалуйста, войдите в систему</p>
+                <a href="{% url 'login' %}" class="btn btn-primary">Войти</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <main>
+        <p>Это главная страница нашего сайта.</p>
+    </main>
+</body>
+</html>
