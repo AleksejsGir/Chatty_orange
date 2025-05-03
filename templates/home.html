@@ -1,26 +1,29 @@
-{% extends 'base.html' %} {# ОБЯЗАТЕЛЬНО: наследуемся от базового шаблона #}
+{% extends 'base.html' %}
 
-{% block title %}Главная - Chatty{% endblock %} {# Переопределяем заголовок страницы #}
+{% block title %}Главная - Chatty{% endblock %}
 
-{% block content %} {# Весь контент размещаем внутри блока content #}
-<div class="jumbotron"> {# Пример использования компонента Bootstrap Jumbotron #}
+{% block content %}
+<div class="jumbotron">
     <h1 class="display-4">Добро пожаловать в Chatty!</h1>
     <p class="lead">Это главная страница нашей учебной социальной сети.</p>
     <hr class="my-4">
 
-    {% if user.is_authenticated %} {# Используем user.is_authenticated для проверки #}
+    {% if user.is_authenticated %}
         <p>Привет, **{{ user.username }}**!</p>
-        <a class="btn btn-primary btn-lg" href="#" role="button">Перейти в ленту</a> {# TODO: Заменить # на {% url 'posts:list' %} или {% url 'subscriptions:feed' %} #}
-        <a class="btn btn-secondary btn-lg" href="{% url 'users:logout' %}" role="button">Выйти</a> {# Заменил ссылку на logout #}
+        <a class="btn btn-primary btn-lg" href="#" role="button">Перейти в ленту</a> {# TODO: Заменить # на реальный URL ленты #}
+        {# <a class="btn btn-secondary btn-lg" href="{% url 'users:logout' %}" role="button">Выйти</a> #} {# Временно закомментировано #}
+        <form action="#" method="post" style="display: inline;"> {# Заглушка для выхода #}
+            {% csrf_token %}
+            <button type="submit" class="btn btn-secondary btn-lg">Выйти (заглушка)</button>
+        </form>
     {% else %}
         <p>Присоединяйтесь к нашему сообществу или войдите, если у вас уже есть аккаунт.</p>
-        <a class="btn btn-success btn-lg" href="{% url 'users:register' %}" role="button">Зарегистрироваться</a> {# Заменил ссылку на register #}
-        <a class="btn btn-primary btn-lg" href="{% url 'users:login' %}" role="button">Войти</a>
+        {# <a class="btn btn-success btn-lg" href="{% url 'users:register' %}" role="button">Зарегистрироваться</a> #} {# Временно закомментировано #}
+        {# <a class="btn btn-primary btn-lg" href="{% url 'users:login' %}" role="button">Войти</a> #} {# Временно закомментировано #}
+         <a class="btn btn-success btn-lg" href="#" role="button">Зарегистрироваться (заглушка)</a> {# Временно ссылка-заглушка #}
+         <a class="btn btn-primary btn-lg" href="#" role="button">Войти (заглушка)</a> {# Временно ссылка-заглушка #}
     {% endif %}
 </div>
 {% endblock %}
 
-<!-- TODO: Убедиться, что в представлении для главной страницы передается контекст RequestContext. -->
-<!-- TODO: Настроить URL 'home' в главном urls.py. -->
-<!-- TODO: Убедиться, что URL 'users:login', 'users:logout', 'users:register' существуют и правильно настроены. -->
-<!-- TODO: Заменить заглушку URL для ленты на реальный URL, когда он будет готов. -->
+<!-- TODO: Раскомментировать и настроить URL 'users:login', 'users:logout', 'users:register', когда они будут реализованы в Задаче 5. -->

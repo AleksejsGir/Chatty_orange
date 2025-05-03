@@ -1,18 +1,21 @@
 # Chatty_orange/urls.py
 from django.contrib import admin
-from django.urls import path, include # Убедитесь, что include импортирован
+from django.urls import path, include
+from users import views as user_views # Импортируем views из приложения users
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    # Подключаем URL-адреса из приложений:
-    path('users/', include('users.urls', namespace='users')), # Добавляем namespace='users'
-    path('posts/', include('posts.urls', namespace='posts')), # Добавляем namespace='posts'
-    path('subscriptions/', include('subscriptions.urls', namespace='subscriptions')), # Добавляем namespace='subscriptions'
+    # Главная страница
+    path('', user_views.home_page_view, name='home'), # Добавлен путь для главной страницы
 
-    # TODO: Добавить путь для главной страницы ('') позже
-    # path('', views.home_page, name='home'),
+    # Админка
+    path('admin/', admin.site.urls),
+
+    # Приложения
+    path('users/', include('users.urls', namespace='users')),
+    path('posts/', include('posts.urls', namespace='posts')),
+    path('subscriptions/', include('subscriptions.urls', namespace='subscriptions')),
 ]
 
-# <!-- TODO: Добавить URL для главной страницы. -->
+
 # <!-- TODO: Настроить раздачу медиафайлов в режиме DEBUG (если необходимо). -->
 # <!-- TODO: Подключить URL для django-debug-toolbar (если используется). -->
