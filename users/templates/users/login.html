@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load bootstrap5 %} {# Пример загрузки тегов bootstrap, если будем использовать django-bootstrap5 #}
+
+{% block title %}Вход - Chatty{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2 class="mb-4">Вход</h2>
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            {# Отображение формы с использованием django-bootstrap5 тегов #}
+            {% bootstrap_form form %}
+
+            {# Или стандартное отображение Django: #}
+            {# {{ form.as_p }} #}
+
+            <button type="submit" class="btn btn-primary mt-3">Войти</button>
+        </form>
+        <p class="mt-3">
+            <a href="#">Забыли пароль?</a> {# TODO: Добавить URL для сброса пароля #}
+        </p>
+        <p>
+            Нет аккаунта? <a href="#">Зарегистрируйтесь</a> {# TODO: Добавить URL для регистрации #}
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+<!-- TODO: Убедиться, что в users/views.py есть представление для логина, которое передает 'form' в контекст. -->
+<!-- TODO: Настроить URL 'login' в users/urls.py. -->
+<!-- TODO: Добавить ссылки на страницы регистрации и сброса пароля, когда они будут готовы. -->
+<!-- TODO: Заменить стандартный вывод формы на теги django-bootstrap5 (или аналога), если используется. -->

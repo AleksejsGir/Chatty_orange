@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS (подключим позже через CDN или локально в Задаче 3) -->
+    <title>{% block title %}Chatty{% endblock %}</title>
+    <!-- Дополнительные стили -->
+    {% block styles %}{% endblock %}
+</head>
+<body>
+
+    <header>
+        <!-- Навигационная панель (navbar.html будет включен здесь в Задаче 3) -->
+        {% include 'includes/navbar.html' %}
+    </header>
+
+    <main class="container mt-4"> {# Добавлен класс container и отступ Bootstrap для примера #}
+        {% block content %}
+        <!-- Содержимое конкретной страницы будет здесь -->
+        {% endblock %}
+    </main>
+
+    <footer class="mt-auto py-3 bg-light"> {# Примерный футер #}
+         <!-- Футер (footer.html будет включен здесь в Задаче 3) -->
+         {% include 'includes/footer.html' %}
+    </footer>
+
+    <!-- Bootstrap JS (подключим позже) -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>
+
+<!-- TODO: В Задаче 3 подключить Bootstrap CSS/JS, создать и подключить navbar.html и footer.html. -->
+<!-- TODO: Продумать основные блоки (title, styles, content, scripts) для переопределения в дочерних шаблонах. -->
