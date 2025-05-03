@@ -4,7 +4,7 @@ from django.contrib.auth import views as auth_views  # Импортируем au
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('socialnet.urls')),
+    path('', include('posts.urls')),
     # Добавьте эти строки для аутентификации
     path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
