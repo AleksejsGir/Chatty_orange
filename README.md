@@ -51,9 +51,9 @@ Chatty — учебная социальная сеть, разработанн�
    ```
    DEBUG=True
    SECRET_KEY=your_secret_key
-   DB_NAME=postgres
-   DB_USER=postgres
-   DB_PASSWORD=postgres
+   DB_NAME=*******
+   DB_USER=*******
+   DB_PASSWORD=*******
    DB_HOST=db
    DB_PORT=5432
    ```
