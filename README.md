@@ -53,13 +53,20 @@ Chatty — учебная социальная сеть, разработанн�
 
 2. Создайте файл `.env` в корневой директории проекта (можно скопировать из `.env.sample`):
    ```
-   DEBUG=True
-   SECRET_KEY=your_secret_key
-   DB_NAME=*******
-   DB_USER=*******
-   DB_PASSWORD=*******
-   DB_HOST=db
-   DB_PORT=5432
+    # Django Settings
+    DEBUG=True
+    # Пример генерации ключа в python: Введите код прямо в терминале PyCharm!
+    # py -3 -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+    
+    SECRET_KEY='****************' # ЗАМЕНИТЬ НА НАСТОЯЩИЙ КЛЮЧ!
+    
+    # Database Settings (PostgreSQL)
+    DB_ENGINE=django.db.backends.postgresql
+    DB_NAME=*******
+    DB_USER=*******
+    DB_PASSWORD=******* # Используйте более надежный пароль для реальных проектов
+    DB_HOST=db # Имя сервиса базы данных в docker-compose.yml
+    DB_PORT=5432
    ```
 
 3. Запустите контейнеры:
