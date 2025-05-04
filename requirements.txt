@@ -19,3 +19,5 @@ flake8==6.1.0
 
 # Дополнительно
 django-bootstrap5==23.3
+
+django-allauth==65.6.0
