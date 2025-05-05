@@ -35,3 +35,8 @@ CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 # <!-- TODO: При переходе на production использовать gunicorn или uwsgi вместо runserver. -->
 # <!-- TODO: Рассмотреть многостадийную сборку для уменьшения размера финального образа. -->
 # <!-- TODO: Добавить команду для сбора статики (collectstatic) при сборке production-образа. -->
+
+
+#!/bin/sh
+python manage.py migrate
+exec "$@"
