@@ -1,4 +1,3 @@
-version: '3.9' # Указываем версию синтаксиса docker-compose
 
 services:
   # Сервис базы данных PostgreSQL
@@ -15,9 +14,17 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "5433:5432" # Маппим порт БД на хост (5433) для возможного внешнего доступа (например, через DBeaver) - Опционально!
+      - "5433:5432" # Маппим порт БД на хост (5433) для возможного внешнего доступа
     networks:
       - chatty_network # Подключаем к общей сети
+    # --- Проверка состояния контейнера PostgreSQL ---
+    healthcheck:
+      # Команда для проверки готовности PostgreSQL принимать подключения
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s    # Интервал между проверками
+      timeout: 5s     # Таймаут ожидания ответа от проверки
+      retries: 5      # Количество попыток перед признанием контейнера нездоровым
+    # --- Конец блока healthcheck ---
 
   # Сервис веб-приложения Django
   web:
@@ -25,13 +32,16 @@ services:
     container_name: chatty_web # Имя контейнера
     command: python manage.py runserver 0.0.0.0:8000 # Команда для запуска Django
     volumes:
-      - .:/app/ # Монтируем текущую директорию проекта внутрь контейнера для live-reload кода
+      - .:/app/ # Монтируем текущую директорию для live-reload кода
     ports:
       - "8000:8000" # Маппим порт 8000 контейнера на порт 8000 хоста
     env_file:
       - .env # Загружаем переменные окружения из .env файла
     depends_on:
-      - db # Запускаем сервис web только после запуска сервиса db
+      # --- Условие зависимости от состояния сервиса db ---
+      db:
+        condition: service_healthy # Запускать web только после того, как db пройдет healthcheck
+      # --- Конец блока depends_on ---
     networks:
       - chatty_network # Подключаем к общей сети
 
@@ -44,6 +54,5 @@ networks:
 volumes:
   postgres_data: # Именованный том для персистентного хранения данных PostgreSQL
 
-# <!-- TODO: Настроить healthcheck для сервиса `db`, чтобы `web` ждал полной готовности БД. -->
 # <!-- TODO: Для production рассмотреть использование отдельного сервиса для статики (Nginx). -->
 # <!-- TODO: Добавить другие сервисы при необходимости (Redis, Celery). -->
