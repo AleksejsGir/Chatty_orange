@@ -1,24 +1,21 @@
-# Основные зависимости
+asgiref==3.8.1
+colorama==0.4.6
 Django==5.1.5
-python-dotenv==1.0.0
-
-# Драйвер базы данных
-psycopg2-binary>=2.9,<3.0
-
-# Загрузка медиа-файлов
-# Pillow>=10.0.0 # РАСКОММЕНТИРОВАТЬ и ДОБАВИТЬ при работе с изображениями!
+django-bootstrap5==24.2
+django-debug-toolbar==4.3.0
 django-storages==1.14.3
-
-# Тестирование
+flake8==6.1.0
+iniconfig==2.1.0
+mccabe==0.7.0
+packaging==25.0
+pillow==11.2.1
+pluggy==1.5.0
+psycopg2-binary==2.9.10
+pycodestyle==2.11.1
+pyflakes==3.1.0
 pytest==7.4.3
 pytest-django==4.8.0
-
-# Инструменты разработки
-django-debug-toolbar==4.3.0
-flake8==6.1.0
-
-# Дополнительно (Bootstrap)
-django-bootstrap5==24.2
-
-# <!-- TODO: Раскомментировать и добавить Pillow при реализации загрузки аватаров/изображений. -->
-# <!-- TODO: Периодически проверять наличие новых версий зависимостей. -->
+python-dotenv==1.0.0
+sqlparse==0.5.3
+tzdata==2025.2
+Pillow>=10.0.0
