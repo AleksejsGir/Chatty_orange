@@ -1,44 +1,31 @@
 {# templates/includes/navbar.html #}
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <div class="container"> {# Ограничиваем ширину контента навбара #}
-
-    {# Бренд/Название сайта - ссылка на главную страницу #}
+  <div class="container">
     <a class="navbar-brand" href="{% url 'home' %}">Chatty</a>
-
-    {# Кнопка "Гамбургер" для мобильных устройств #}
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-
-    {# Сворачиваемый контент навбара #}
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      {# Основные ссылки слева #}
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
           <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Главная</a>
         </li>
-        {# Ссылка на ленту (пока заглушка) #}
         <li class="nav-item">
           <a class="nav-link" href="#">Лента</a> {# TODO: Заменить href на {% url 'posts:list' %} или feed #}
         </li>
-        {# Другие ссылки можно добавить здесь #}
       </ul>
-
-      {# Ссылки/кнопки справа - зависят от статуса аутентификации #}
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
         {% if user.is_authenticated %}
-          {# Если пользователь вошел #}
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              {{ user.username }} {# Или user.get_full_name(), если настроено #}
+              {{ user.username }}
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-              <li><a class="dropdown-item" href="#">Мой профиль</a></li> {# TODO: Заменить href на {% url 'users:profile' user.username %} #}
+              <li><a class="dropdown-item" href="{% url 'users:profile' user.username %}">Мой профиль</a></li> {# ИСПОЛЬЗУЕМ URL ПРОФИЛЯ #}
               <li><a class="dropdown-item" href="#">Редактировать профиль</a></li> {# TODO: Добавить ссылку на редактирование #}
               <li><hr class="dropdown-divider"></li>
-              {# Используем форму для выхода, т.к. это POST запрос #}
               <li>
-                <form action="#" method="post" style="display: inline;"> {# TODO: Заменить action на {% url 'users:logout' %} #}
+                <form action="{% url 'account_logout' %}" method="post" style="display: inline;"> {# ИСПОЛЬЗУЕМ URL ВЫХОДА ALLAUTH #}
                    {% csrf_token %}
                    <button type="submit" class="dropdown-item">Выйти</button>
                 </form>
@@ -46,12 +33,11 @@
             </ul>
           </li>
         {% else %}
-          {# Если пользователь не вошел #}
           <li class="nav-item">
-            <a class="nav-link" href="#">Войти</a> {# TODO: Заменить href на {% url 'users:login' %} #}
+            <a class="nav-link" href="{% url 'account_login' %}">Войти</a> {# ИСПОЛЬЗУЕМ URL ВХОДА ALLAUTH #}
           </li>
           <li class="nav-item">
-            <a class="btn btn-primary btn-sm" href="#" role="button">Регистрация</a> {# TODO: Заменить href на {% url 'users:register' %} #}
+            <a class="btn btn-primary btn-sm" href="{% url 'account_signup' %}" role="button">Регистрация</a> {# ИСПОЛЬЗУЕМ URL РЕГИСТРАЦИИ ALLAUTH #}
           </li>
         {% endif %}
       </ul>
