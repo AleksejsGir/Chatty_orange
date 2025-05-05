@@ -52,12 +52,12 @@ INSTALLED_APPS = [
     'subscriptions.apps.SubscriptionsConfig',
     # 'core.apps.CoreConfig', # Если бы создали core приложение
 
-    # --- Сторонние приложения ---
-    # 'allauth',             # Будет добавлено позже для allauth
-    # 'allauth.account',     # Будет добавлено позже для allauth
-    # 'allauth.socialaccount', # Если нужна соц. аутентификация
-    # 'django_bootstrap5',   # Добавлено для интеграции Bootstrap
-    # 'debug_toolbar',       # Для панели отладки
+    #--- Сторонние приложения ---
+    'allauth',             # Будет добавлено позже для allauth
+    'allauth.account',     # Будет добавлено позже для allauth
+    'allauth.socialaccount', # Если нужна соц. аутентификация
+    'django_bootstrap5',   # Добавлено для интеграции Bootstrap
+    'debug_toolbar',       # Для панели отладки
 ]
 
 MIDDLEWARE = [
@@ -68,8 +68,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # 'debug_toolbar.middleware.DebugToolbarMiddleware', # Добавить для debug toolbar
-    # 'allauth.account.middleware.AccountMiddleware', # Будет добавлено позже для allauth
+    'debug_toolbar.middleware.DebugToolbarMiddleware', # Добавить для debug toolbar
+    'allauth.account.middleware.AccountMiddleware', # Будет добавлено позже для allauth
 ]
 
 ROOT_URLCONF = 'Chatty_orange.urls'
@@ -178,18 +178,18 @@ LOGOUT_REDIRECT_URL = '/' # Перенаправляем на главную
 
 
 # --- Django Allauth Settings (БУДУТ ДОБАВЛЕНЫ ПОЗЖЕ) ---
-# AUTHENTICATION_BACKENDS = [
-#     'django.contrib.auth.backends.ModelBackend', # Стандартный бэкенд Django
-#     'allauth.account.auth_backends.AuthenticationBackend', # Бэкенд allauth
-# ]
-# SITE_ID = 1 # Требуется для allauth
-# ACCOUNT_EMAIL_REQUIRED = True
-# ACCOUNT_USERNAME_REQUIRED = True # Или False, если логин только по email
-# ACCOUNT_AUTHENTICATION_METHOD = 'username_email' # или 'email' или 'username'
-# ACCOUNT_EMAIL_VERIFICATION = 'optional' # или 'mandatory' или 'none'
-# ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
-# ACCOUNT_LOGOUT_ON_GET = False # Выход только через POST для безопасности
-# ACCOUNT_EMAIL_SUBJECT_PREFIX = '[Chatty] ' # Префикс для тем писем
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend', # Стандартный бэкенд Django
+    'allauth.account.auth_backends.AuthenticationBackend', # Бэкенд allauth
+]
+SITE_ID = 1 # Требуется для allauth
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = True # Или False, если логин только по email
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email' # или 'email' или 'username'
+ACCOUNT_EMAIL_VERIFICATION = 'optional' # или 'mandatory' или 'none'
+ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
+ACCOUNT_LOGOUT_ON_GET = False # Выход только через POST для безопасности
+ACCOUNT_EMAIL_SUBJECT_PREFIX = '[Chatty] ' # Префикс для тем писем
 
 
 # --- Django Debug Toolbar Settings (если используется) ---
