@@ -43,7 +43,7 @@
 
 **Задачи:**
 1. Создать модель `Post` со следующими полями:
-   - автор (ForeignKey на User)
+   - автор (ForeignKey на settings.AUTH_USER_MODEL)
    - заголовок (CharField)
    - текст (TextField)
    - изображение (ImageField, опционально)
