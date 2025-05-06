@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load allauth account %}
+
+{% block title %}Главная - Chatty{% endblock %}
+
+{% block content %}
+<div class="jumbotron"> {# Пример использования компонента Bootstrap Jumbotron #}
+    <h1 class="display-4">Добро пожаловать в Chatty!</h1>
+    <p class="lead">Это главная страница нашей учебной социальной сети.</p>
+    <hr class="my-4">
+
+    {% if user.is_authenticated %}
+        <p>Привет, **{{ user.username }}**!</p>
+        <a class="btn btn-primary btn-lg" href="#" role="button">Перейти в ленту</a> {# TODO: Заменить # на {% url 'posts:list' %} или {% url 'subscriptions:feed' %} #}
+        <form action="{% url 'account_logout' %}" method="post" style="display: inline;"> {# URL ВЫХОДА #}
+            {% csrf_token %}
+            <button type="submit" class="btn btn-secondary btn-lg">Выйти</button>
+        </form>
+    {% else %}
+        <p>Присоединяйтесь к нашему сообществу или войдите, если у вас уже есть аккаунт.</p>
+        <a class="btn btn-success btn-lg" href="{% url 'account_signup' %}" role="button">Зарегистрироваться</a> {# URL РЕГИСТРАЦИИ #}
+        <a class="btn btn-primary btn-lg" href="{% url 'account_login' %}" role="button">Войти</a> {# URL ВХОДА #}
+    {% endif %}
+</div>
+{% endblock %}
+
+<!-- TODO: Раскомментировать и настроить URL 'users:login', 'users:logout', 'users:register', когда они будут реализованы в Задаче 5. -->

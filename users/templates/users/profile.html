@@ -1,0 +1,42 @@
+{# users/templates/users/profile.html #}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Профиль {{ profile_user.username }}{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-3 text-center">
+    {% if profile_user.avatar %}
+      <img src="{{ profile_user.avatar.url }}" alt="Аватар {{ profile_user.username }}" class="img-thumbnail rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+    {% else %}
+      {# Убедитесь, что этот файл существует в static/images/ #}
+      <img src="{% static 'images/avatar_placeholder.png' %}" alt="Нет аватара" class="img-thumbnail rounded-circle mb-3" style="width: 150px; height: 150px;">
+    {% endif %}
+    <h2 class="h4">{{ profile_user.username }}</h2>
+    {% if profile_user.first_name or profile_user.last_name %}
+        <p class="text-muted">{{ profile_user.get_full_name }}</p>
+    {% endif %}
+  </div>
+  <div class="col-md-9">
+    {% if profile_user.bio %}
+      <h4>О себе:</h4>
+      <p>{{ profile_user.bio|linebreaksbr }}</p>
+    {% endif %}
+
+    {% if profile_user.contacts %}
+      <h4>Контакты:</h4>
+      <p>{{ profile_user.contacts }}</p>
+    {% endif %}
+
+    <h4>Email:</h4>
+    <p>{{ profile_user.email }}</p>
+
+    {% if user.is_authenticated and user == profile_user %}
+      <a href="#" class="btn btn-secondary">Редактировать профиль</a> {# TODO: Ссылка на редактирование #}
+    {% endif %}
+
+    {# TODO: Добавить кнопки подписки/отписки #}
+  </div>
+</div>
+{% endblock %}
