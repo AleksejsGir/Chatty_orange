@@ -6,7 +6,7 @@ app_name = 'posts' # Определяем пространство имен URL
 
 urlpatterns = [
     # Здесь будут URL-паттерны для постов
-    path('', views.post_list, name='list'), # Пример будущего пути
+    # path('', views.post_list, name='list'), # Пример будущего пути
 ]
 
 # <!-- TODO: Добавлять сюда URL-паттерны для приложения posts по мере реализации views. -->
