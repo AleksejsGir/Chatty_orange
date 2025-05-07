@@ -1,5 +1,7 @@
+# posts/forms.py
 from django import forms
 from .models import Post
+
 
 class PostForm(forms.ModelForm):
     class Meta:
@@ -7,29 +9,27 @@ class PostForm(forms.ModelForm):
         fields = ['title', 'text', 'image']
         widgets = {
             'title': forms.TextInput(attrs={
-                'class': 'form-input',
-                'placeholder': 'Минимум 5 символов'
+                'class': 'form-control',
+                'placeholder': 'Введите заголовок'
             }),
             'text': forms.Textarea(attrs={
-                'class': 'form-textarea',
-                'rows': 4,
-                'placeholder': 'Минимум 20 символов'
+                'class': 'form-control',
+                'placeholder': 'Введите текст поста',
+                'rows': 5
             }),
             'image': forms.ClearableFileInput(attrs={
-                'class': 'form-file'
+                'class': 'form-control-file'
             })
         }
 
     def clean_title(self):
-        title = self.cleaned_data.get('title')
+        title = self.cleaned_data['title']
         if len(title) < 5:
-            raise forms.ValidationError("Слишком короткий заголовок!")
+            raise forms.ValidationError("Заголовок должен содержать минимум 5 символов")
         return title
 
     def clean_text(self):
-        text = self.cleaned_data.get('text')
-        if len(text) < 20:
-            raise forms.ValidationError("Пост должен содержать минимум 20 символов")
+        text = self.cleaned_data['text']
+        if len(text) < 10:
+            raise forms.ValidationError("Текст поста должен содержать минимум 10 символов")
         return text
-
-# <!-- TODO: Добавить валидацию для изображения (размер/формат) -->
