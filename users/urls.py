@@ -11,7 +11,7 @@ urlpatterns = [
     # path('login/', views.login_view, name='login'),
     # path('logout/', views.logout_view, name='logout'),
     path('profile/<str:username>/', views.profile_view, name='profile'),
-    path('profile/<str:username>/edit/', views.ProfileUpdateView.as_view(), name='profile_edit'),
+    path('profile/edit/<int:pk>/', views.ProfileUpdateView.as_view(), name='profile-edit'),
 ]
 
 # <!-- TODO: Добавлять сюда URL-паттерны для приложения users по мере реализации views. -->
