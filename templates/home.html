@@ -5,24 +5,26 @@
 {% block title %}Главная - Chatty{% endblock %}
 
 {% block content %}
-<div class="jumbotron"> {# Пример использования компонента Bootstrap Jumbotron #}
-    <h1 class="display-4">Добро пожаловать в Chatty!</h1>
-    <p class="lead">Это главная страница нашей учебной социальной сети.</p>
-    <hr class="my-4">
+<div class="container py-5">
+    <div class="p-5 mb-4 bg-light rounded-3 shadow-sm">
+        <div class="container-fluid py-5 text-center">
+            <h1 class="display-4 fw-bold">Добро пожаловать в Chatty!</h1>
+            <p class="fs-4 col-md-8 mx-auto">Присоединяйтесь к нашему сообществу, делитесь мыслями и находите новых друзей.</p>
+            <hr class="my-4">
 
-    {% if user.is_authenticated %}
-        <p>Привет, **{{ user.username }}**!</p>
-        <a class="btn btn-primary btn-lg" href="#" role="button">Перейти в ленту</a> {# TODO: Заменить # на {% url 'posts:list' %} или {% url 'subscriptions:feed' %} #}
-        <form action="{% url 'account_logout' %}" method="post" style="display: inline;"> {# URL ВЫХОДА #}
-            {% csrf_token %}
-            <button type="submit" class="btn btn-secondary btn-lg">Выйти</button>
-        </form>
-    {% else %}
-        <p>Присоединяйтесь к нашему сообществу или войдите, если у вас уже есть аккаунт.</p>
-        <a class="btn btn-success btn-lg" href="{% url 'account_signup' %}" role="button">Зарегистрироваться</a> {# URL РЕГИСТРАЦИИ #}
-        <a class="btn btn-primary btn-lg" href="{% url 'account_login' %}" role="button">Войти</a> {# URL ВХОДА #}
-    {% endif %}
+            {% if user.is_authenticated %}
+                <p class="fs-5">Привет, <strong>{{ user.username }}</strong>!</p>
+                <a class="btn btn-primary btn-lg me-2" href="{% url 'posts:post-list' %}" role="button">Перейти в ленту</a>
+                <form action="{% url 'account_logout' %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-secondary btn-lg">Выйти</button>
+                </form>
+            {% else %}
+                <p>Войдите или зарегистрируйтесь, чтобы начать.</p>
+                <a class="btn btn-success btn-lg me-2" href="{% url 'account_signup' %}" role="button">Зарегистрироваться</a>
+                <a class="btn btn-primary btn-lg" href="{% url 'account_login' %}" role="button">Войти</a>
+            {% endif %}
+        </div>
+    </div>
 </div>
 {% endblock %}
-
-<!-- TODO: Раскомментировать и настроить URL 'users:login', 'users:logout', 'users:register', когда они будут реализованы в Задаче 5. -->

@@ -9,7 +9,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Все посты</h1>
         {% if user.is_authenticated %}
-            <a href="{% url 'posts:create' %}" class="btn btn-primary">
+            <a href="{% url 'posts:post-create' %}" class="btn btn-primary">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle-fill me-1" viewBox="0 0 16 16">
                     <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z"/>
                 </svg>
@@ -18,42 +18,46 @@
         {% endif %}
     </div>
 
-    {% if object_list %}
-        {% for post in object_list %}
+    {% if posts %} {# Используем 'posts' из context_object_name в PostListView #}
+        {% for post in posts %}
         <div class="card mb-4 shadow-sm">
             <div class="row g-0">
                 {% if post.image %}
                 <div class="col-md-4">
-                    <a href="{{ post.get_absolute_url }}">
+                    <a href="{% url 'posts:post-detail' pk=post.pk %}">
                         <img src="{{ post.image.url }}" class="img-fluid rounded-start" alt="{{ post.title }}" style="height: 250px; object-fit: cover; width: 100%;">
                     </a>
                 </div>
                 {% endif %}
                 <div class="{% if post.image %}col-md-8{% else %}col-md-12{% endif %}">
-                    <div class="card-body">
-                        <h2 class="card-title h4"><a href="{{ post.get_absolute_url }}" class="text-decoration-none text-dark">{{ post.title }}</a></h2>
+                    <div class="card-body d-flex flex-column">
+                        <h2 class="card-title h4"><a href="{% url 'posts:post-detail' pk=post.pk %}" class="text-decoration-none text-dark">{{ post.title }}</a></h2>
                         <div class="d-flex align-items-center mb-2">
                             {% if post.author.avatar %}
-                                <img src="{{ post.author.avatar.url }}" alt="{{ post.author.username }}" class="rounded-circle me-2" width="40" height="40" style="object-fit: cover;">
+                                <img src="{{ post.author.avatar.url }}" alt="{{ post.author.username }}" class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;">
                             {% else %}
-                                <img src="{% static 'images/avatar_placeholder.png' %}" alt="Аватар по умолчанию" class="rounded-circle me-2" width="40" height="40">
+                                <img src="{% static 'images/avatar_placeholder.png' %}" alt="Аватар по умолчанию" class="rounded-circle me-2" width="32" height="32">
                             {% endif %}
                             <div>
-                                <a href="{% url 'users:profile' post.author.username %}" class="text-decoration-none">{{ post.author.username }}</a>
-                                <small class="text-muted d-block">{{ post.pub_date|date:"d M Y, H:i" }}</small>
+                                <a href="{% url 'users:profile' post.author.username %}" class="text-decoration-none fw-bold">{{ post.author.username }}</a>
+                                <small class="text-muted d-block">{{ post.created_at|date:"d M Y, H:i" }}</small>
                             </div>
                         </div>
-                        <p class="card-text">{{ post.text|truncatewords_html:50|safe }}</p> {# Обрезаем текст до 50 слов, сохраняя HTML-теги #}
-                        <a href="{{ post.get_absolute_url }}" class="btn btn-outline-primary btn-sm">Читать далее »</a>
+                        <p class="card-text flex-grow-1">{{ post.text|truncatewords_html:50|safe }}</p> {# Используем truncatewords_html и safe #}
+                        <div class="mt-auto"> {# Кнопку вниз #}
+                            <a href="{% url 'posts:post-detail' pk=post.pk %}" class="btn btn-outline-primary btn-sm">Читать далее »</a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         {% endfor %}
 
+        {# Блок пагинации #}
         {% if is_paginated %}
             <nav aria-label="Page navigation">
                 <ul class="pagination justify-content-center">
+                    {# Кнопка "Назад" #}
                     {% if page_obj.has_previous %}
                         <li class="page-item">
                             <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
@@ -66,22 +70,24 @@
                         </li>
                     {% endif %}
 
+                    {# Номера страниц #}
                     {% for num in page_obj.paginator.page_range %}
                         {% if page_obj.number == num %}
                             <li class="page-item active" aria-current="page"><span class="page-link">{{ num }}</span></li>
-                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} {# Показываем страницы вокруг текущей #}
                             <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
-                        {% elif num == 1 or num == page_obj.paginator.num_pages %}
-                            {% if num == 1 and page_obj.number > 3 %}
+                        {% elif num == 1 or num == page_obj.paginator.num_pages %} {# Всегда показываем первую и последнюю #}
+                            {% if num == 1 and page_obj.number > 3 %} {# Многоточие в начале #}
                                 <li class="page-item disabled"><span class="page-link">...</span></li>
                             {% endif %}
                             <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
-                            {% if num == page_obj.paginator.num_pages and page_obj.number < page_obj.paginator.num_pages|add:'-2' %}
+                            {% if num == page_obj.paginator.num_pages and page_obj.number < page_obj.paginator.num_pages|add:'-2' %} {# Многоточие в конце #}
                                 <li class="page-item disabled"><span class="page-link">...</span></li>
                             {% endif %}
                         {% endif %}
                     {% endfor %}
 
+                    {# Кнопка "Вперед" #}
                     {% if page_obj.has_next %}
                         <li class="page-item">
                             <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
@@ -95,15 +101,14 @@
                     {% endif %}
                 </ul>
             </nav>
-        {% endif %}
+        {% endif %} {# Конец блока пагинации #}
 
     {% else %}
-        <p class="lead text-center">Пока нет ни одного поста. <a href="{% url 'posts:create' %}">Создайте первый!</a></p>
+        <p class="lead text-center mt-5">Пока нет ни одного поста.
+            {% if user.is_authenticated %}
+             <a href="{% url 'posts:post-create' %}">Создайте первый!</a>
+            {% endif %}
+        </p>
     {% endif %}
 </div>
 {% endblock %}
-
-<!-- TODO: Проверить работу отображения аватара автора и заглушки. -->
-<!-- TODO: Проверить корректность URL для создания поста и детальной страницы. -->
-<!-- TODO: Убедиться, что пагинация работает корректно, когда постов много. -->
-<!-- TODO: Настроить truncatewords_html для корректного отображения превью текста. -->

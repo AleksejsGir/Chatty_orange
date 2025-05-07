@@ -10,7 +10,7 @@ class PostListView(ListView):
     model = Post
     template_name = 'posts/post_list.html'
     context_object_name = 'posts'
-    ordering = ['-created_at']
+    ordering = ['-pub_date']
     paginate_by = 10
 
 
