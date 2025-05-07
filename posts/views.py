@@ -11,7 +11,7 @@ class PostListView(ListView):
     template_name = 'posts/post_list.html'
     context_object_name = 'posts'
     ordering = ['-pub_date']
-    paginate_by = 10
+    paginate_by = 4
 
 
 class PostDetailView(DetailView):
