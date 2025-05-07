@@ -1,0 +1,11 @@
+<!-- templates/posts/post_list.html -->
+{% extends 'base_generic.html' %}
+
+{% block content %}
+  <h2>Список постов</h2>
+  <ul>
+    {% for post in posts %}
+      <li><a href="{% url 'post-detail' post.pk %}">{{ post.title }}</a> - {{ post.created_at }}</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

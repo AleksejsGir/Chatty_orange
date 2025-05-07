@@ -1,0 +1,10 @@
+<!-- templates/posts/post_detail.html -->
+{% extends 'base_generic.html' %}
+
+{% block content %}
+  <h2>{{ post.title }}</h2>
+  <p>{{ post.text }}</p>
+  {% if post.image %}
+    <img src="{{ post.image.url }}" alt="{{ post.title }}">
+  {% endif %}
+{% endblock %}

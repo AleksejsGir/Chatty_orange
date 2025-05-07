@@ -1,0 +1,11 @@
+<!-- templates/posts/post_create.html -->
+{% extends 'base_generic.html' %}
+
+{% block content %}
+  <h2>Создать пост</h2>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Создать</button>
+  </form>
+{% endblock %}
