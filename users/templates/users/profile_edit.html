@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+{% load django_bootstrap5 %}
+
+{% block title %}Редактирование профиля - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2>Редактирование профиля: {{ user.username }}</h2>
+            <hr class="mb-4">
+
+            <form method="post" enctype="multipart/form-data"> {# enctype нужен для аватара #}
+                {% csrf_token %}
+
+                {% bootstrap_form form layout='horizontal' %}
+                {# Если не используете django-bootstrap5: {{ form.as_p }} #}
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-save-fill me-1" viewBox="0 0 16 16"> <path d="M8.5 1.5A1.5 1.5 0 0 1 10 0h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h6c-.314.418-.5.937-.5 1.5v6h-2a.5.5 0 0 0-.354.854l2.5 2.5a.5.5 0 0 0 .708 0l2.5-2.5A.5.5 0 0 0 10.5 7.5h-2v-6z"/></svg>
+                        Сохранить изменения
+                    </button>
+                     {# Кнопка "Отмена" ведет на страницу профиля #}
+                    <a href="{% url 'users:profile' username=user.username %}" class="btn btn-secondary ms-2">
+                        Отмена
+                    </a>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<!-- TODO: Проверить, что ProfileUpdateForm корректно обрабатывает поле 'avatar'. -->
