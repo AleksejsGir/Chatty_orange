@@ -183,9 +183,14 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend', # Бэкенд allauth
 ]
 SITE_ID = 1 # Требуется для allauth
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = True # Или False, если логин только по email
-ACCOUNT_AUTHENTICATION_METHOD = 'username_email' # или 'email' или 'username'
+
+
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email'  # или 'username' / 'email'
+
+# ACCOUNT_LOGIN_METHODS = {'email', 'username'}
+
+
 ACCOUNT_EMAIL_VERIFICATION = 'optional' # или 'mandatory' или 'none'
 ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
 ACCOUNT_LOGOUT_ON_GET = False # Выход только через POST для безопасности

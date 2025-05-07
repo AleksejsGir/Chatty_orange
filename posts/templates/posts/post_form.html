@@ -1,1 +1,39 @@
+{% extends 'base_generic.html' %}
+
+{% block content %}
+  <h2>
+    {% if object %}
+      Редактировать пост: "{{ object.title }}"
+    {% else %}
+      Создать новый пост
+    {% endif %}
+  </h2>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div class="mb-3">
+      {{ form.title.label_tag }}
+      {{ form.title }}
+      {{ form.title.errors }}
+    </div>
+
+    <div class="mb-3">
+      {{ form.text.label_tag }}
+      {{ form.text }}
+      {{ form.text.errors }}
+    </div>
+
+    <div class="mb-3">
+      {{ form.image.label_tag }}
+      {{ form.image }}
+      {{ form.image.errors }}
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+      {% if object %}Сохранить изменения{% else %}Опубликовать пост{% endif %}
+    </button>
+  </form>
+{% endblock %}
 

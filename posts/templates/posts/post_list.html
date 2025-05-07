@@ -1,11 +1,38 @@
 <!-- templates/posts/post_list.html -->
+
+
 {% extends 'base_generic.html' %}
 
 {% block content %}
   <h2>Список постов</h2>
-  <ul>
-    {% for post in posts %}
-      <li><a href="{% url 'post-detail' post.pk %}">{{ post.title }}</a> - {{ post.created_at }}</li>
-    {% endfor %}
-  </ul>
+
+  {% if posts %}
+    <ul class="list-group">
+      {% for post in posts %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <a href="{% url 'post-detail' post.pk %}">{{ post.title }}</a>
+          <small class="text-muted">{{ post.created_at|date:"d M Y H:i" }}</small>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Постов пока нет.</p>
+  {% endif %}
 {% endblock %}
+
+
+
+
+
+
+
+<!--{% extends 'base_generic.html' %}-->
+
+<!--{% block content %}-->
+<!--  <h2>Список постов</h2>-->
+<!--  <ul>-->
+<!--    {% for post in posts %}-->
+<!--      <li><a href="{% url 'post-detail' post.pk %}">{{ post.title }}</a> - {{ post.created_at }}</li>-->
+<!--    {% endfor %}-->
+<!--  </ul>-->
+<!--{% endblock %}-->

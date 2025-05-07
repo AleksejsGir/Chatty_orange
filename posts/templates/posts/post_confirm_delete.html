@@ -1,10 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
+{% extends 'base_generic.html' %}
 
-</body>
-</html>
+{% block content %}
+  <h2>Удалить пост: "{{ object.title }}"</h2>
+  <p>Вы уверены, что хотите удалить этот пост? Это действие необратимо.</p>
+
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Да, удалить</button>
+    <a href="{% url 'posts:post-detail' object.pk %}" class="btn btn-secondary">Отмена</a>
+  </form>
+{% endblock %}
