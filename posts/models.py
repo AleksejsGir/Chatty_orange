@@ -57,3 +57,33 @@ class Post(models.Model):
         verbose_name = "Пост"
         verbose_name_plural = "Посты"
         ordering = ["-pub_date"]
+
+class Comment(models.Model):
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name="Пост"
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        verbose_name="Автор"
+    )
+    text = models.TextField(verbose_name="Текст комментария")
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата создания"
+    )
+
+    def __str__(self):
+        return f"Комментарий от {self.author} к посту {self.post.title}"
+
+    def get_absolute_url(self):
+        """Возвращает URL для просмотра поста с комментариями."""
+        return reverse('posts:post-detail', kwargs={'pk': self.post.pk}) + '#comments'
+
+    class Meta:
+        verbose_name = "Комментарий"
+        verbose_name_plural = "Комментарии"
+        ordering = ["-created_at"]
