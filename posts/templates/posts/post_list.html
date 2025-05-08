@@ -1,114 +1,285 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
-{% load django_bootstrap5 %}
 
-{% block title %}Лента постов - Chatty{% endblock %}
+{% block title %}Лента - Chatty{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Все посты</h1>
-        {% if user.is_authenticated %}
-            <a href="{% url 'posts:post-create' %}" class="btn btn-primary">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle-fill me-1" viewBox="0 0 16 16">
-                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z"/>
-                </svg>
-                Создать пост
+<div class="row">
+    <!-- Основная колонка с постами -->
+    <div class="col-lg-8">
+        <!-- Заголовок страницы и кнопка создания поста -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="page-title">Лента постов</h1>
+            {% if user.is_authenticated %}
+            <a href="{% url 'posts:post-create' %}" class="btn btn-create">
+                <i class="fa-solid fa-plus-circle me-2"></i>Создать пост
             </a>
-        {% endif %}
-    </div>
+            {% endif %}
+        </div>
 
-    {% if posts %} {# Используем 'posts' из context_object_name в PostListView #}
-        {% for post in posts %}
-        <div class="card mb-4 shadow-sm">
-            <div class="row g-0">
-                {% if post.image %}
-                <div class="col-md-4">
-                    <a href="{% url 'posts:post-detail' pk=post.pk %}">
-                        <img src="{{ post.image.url }}" class="img-fluid rounded-start" alt="{{ post.title }}" style="height: 250px; object-fit: cover; width: 100%;">
-                    </a>
-                </div>
+        <!-- Фильтры постов -->
+        <div class="post-filters mb-4">
+            <div class="btn-group" role="group" aria-label="Фильтры постов">
+                <button type="button" class="btn btn-filter active">Последние</button>
+                <button type="button" class="btn btn-filter">Популярные</button>
+                {% if user.is_authenticated %}
+                <button type="button" class="btn btn-filter">Подписки</button>
                 {% endif %}
-                <div class="{% if post.image %}col-md-8{% else %}col-md-12{% endif %}">
-                    <div class="card-body d-flex flex-column">
-                        <h2 class="card-title h4"><a href="{% url 'posts:post-detail' pk=post.pk %}" class="text-decoration-none text-dark">{{ post.title }}</a></h2>
-                        <div class="d-flex align-items-center mb-2">
-                            {% if post.author.avatar %}
-                                <img src="{{ post.author.avatar.url }}" alt="{{ post.author.username }}" class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;">
-                            {% else %}
-                                <img src="{% static 'images/avatar_placeholder.png' %}" alt="Аватар по умолчанию" class="rounded-circle me-2" width="32" height="32">
-                            {% endif %}
-                            <div>
-                                <a href="{% url 'users:profile' post.author.username %}" class="text-decoration-none fw-bold">{{ post.author.username }}</a>
-                                <small class="text-muted d-block">{{ post.created_at|date:"d M Y, H:i" }}</small>
-                            </div>
-                        </div>
-                        <p class="card-text flex-grow-1">{{ post.text|truncatewords_html:50|safe }}</p> {# Используем truncatewords_html и safe #}
-                        <div class="mt-auto"> {# Кнопку вниз #}
-                            <a href="{% url 'posts:post-detail' pk=post.pk %}" class="btn btn-outline-primary btn-sm">Читать далее »</a>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
-        {% endfor %}
 
-        {# Блок пагинации #}
-        {% if is_paginated %}
-            <nav aria-label="Page navigation">
-                <ul class="pagination justify-content-center">
-                    {# Кнопка "Назад" #}
-                    {% if page_obj.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
-                                <span aria-hidden="true">«</span>
-                            </a>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled">
-                            <span class="page-link" aria-hidden="true">«</span>
-                        </li>
+        <!-- Список постов -->
+        {% if posts %}
+            <div class="posts-container">
+                {% for post in posts %}
+                <article class="post-card">
+                    <!-- Шапка поста с информацией об авторе -->
+                    <div class="post-header">
+                        <div class="post-author">
+                            {% if post.author.avatar %}
+                            <img src="{{ post.author.avatar.url }}" alt="{{ post.author.username }}" class="post-avatar">
+                            {% else %}
+                            <div class="avatar-placeholder">
+                                <span>{{ post.author.username|first|upper }}</span>
+                            </div>
+                            {% endif %}
+                            <div class="post-meta">
+                                <a href="{% url 'users:profile' post.author.username %}" class="post-author-name">{{ post.author.username }}</a>
+                                <span class="post-time">{{ post.pub_date|date:"d.m.Y в H:i" }}</span>
+                            </div>
+                        </div>
+                        {% if user.is_authenticated and user == post.author %}
+                        <div class="post-actions dropdown">
+                            <button class="btn-post-menu" type="button" id="postMenu{{ post.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-solid fa-ellipsis"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="postMenu{{ post.id }}">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'posts:post-update' pk=post.pk %}">
+                                        <i class="fa-solid fa-pen-to-square me-2"></i>Редактировать
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="{% url 'posts:post-delete' pk=post.pk %}">
+                                        <i class="fa-solid fa-trash-can me-2"></i>Удалить
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Заголовок поста -->
+                    <h2 class="post-title">
+                        <a href="{% url 'posts:post-detail' pk=post.pk %}">{{ post.title }}</a>
+                    </h2>
+
+                    <!-- Содержимое поста -->
+                    <div class="post-content">
+                        <p class="post-text">{{ post.text|truncatechars:300 }}</p>
+                        {% if post.text|length > 300 %}
+                        <a href="{% url 'posts:post-detail' pk=post.pk %}" class="read-more">Читать дальше</a>
+                        {% endif %}
+                    </div>
+
+                    <!-- Изображение поста, если есть -->
+                    {% if post.image %}
+                    <div class="post-image">
+                        <img src="{{ post.image.url }}" alt="{{ post.title }}" class="img-fluid rounded">
+                    </div>
                     {% endif %}
 
-                    {# Номера страниц #}
+                    <!-- Футер поста с кнопками взаимодействия -->
+                    <div class="post-footer">
+                        <div class="interaction-buttons">
+                            <button class="btn-interaction like-button" title="Нравится">
+                                <i class="fa-regular fa-heart"></i>
+                                <span class="interaction-count">42</span>
+                            </button>
+                            <a href="{% url 'posts:post-detail' pk=post.pk %}#comments" class="btn-interaction comment-button" title="Комментарии">
+                                <i class="fa-regular fa-comment"></i>
+                                <span class="interaction-count">12</span>
+                            </a>
+                            <button class="btn-interaction share-button" title="Поделиться">
+                                <i class="fa-regular fa-share-from-square"></i>
+                            </button>
+                        </div>
+                        <a href="{% url 'posts:post-detail' pk=post.pk %}" class="btn-view-post">
+                            <i class="fa-solid fa-angle-right me-1"></i> Перейти к посту
+                        </a>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+
+            <!-- Пагинация -->
+            {% if is_paginated %}
+            <nav aria-label="Навигация по страницам" class="my-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link"><i class="fa-solid fa-chevron-left"></i></span>
+                    </li>
+                    {% endif %}
+
                     {% for num in page_obj.paginator.page_range %}
                         {% if page_obj.number == num %}
-                            <li class="page-item active" aria-current="page"><span class="page-link">{{ num }}</span></li>
-                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} {# Показываем страницы вокруг текущей #}
-                            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
-                        {% elif num == 1 or num == page_obj.paginator.num_pages %} {# Всегда показываем первую и последнюю #}
-                            {% if num == 1 and page_obj.number > 3 %} {# Многоточие в начале #}
-                                <li class="page-item disabled"><span class="page-link">...</span></li>
-                            {% endif %}
-                            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
-                            {% if num == page_obj.paginator.num_pages and page_obj.number < page_obj.paginator.num_pages|add:'-2' %} {# Многоточие в конце #}
-                                <li class="page-item disabled"><span class="page-link">...</span></li>
-                            {% endif %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
                         {% endif %}
                     {% endfor %}
 
-                    {# Кнопка "Вперед" #}
                     {% if page_obj.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
-                                <span aria-hidden="true">»</span>
-                            </a>
-                        </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                    </li>
                     {% else %}
-                        <li class="page-item disabled">
-                            <span class="page-link" aria-hidden="true">»</span>
-                        </li>
+                    <li class="page-item disabled">
+                        <span class="page-link"><i class="fa-solid fa-chevron-right"></i></span>
+                    </li>
                     {% endif %}
                 </ul>
             </nav>
-        {% endif %} {# Конец блока пагинации #}
-
-    {% else %}
-        <p class="lead text-center mt-5">Пока нет ни одного поста.
-            {% if user.is_authenticated %}
-             <a href="{% url 'posts:post-create' %}">Создайте первый!</a>
             {% endif %}
-        </p>
-    {% endif %}
+
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fa-regular fa-comment-dots"></i>
+                </div>
+                <h3 class="empty-state-title">Здесь пока нет постов</h3>
+                {% if user.is_authenticated %}
+                <p class="empty-state-description">Будьте первым, кто поделится мыслями!</p>
+                <a href="{% url 'posts:post-create' %}" class="btn btn-primary btn-lg">
+                    <i class="fa-solid fa-plus-circle me-2"></i>Создать пост
+                </a>
+                {% else %}
+                <p class="empty-state-description">Авторизуйтесь, чтобы создать первый пост.</p>
+                <a href="{% url 'account_login' %}" class="btn btn-primary btn-lg">
+                    <i class="fa-solid fa-right-to-bracket me-2"></i>Войти
+                </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Боковая панель -->
+    <div class="col-lg-4 d-none d-lg-block">
+        <!-- Профиль пользователя (если авторизован) -->
+        {% if user.is_authenticated %}
+        <div class="sidebar-card user-profile-card">
+            <div class="user-profile-header">
+                {% if user.avatar %}
+                <img src="{{ user.avatar.url }}" alt="{{ user.username }}" class="sidebar-avatar">
+                {% else %}
+                <div class="sidebar-avatar-placeholder">
+                    <span>{{ user.username|first|upper }}</span>
+                </div>
+                {% endif %}
+                <div class="user-profile-info">
+                    <h3 class="user-profile-name">{{ user.username }}</h3>
+                    <a href="{% url 'users:profile' user.username %}" class="user-profile-link">Просмотреть профиль</a>
+                </div>
+            </div>
+            <div class="user-profile-stats">
+                <div class="stat-item">
+                    <span class="stat-value">0</span>
+                    <span class="stat-label">Постов</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">0</span>
+                    <span class="stat-label">Подписчиков</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">0</span>
+                    <span class="stat-label">Подписок</span>
+                </div>
+            </div>
+            <div class="user-profile-actions">
+                <a href="{% url 'posts:post-create' %}" class="btn btn-primary btn-sm w-100">
+                    <i class="fa-solid fa-pen-to-square me-2"></i>Новый пост
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Популярные темы -->
+        <div class="sidebar-card trending-card">
+            <h3 class="sidebar-card-title">Популярные темы</h3>
+            <ul class="trending-topics">
+                <li class="trending-topic">
+                    <a href="#" class="trending-topic-link">#технологии</a>
+                    <span class="trending-count">42 поста</span>
+                </li>
+                <li class="trending-topic">
+                    <a href="#" class="trending-topic-link">#спорт</a>
+                    <span class="trending-count">38 постов</span>
+                </li>
+                <li class="trending-topic">
+                    <a href="#" class="trending-topic-link">#путешествия</a>
+                    <span class="trending-count">24 поста</span>
+                </li>
+                <li class="trending-topic">
+                    <a href="#" class="trending-topic-link">#музыка</a>
+                    <span class="trending-count">19 постов</span>
+                </li>
+                <li class="trending-topic">
+                    <a href="#" class="trending-topic-link">#кулинария</a>
+                    <span class="trending-count">15 постов</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Кого подписаться -->
+        <div class="sidebar-card who-to-follow-card">
+            <h3 class="sidebar-card-title">Кого подписаться</h3>
+            <ul class="who-to-follow-list">
+                <li class="suggested-user">
+                    <div class="suggested-user-avatar-placeholder">
+                        <span>А</span>
+                    </div>
+                    <div class="suggested-user-info">
+                        <span class="suggested-user-name">Alex123</span>
+                        <span class="suggested-user-handle">@alex123</span>
+                    </div>
+                    <button class="btn btn-follow">Подписаться</button>
+                </li>
+                <li class="suggested-user">
+                    <div class="suggested-user-avatar-placeholder">
+                        <span>М</span>
+                    </div>
+                    <div class="suggested-user-info">
+                        <span class="suggested-user-name">Maria</span>
+                        <span class="suggested-user-handle">@maria_design</span>
+                    </div>
+                    <button class="btn btn-follow">Подписаться</button>
+                </li>
+                <li class="suggested-user">
+                    <div class="suggested-user-avatar-placeholder">
+                        <span>С</span>
+                    </div>
+                    <div class="suggested-user-info">
+                        <span class="suggested-user-name">СпортБлог</span>
+                        <span class="suggested-user-handle">@sport_blog</span>
+                    </div>
+                    <button class="btn btn-follow">Подписаться</button>
+                </li>
+            </ul>
+            <a href="#" class="sidebar-card-footer-link">Показать больше</a>
+        </div>
+    </div>
 </div>
 {% endblock %}

@@ -7,65 +7,136 @@
 {% block content %}
 <div class="container mt-4">
     <div class="row justify-content-center">
-        <div class="col-lg-9"> {# Слегка увеличил ширину колонки #}
-            <article class="blog-post mb-4">
-                <h1 class="blog-post-title display-5 mb-3">{{ post.title }}</h1>
-
-                <div class="d-flex align-items-center mb-3 border-bottom pb-3">
-                    {% if post.author.avatar %}
-                        <img src="{{ post.author.avatar.url }}" alt="{{ post.author.username }}" class="rounded-circle me-3" width="50" height="50" style="object-fit: cover;">
-                    {% else %}
-                        <img src="{% static 'images/avatar_placeholder.png' %}" alt="Аватар по умолчанию" class="rounded-circle me-3" width="50" height="50">
-                    {% endif %}
-                    <div>
-                        <h5 class="mb-0"><a href="{% url 'users:profile' post.author.username %}" class="text-decoration-none">{{ post.author.username }}</a></h5>
-                        <small class="text-muted">Опубликовано: {{ post.created_at|date:"d F Y, H:i" }}</small>
+        <div class="col-lg-9">
+            <article class="post-card mb-4 p-4"> {# Используем стиль карточки для поста #}
+                {# --- Шапка поста --- #}
+                <div class="post-header mb-3 pb-3 border-bottom"> {# Добавлен отступ и граница #}
+                    <div class="post-author">
+                        {% if post.author.avatar %}
+                            <img src="{{ post.author.avatar.url }}" alt="{{ post.author.username }}" class="post-avatar" style="width: 50px; height: 50px;"> {# Используем класс post-avatar из CSS #}
+                        {% else %}
+                            <div class="avatar-placeholder" style="width: 50px; height: 50px; font-size: 1.25rem;"> {# Используем класс avatar-placeholder #}
+                                <span>{{ post.author.username|first|upper }}</span>
+                            </div>
+                        {% endif %}
+                        <div class="post-meta">
+                            <a href="{% url 'users:profile' post.author.username %}" class="post-author-name">{{ post.author.username }}</a>
+                            <span class="post-time">{{ post.pub_date|date:"d F Y, H:i" }}</span> {# Исправлено на pub_date #}
+                        </div>
                     </div>
-                     {# Кнопки редактирования/удаления справа от автора, если это автор #}
+                     {# Кнопки редактирования/удаления #}
                      {% if user.is_authenticated and user == post.author %}
-                        <div class="ms-auto">
-                            <a href="{% url 'posts:post-update' pk=post.pk %}" class="btn btn-outline-secondary btn-sm" title="Редактировать">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16"> <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/></svg>
-                            </a>
-                            <a href="{% url 'posts:post-delete' pk=post.pk %}" class="btn btn-outline-danger btn-sm ms-2" title="Удалить">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16"><path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.024l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m3.5-.05.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m3.5.056l-.5 8.5a.5.5 0 1 0 .998.06l.5-8.5a.5.5 0 1 0-.998-.06Z"/></svg>
-                            </a>
+                        <div class="post-actions dropdown"> {# Используем стилизованное меню #}
+                             <button class="btn-post-menu" type="button" id="postDetailMenu{{ post.id }}" data-bs-toggle="dropdown" aria-expanded="false" title="Действия">
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="postDetailMenu{{ post.id }}">
+                                <li><a class="dropdown-item" href="{% url 'posts:post-update' pk=post.pk %}"><i class="fa-solid fa-pen-to-square fa-fw me-2"></i>Редактировать</a></li>
+                                <li><a class="dropdown-item text-danger" href="{% url 'posts:post-delete' pk=post.pk %}"><i class="fa-solid fa-trash-can fa-fw me-2"></i>Удалить</a></li>
+                            </ul>
                         </div>
                     {% endif %}
                 </div>
 
+                {# --- Заголовок поста --- #}
+                <h1 class="post-title display-5 mb-3">{{ post.title }}</h1>
+
+                 {# --- Изображение поста --- #}
                 {% if post.image %}
-                    <div class="text-center mb-4">
+                    <div class="post-image mb-4 text-center"> {# Добавлен text-center #}
                         <img src="{{ post.image.url }}" class="img-fluid rounded shadow-sm" alt="{{ post.title }}" style="max-height: 600px;">
                     </div>
                 {% endif %}
 
-                <div class="post-content fs-5"> {# Увеличил шрифт текста поста #}
+                {# --- Текст поста --- #}
+                <div class="post-content fs-5 mb-4"> {# Добавлен отступ снизу #}
                     {{ post.text|linebreaksbr }}
                 </div>
 
+                 {# --- Футер поста с лайками/комментариями --- #}
+                <div class="post-footer mt-4"> {# Добавлен отступ сверху #}
+                    <div class="interaction-buttons">
+                        {# TODO: Заменить на реальные кнопки лайков #}
+                        <button class="btn-interaction like-button" title="Нравится">
+                            <i class="fa-regular fa-heart"></i>
+                            <span class="interaction-count">0</span> {# TODO: {{ post.total_likes }} #}
+                        </button>
+                        <span class="btn-interaction comment-button" title="Комментарии"> {# Просто отображаем количество #}
+                            <i class="fa-regular fa-comment"></i>
+                             {# TODO: Использовать реальное кол-во комментов #}
+                            <span class="interaction-count">{{ post.comment_set.count|default:"0" }}</span>
+                        </span>
+                        {# TODO: Добавить кнопку "Поделиться", если нужно #}
+                    </div>
+                </div>
             </article>
 
-            {# TODO: Здесь можно будет добавить секцию для комментариев #}
-            <div class="mt-5 border-top pt-4">
-                <h4 class="mb-3">Комментарии</h4>
-                <p><em>(Функционал комментариев будет добавлен позже)</em></p>
-                {# Пример формы добавления комментария #}
+            {# --- Секция комментариев --- #}
+            <div id="comments" class="mt-5 border-top pt-4"> {# Добавлен id для якоря #}
+                <h3 class="mb-4">Комментарии <span class="badge bg-secondary rounded-pill">{{ post.comment_set.count|default:"0" }}</span></h3>
+
+                {# Форма добавления комментария #}
                 {% if user.is_authenticated %}
-                <form method="post" action="#"> {# TODO: URL для добавления комментария #}
-                    {% csrf_token %}
-                    {# TODO: Добавить поле формы комментария #}
-                    <div class="mb-3">
-                        <textarea class="form-control" name="comment_text" rows="3" placeholder="Оставьте ваш комментарий..." required></textarea>
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Оставить комментарий</h5>
+                         {# TODO: Заменить action на URL добавления комментария #}
+                        <form method="post" action="#">
+                            {% csrf_token %}
+                            {# TODO: Использовать CommentForm #}
+                            <div class="mb-3">
+                                <textarea class="form-control" name="comment_text" rows="3" placeholder="Ваш комментарий..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-paper-plane me-1"></i> Отправить
+                            </button>
+                        </form>
                     </div>
-                    <button type="submit" class="btn btn-success">Отправить</button>
-                </form>
+                </div>
                 {% else %}
-                <p><a href="{% url 'account_login' %}?next={{ request.path }}">Войдите</a>, чтобы оставить комментарий.</p>
+                <div class="alert alert-light text-center" role="alert">
+                    <a href="{% url 'account_login' %}?next={{ request.path }}#comments">Войдите</a>, чтобы оставить комментарий.
+                </div>
                 {% endif %}
-            </div>
+
+                {# Список комментариев #}
+                {% with comments=post.comment_set.all %} {# Получаем комментарии #}
+                    {% if comments %}
+                        <div class="comments-list">
+                            {% for comment in comments %}
+                                <div class="d-flex mb-3 pb-3 border-bottom">
+                                    <div class="flex-shrink-0 me-3">
+                                        {% if comment.author.avatar %}
+                                            <img src="{{ comment.author.avatar.url }}" alt="{{ comment.author.username }}" class="post-avatar" style="width: 40px; height: 40px;">
+                                        {% else %}
+                                            <div class="avatar-placeholder" style="width: 40px; height: 40px; font-size: 1rem;">
+                                                <span>{{ comment.author.username|first|upper }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mt-0 mb-1">
+                                            <a href="{% url 'users:profile' comment.author.username %}" class="post-author-name">{{ comment.author.username }}</a>
+                                            <small class="text-muted ms-2">{{ comment.created_at|date:"d.m.Y H:i" }}</small>
+                                        </h6>
+                                        {{ comment.text|linebreaksbr }}
+                                        {# TODO: Добавить возможность ответа или удаления комментария (для автора/модератора) #}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                         <p class="text-center text-muted">Комментариев пока нет. Станьте первым!</p>
+                    {% endif %}
+                {% endwith %}
+            </div> {# Конец секции комментариев #}
 
         </div>
     </div>
 </div>
 {% endblock %}
+
+<!-- TODO: Реализовать URL и представление для добавления комментария. -->
+<!-- TODO: Передать CommentForm в контекст и использовать её в шаблоне. -->
+<!-- TODO: Реализовать реальный счетчик лайков и кнопку лайка. -->
+<!-- TODO: Реализовать удаление/редактирование комментариев. -->
