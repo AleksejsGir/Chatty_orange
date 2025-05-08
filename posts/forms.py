@@ -1,6 +1,6 @@
 # posts/forms.py
 from django import forms
-from .models import Post
+from .models import Post, Comment
 
 
 class PostForm(forms.ModelForm):
@@ -32,4 +32,22 @@ class PostForm(forms.ModelForm):
         text = self.cleaned_data['text']
         if len(text) < 10:
             raise forms.ValidationError("Текст поста должен содержать минимум 10 символов")
+        return text
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['text']
+        widgets = {
+            'text': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ваш комментарий...',
+                'rows': 3
+            })
+        }
+
+    def clean_text(self):
+        text = self.cleaned_data['text']
+        if len(text) < 3:
+            raise forms.ValidationError("Комментарий должен содержать минимум 3 символа")
         return text

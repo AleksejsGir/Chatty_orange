@@ -1,0 +1,33 @@
+{# templates/posts/comment_confirm_delete.html #}
+{% extends "base.html" %}
+
+{% block title %}Удаление комментария - Chatty{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title mb-4">Удаление комментария</h2>
+                    <p>Вы уверены, что хотите удалить этот комментарий?</p>
+                    <blockquote class="blockquote bg-light p-3 rounded">
+                        <p>{{ comment.text }}</p>
+                        <footer class="blockquote-footer">{{ comment.author.username }}, {{ comment.created_at|date:"d.m.Y H:i" }}</footer>
+                    </blockquote>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger me-2">
+                            <i class="fa-solid fa-trash me-1"></i> Удалить
+                        </button>
+                        <a href="{{ comment.post.get_absolute_url }}#comments" class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-xmark me-1"></i> Отмена
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
