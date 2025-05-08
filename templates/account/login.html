@@ -1,31 +1,66 @@
 {% extends "base.html" %}
-{% load i18n %} {# Используем теги интернационализации allauth #}
-{% load allauth account %} {# Загружаем теги allauth #}
-{% load django_bootstrap5 %} {# Если используете django-bootstrap5 #}
+{% load i18n %}
+{% load allauth account %}
+{% load django_bootstrap5 %}
 
-{% block head_title %}{% trans "Sign In" %}{% endblock %}
+{% block title %}{% trans "Вход" %} - Chatty{% endblock %} {# Изменил head_title на русский #}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-6">
-    <h1>{% trans "Sign In" %}</h1>
+<div class="container mt-5 mb-5"> {# Добавил отступы сверху и снизу #}
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8"> {# Немного увеличил ширину колонки #}
+             <div class="card profile-card shadow-sm"> {# Используем стиль карточки #}
+                 <div class="card-header profile-card-title"> {# Стиль заголовка #}
+                     <i class="fa-solid fa-right-to-bracket fa-fw me-2"></i>{% trans "Вход в Chatty" %} {# Изменил заголовок #}
+                 </div>
+                 <div class="card-body profile-card-content p-4"> {# Добавил padding #}
 
-    {% url 'account_signup' as signup_url %}
-    <p>{% blocktrans %}Если у вас еще нет аккаунта, пожалуйста <a href="{{ signup_url }}">зарегистрируйтесь</a>.{% endblocktrans %}</p>
+                    {# Сообщение о необходимости входа (если пришел со страницы, требующей логина) #}
+                    {% if form.errors and not form.non_field_errors %}
+                        <div class="alert alert-warning text-center" role="alert">
+                            {% trans "Пожалуйста, войдите, чтобы продолжить." %}
+                        </div>
+                    {% endif %}
 
-    <form class="login" method="post" action="{% url 'account_login' %}">
-      {% csrf_token %}
+                    {# Ссылка на регистрацию #}
+                    {% url 'account_signup' as signup_url %}
+                    <p class="text-center mb-4">{% blocktrans %}Еще нет аккаунта? <a href="{{ signup_url }}" class="link-primary fw-medium">Зарегистрируйтесь здесь!</a>{% endblocktrans %}</p>
 
-      {% bootstrap_form form %} {# Используем django-bootstrap5 для стилизации #}
-      {# Или стандартно: {{ form.as_p }} #}
+                    {# Отображение не полейных ошибок формы #}
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger" role="alert">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}<br>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
 
-      {% if redirect_field_value %}
-        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-      {% endif %}
+                    <form class="login" method="post" action="{% url 'account_login' %}">
+                        {% csrf_token %}
 
-      <button class="btn btn-primary mt-3" type="submit">{% trans "Sign In" %}</button>
-      <a class="button secondaryAction mt-3 ms-2" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
-    </form>
-  </div>
+                        {# Используем django-bootstrap5 для рендеринга полей #}
+                        {% bootstrap_form form layout='vertical' %}
+
+                        {# Скрытое поле для редиректа #}
+                        {% if redirect_field_value %}
+                            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                        {% endif %}
+
+                        {# Кнопка входа и ссылка на сброс пароля #}
+                        <div class="d-grid gap-2 mt-4"> {# Кнопка на всю ширину #}
+                             <button class="btn btn-primary btn-lg" type="submit"> {# Основная оранжевая кнопка #}
+                                <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> {% trans "Войти" %}
+                             </button>
+                        </div>
+                         <div class="text-center mt-3">
+                            <a class="link-secondary small" href="{% url 'account_reset_password' %}">{% trans "Забыли пароль?" %}</a>
+                         </div>
+                    </form>
+                 </div> {# Конец card-body #}
+             </div> {# Конец card #}
+        </div>
+    </div>
 </div>
 {% endblock %}
+
+<!-- TODO: Проверить работу отображения ошибок формы. -->
