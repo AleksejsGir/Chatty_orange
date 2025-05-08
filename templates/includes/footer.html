@@ -1,10 +1,45 @@
 {# templates/includes/footer.html #}
-{% load static %} {# Загрузка тегов для возможного использования статики #}
-{% now "Y" as current_year %} {# Получаем текущий год #}
+{% load static %}
+{% now "Y" as current_year %}
 
-<div class="container text-center"> {# Центрируем контент футера #}
-  <span class="text-muted">© {{ current_year }} Chatty. Все права защищены (или не очень).</span>
-  {# Можно добавить ссылки на соцсети, "О нас" и т.д. #}
+<div class="container">
+    <div class="row gy-4"> {# Добавлен отступ между колонками на мобильных #}
+        <div class="col-lg-4 col-md-6">
+            <h5 class="footer-heading">
+                 <span class="brand-icon"><i class="fa-solid fa-comment-dots"></i></span> Chatty
+            </h5>
+            <p class="footer-text">Присоединяйтесь к нашему сообществу, делитесь мыслями и находите новых друзей в сети Chatty.</p>
+        </div>
+        <div class="col-lg-2 col-md-6">
+            <h5 class="footer-heading">Навигация</h5>
+            <ul class="footer-links">
+                <li><a href="{% url 'home' %}">Главная</a></li>
+                <li><a href="{% url 'posts:post-list' %}">Лента</a></li>
+                {# <li><a href="#">О нас</a></li> #}
+                {# <li><a href="#">Помощь</a></li> #}
+            </ul>
+        </div>
+        <div class="col-lg-3 col-md-6">
+             <h5 class="footer-heading">Правовая информация</h5>
+            <ul class="footer-links">
+                {# <li><a href="#">Условия использования</a></li> #}
+                {# <li><a href="#">Политика конфиденциальности</a></li> #}
+                <li><a href="#">Контакты</a></li>
+            </ul>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <h5 class="footer-heading">Мы в соцсетях</h5>
+            <div class="social-links">
+                <a href="#" class="social-icon" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon" aria-label="GitHub"><i class="fab fa-github"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-12 text-center border-top pt-3">
+            <span class="footer-copyright">© {{ current_year }} Chatty by Team Orange.</span>
+        </div>
+    </div>
 </div>
-
-{#<!-- TODO: Добавить более содержательную информацию или ссылки в футер при необходимости. -->#}
