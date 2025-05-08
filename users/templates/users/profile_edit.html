@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load static %}
+{% load django_bootstrap5 %}
+
+{% block title %}Редактирование профиля - {{ user.username }}{% endblock %}
+
+{% block extra_css %}
+{# Дополнительные стили специфичные для этой страницы, если нужны #}
+<style>
+    /* Стили для превью аватара */
+    .avatar-preview {
+        max-width: 100px;
+        max-height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-top: 0.5rem;
+        border: 3px solid var(--bg-gray);
+    }
+    .form-label {
+        font-weight: 500; /* Делаем метки полей полужирными */
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5"> {# Добавил отступ снизу #}
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card profile-card shadow-sm"> {# Используем стиль карточки #}
+                 <div class="card-header profile-card-title"> {# Добавил card-header #}
+                    <i class="fa-solid fa-user-pen fa-fw me-2"></i>Редактирование профиля: {{ user.username }}
+                </div>
+                <div class="card-body profile-card-content"> {# Используем стили контента карточки #}
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        {# Отображение текущего аватара для превью #}
+                        {% if form.instance.avatar %}
+                            <div class="mb-3 text-center text-md-start">
+                                <label class="form-label">Текущий аватар:</label><br>
+                                <img src="{{ form.instance.avatar.url }}" alt="Текущий аватар" class="avatar-preview">
+                            </div>
+                        {% endif %}
+
+                        {# Рендеринг формы с помощью django-bootstrap5 #}
+                        {% bootstrap_form form layout='vertical' %} {# Изменил layout на vertical для стандартного вида #}
+
+                        <div class="d-flex justify-content-end mt-4"> {# Кнопки справа #}
+                            {# Кнопка "Отмена" ведет на страницу профиля #}
+                            <a href="{% url 'users:profile' username=user.username %}" class="btn btn-outline-secondary me-2">
+                                Отмена
+                            </a>
+                            <button type="submit" class="btn btn-primary"> {# Основная оранжевая кнопка #}
+                                <i class="fa-solid fa-save me-1"></i>
+                                Сохранить изменения
+                            </button>
+                        </div>
+                    </form>
+                </div> {# Конец card-body #}
+            </div> {# Конец card #}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{# Можно добавить JS для превью изображения перед загрузкой, если нужно #}
+{% endblock %}
+
+<!-- TODO: Реализовать JS для live-превью загружаемого аватара. -->
+<!-- TODO: Убедиться, что ProfileUpdateForm включает поля first_name, last_name, email, bio, contacts, avatar. -->

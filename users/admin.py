@@ -17,3 +17,10 @@ class CustomUserAdmin(UserAdmin):
         ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
         ("Important dates", {"fields": ("last_login", "date_joined")}),
     )
+
+    readonly_fields = ('post_count',)
+
+    def post_count(self, obj):
+        return obj.post_set.count()
+
+    post_count.short_description = "Количество постов"
