@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load static %}
-{% load django_bootstrap5 %} {# Используем для рендеринга форм с помощью Bootstrap #}
+{% load django_bootstrap5 %}
 
 {% block title %}
     {% if form.instance.pk %}
-        Редактирование поста: {{ form.instance.title|truncatechars:50 }} {# Увеличил truncatechars #}
+        Редактирование поста
     {% else %}
         Создание нового поста
     {% endif %}
@@ -12,46 +12,52 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-4 mb-5"> {# Добавил отступ снизу #}
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <h2>
-                {% if form.instance.pk %}
-                    Редактирование поста{% if form.instance.title %}: {{ form.instance.title|truncatechars:50 }}{% endif %}
-                {% else %}
-                    Создание нового поста
-                {% endif %}
-            </h2>
-            <hr class="mb-4">
+        <div class="col-lg-8"> {# Ограничиваем ширину формы #}
+             <div class="card profile-card shadow-sm"> {# Используем стиль карточки #}
+                 <div class="card-header profile-card-title"> {# Стиль заголовка карточки #}
+                     {% if form.instance.pk %}
+                        <i class="fa-solid fa-pen-to-square fa-fw me-2"></i>Редактирование поста
+                    {% else %}
+                        <i class="fa-solid fa-plus-circle fa-fw me-2"></i>Создание нового поста
+                    {% endif %}
+                 </div>
+                 <div class="card-body profile-card-content"> {# Стиль контента карточки #}
+                    {# Выводим заголовок поста при редактировании, если он есть #}
+                    {% if form.instance.pk and form.instance.title %}
+                        <h3 class="h5 mb-3 text-muted">Пост: {{ form.instance.title|truncatechars:70 }}</h3>
+                    {% endif %}
 
-            <form method="post" enctype="multipart/form-data"> {# enctype обязателен для загрузки файлов #}
-                {% csrf_token %}
+                    <form method="post" enctype="multipart/form-data"> {# enctype для файлов #}
+                        {% csrf_token %}
 
-                {# Рендеринг формы с помощью django-bootstrap5 #}
-                {% bootstrap_form form layout='horizontal' %}
+                        {# Используем django-bootstrap5, layout='vertical' обычно лучше для таких форм #}
+                        {% bootstrap_form form layout='vertical' %}
 
-                <div class="mt-4">
-                    <button type="submit" class="btn btn-primary">
-                        {% if form.instance.pk %}
-                            {# Иконка сохранения #}
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-save-fill me-1" viewBox="0 0 16 16"><path d="M8.5 1.5A1.5 1.5 0 0 1 10 0h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h6c-.314.418-.5.937-.5 1.5v6h-2a.5.5 0 0 0-.354.854l2.5 2.5a.5.5 0 0 0 .708 0l2.5-2.5A.5.5 0 0 0 10.5 7.5h-2v-6z"/></svg>
-                            Сохранить изменения
-                        {% else %}
-                             {# Иконка отправки #}
-                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send-plus-fill me-1" viewBox="0 0 16 16"><path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 1.59 2.498C8 14 8 13 8 12.5a4.5 4.5 0 0 1 5.026-4.47L15.964.686Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/><path d="M16 12.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Zm-3.5-2a.5.5 0 0 0-.5.5v1h-1a.5.5 0 0 0 0 1h1v1a.5.5 0 0 0 1 0v-1h1a.5.5 0 0 0 0-1h-1v-1a.5.5 0 0 0-.5-.5Z"/></svg>
-                            Опубликовать пост
-                        {% endif %}
-                    </button>
-                    {# Кнопка "Отмена": ведет на детальную страницу при редактировании, на список постов при создании #}
-                    <a href="{% if form.instance.pk %}{{ form.instance.get_absolute_url }}{% else %}{% url 'posts:post-list' %}{% endif %}" class="btn btn-secondary ms-2">
-                        Отмена
-                    </a>
-                </div>
-            </form>
+                        <hr class="my-4"> {# Разделитель перед кнопками #}
+
+                        <div class="d-flex justify-content-end"> {# Кнопки справа #}
+                            <a href="{% if form.instance.pk %}{{ form.instance.get_absolute_url }}{% else %}{% url 'posts:post-list' %}{% endif %}" class="btn btn-outline-secondary me-2">
+                                Отмена
+                            </a>
+                            <button type="submit" class="btn btn-primary"> {# Основная оранжевая кнопка #}
+                                {% if form.instance.pk %}
+                                    <i class="fa-solid fa-save me-1"></i>
+                                    Сохранить изменения
+                                {% else %}
+                                    <i class="fa-solid fa-paper-plane me-1"></i> {# Изменил иконку на paper-plane #}
+                                    Опубликовать пост
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div> {# Конец card-body #}
+            </div> {# Конец card #}
         </div>
     </div>
 </div>
 {% endblock %}
 
-<!-- TODO: Убедиться, что PostForm корректно обрабатывает поле 'image'. -->
-<!-- TODO: Убедиться, что метод get_absolute_url() модели Post работает и возвращает URL к posts:post-detail. -->
+<!-- TODO: Убедиться, что PostForm корректно обрабатывает поле 'image' (например, виджет ClearableFileInput). -->
+<!-- TODO: Убедиться, что метод get_absolute_url() модели Post работает. -->

@@ -1,6 +1,9 @@
 # Chatty_orange/urls.py
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+
+from Chatty_orange import settings
 from users import views as user_views # Импортируем views из приложения users
 
 urlpatterns = [
@@ -19,6 +22,9 @@ urlpatterns = [
     path('subscriptions/', include('subscriptions.urls', namespace='subscriptions')),
     path('accounts/', include('allauth.urls')),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
 # <!-- TODO: Настроить раздачу медиафайлов в режиме DEBUG (если необходимо). -->
