@@ -63,8 +63,7 @@
                         </button>
                         <span class="btn-interaction comment-button" title="Комментарии"> {# Просто отображаем количество #}
                             <i class="fa-regular fa-comment"></i>
-                             {# TODO: Использовать реальное кол-во комментов #}
-                            <span class="interaction-count">{{ post.comment_set.count|default:"0" }}</span>
+                            <span class="interaction-count">{{ post.comments.count|default:"0" }}</span>
                         </span>
                         {# TODO: Добавить кнопку "Поделиться", если нужно #}
                     </div>
@@ -73,20 +72,16 @@
 
             {# --- Секция комментариев --- #}
             <div id="comments" class="mt-5 border-top pt-4"> {# Добавлен id для якоря #}
-                <h3 class="mb-4">Комментарии <span class="badge bg-secondary rounded-pill">{{ post.comment_set.count|default:"0" }}</span></h3>
+                <h3 class="mb-4">Комментарии <span class="badge bg-secondary rounded-pill">{{ post.comments.count|default:"0" }}</span></h3>
 
                 {# Форма добавления комментария #}
                 {% if user.is_authenticated %}
                 <div class="card shadow-sm mb-4">
                     <div class="card-body">
                         <h5 class="card-title mb-3">Оставить комментарий</h5>
-                         {# TODO: Заменить action на URL добавления комментария #}
-                        <form method="post" action="#">
+                        <form method="post" action="{% url 'posts:post-comment' pk=post.pk %}">
                             {% csrf_token %}
-                            {# TODO: Использовать CommentForm #}
-                            <div class="mb-3">
-                                <textarea class="form-control" name="comment_text" rows="3" placeholder="Ваш комментарий..." required></textarea>
-                            </div>
+                            {% bootstrap_form comment_form %}
                             <button type="submit" class="btn btn-primary">
                                 <i class="fa-solid fa-paper-plane me-1"></i> Отправить
                             </button>
@@ -100,7 +95,7 @@
                 {% endif %}
 
                 {# Список комментариев #}
-                {% with comments=post.comment_set.all %} {# Получаем комментарии #}
+                {% with comments=post.comments.all %} {# Получаем комментарии #}
                     {% if comments %}
                         <div class="comments-list">
                             {% for comment in comments %}
@@ -119,12 +114,51 @@
                                             <a href="{% url 'users:profile' comment.author.username %}" class="post-author-name">{{ comment.author.username }}</a>
                                             <small class="text-muted ms-2">{{ comment.created_at|date:"d.m.Y H:i" }}</small>
                                         </h6>
-                                        {{ comment.text|linebreaksbr }}
-                                        {# TODO: Добавить возможность ответа или удаления комментария (для автора/модератора) #}
+                                        <p>{{ comment.text|linebreaksbr }}</p>
+                                        {% if user == comment.author or user.is_staff %}
+                        <div class="comment-actions mt-2">
+                            <form method="post" action="{% url 'posts:comment-delete' pk=comment.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Удалить этот комментарий?')">
+                                    <i class="fa-solid fa-trash"></i> Удалить
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
                                     </div>
                                 </div>
                             {% endfor %}
                         </div>
+                                {# Пагинация комментариев #}
+        {% if comments.paginator.num_pages > 1 %}
+        <nav aria-label="Comments pagination">
+            <ul class="pagination justify-content-center">
+                {% if comments.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?comment_page=1#comments">&laquo;</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?comment_page={{ comments.previous_page_number }}#comments">&lsaquo;</a>
+                </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">
+                        Страница {{ comments.number }} из {{ comments.paginator.num_pages }}
+                    </span>
+                </li>
+
+                {% if comments.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?comment_page={{ comments.next_page_number }}#comments">&rsaquo;</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?comment_page={{ comments.paginator.num_pages }}#comments">&raquo;</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
                     {% else %}
                          <p class="text-center text-muted">Комментариев пока нет. Станьте первым!</p>
                     {% endif %}
