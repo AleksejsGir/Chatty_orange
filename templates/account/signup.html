@@ -1,29 +1,63 @@
-{# templates/account/signup.html #}
 {% extends "base.html" %}
 {% load i18n %}
-{% load django_bootstrap5 %} {# Если используете django-bootstrap5 #}
+{% load django_bootstrap5 %}
 {% load allauth account %}
 
-{% block head_title %}{% trans "Sign Up" %}{% endblock %}
+{% block title %}{% trans "Регистрация" %} - Chatty{% endblock %} {# Изменил head_title #}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-6">
-    <h1>{% trans "Sign Up" %}</h1>
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+             <div class="card profile-card shadow-sm">
+                 <div class="card-header profile-card-title">
+                     <i class="fa-solid fa-user-plus fa-fw me-2"></i>{% trans "Создание аккаунта Chatty" %} {# Изменил заголовок #}
+                 </div>
+                 <div class="card-body profile-card-content p-4">
 
-    <p>{% blocktrans %}Уже есть аккаунт? Тогда, пожалуйста, <a href="{{ login_url }}">войдите</a>.{% endblocktrans %}</p>
+                    {# Ссылка на вход #}
+                    {% url 'account_login' as login_url %}
+                    <p class="text-center mb-4">{% blocktrans %}Уже есть аккаунт? <a href="{{ login_url }}" class="link-primary fw-medium">Войдите здесь!</a>{% endblocktrans %}</p>
 
-    <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
-      {% csrf_token %}
+                    {# Отображение не полейных ошибок формы #}
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger" role="alert">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}<br>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
 
-      {% bootstrap_form form %} {# Используем django-bootstrap5 для стилизации #}
-      {# Или стандартно: {{ form.as_p }} #}
+                    <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
+                        {% csrf_token %}
 
-      {% if redirect_field_value %}
-      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-      {% endif %}
-      <button class="btn btn-primary mt-3" type="submit">{% trans "Sign Up" %}</button>
-    </form>
-  </div>
+                        {# Используем django-bootstrap5 для рендеринга полей #}
+                        {% bootstrap_form form layout='vertical' %}
+
+                        {% if redirect_field_value %}
+                            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                        {% endif %}
+
+                        {# Кнопка регистрации #}
+                        <div class="d-grid gap-2 mt-4">
+                            <button class="btn btn-primary btn-lg" type="submit"> {# Основная оранжевая кнопка #}
+                                <i class="fa-solid fa-check-circle me-1"></i> {% trans "Зарегистрироваться" %} {# Изменил текст кнопки #}
+                            </button>
+                        </div>
+
+                        {# Можно добавить ссылку на условия использования, если нужно #}
+
+                        <p class="text-center small text-muted mt-3">
+                            Нажимая "Зарегистрироваться", вы соглашаетесь с нашими <a href="#">Условиями использования</a> и <a href="#">Политикой конфиденциальности</a>.
+                        </p>
+
+                    </form>
+                 </div> {# Конец card-body #}
+             </div> {# Конец card #}
+        </div>
+    </div>
 </div>
 {% endblock %}
+
+<!-- TODO: Проверить работу отображения ошибок формы. -->
+<!-- TODO: Добавить ссылки на условия использования/политику конфиденциальности, если необходимо. -->
