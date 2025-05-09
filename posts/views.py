@@ -1,4 +1,6 @@
 # posts/views.py
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
@@ -8,6 +10,7 @@ from django.views.generic.detail import SingleObjectMixin
 from django.views import View
 from django.shortcuts import redirect
 from django.core.paginator import Paginator
+from django.http import JsonResponse
 
 
 class PostListView(ListView):
@@ -112,3 +115,42 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
     def get_success_url(self):
         return self.object.post.get_absolute_url() + '#comments'
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class PostLikeView(LoginRequiredMixin, View):
+    """Обработка лайков через AJAX."""
+
+    def post(self, request, *args, **kwargs):
+        print("Like view called")  # Отладочное сообщение
+        post_id = kwargs.get('pk')
+        try:
+            post = Post.objects.get(pk=post_id)
+            user = request.user
+
+            if post.likes.filter(id=user.id).exists():
+                post.likes.remove(user)
+                liked = False
+                print(f"User {user} unliked post {post_id}")
+            else:
+                post.likes.add(user)
+                liked = True
+                print(f"User {user} liked post {post_id}")
+
+            return JsonResponse({
+                'status': 'ok',
+                'liked': liked,
+                'total_likes': post.total_likes()
+            })
+        except Post.DoesNotExist:
+            print(f"Post {post_id} not found")
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Post not found'
+            }, status=404)
+        except Exception as e:
+            print(f"Error in like view: {str(e)}")
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=500)
