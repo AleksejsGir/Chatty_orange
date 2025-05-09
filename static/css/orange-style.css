@@ -1301,3 +1301,16 @@ h1, h2, h3, h4, h5, h6 {
     width: 100%;
   }
 }
+
+.like-button.active {
+    color: #dc3545; /* Красный цвет для активного лайка */
+}
+
+.like-button.active .fa-heart {
+    color: #dc3545;
+}
+
+.like-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

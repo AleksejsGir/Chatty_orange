@@ -56,10 +56,15 @@
                  {# --- Футер поста с лайками/комментариями --- #}
                 <div class="post-footer mt-4"> {# Добавлен отступ сверху #}
                     <div class="interaction-buttons">
-                        {# TODO: Заменить на реальные кнопки лайков #}
-                        <button class="btn-interaction like-button" title="Нравится">
-                            <i class="fa-regular fa-heart"></i>
-                            <span class="interaction-count">0</span> {# TODO: {{ post.total_likes }} #}
+                        <button class="btn-interaction like-button {% if request.user in post.likes.all %}active{% endif %}"
+            data-post-id="{{ post.pk }}"
+            title="Нравится"
+            {% if not request.user.is_authenticated %}disabled{% endif %}>
+            <i class="fa-regular {% if request.user in post.likes.all %}fa-solid{% endif %} fa-heart"></i>
+            <span class="interaction-count">{{ post.total_likes }}</span>
+                        {% block scripts %}
+                        <script src="{% static 'js/likes.js' %}"></script>
+                        {% endblock %}
                         </button>
                         <span class="btn-interaction comment-button" title="Комментарии"> {# Просто отображаем количество #}
                             <i class="fa-regular fa-comment"></i>

@@ -91,19 +91,27 @@
 
                     <!-- Футер поста с кнопками взаимодействия -->
                     <div class="post-footer">
-                        <div class="interaction-buttons">
-                            <button class="btn-interaction like-button" title="Нравится">
-                                <i class="fa-regular fa-heart"></i>
-                                <span class="interaction-count">42</span>
-                            </button>
-                            <a href="{% url 'posts:post-detail' pk=post.pk %}#comments" class="btn-interaction comment-button" title="Комментарии">
-                                <i class="fa-regular fa-comment"></i>
-                                <span class="interaction-count">12</span>
-                            </a>
-                            <button class="btn-interaction share-button" title="Поделиться">
-                                <i class="fa-regular fa-share-from-square"></i>
-                            </button>
-                        </div>
+                      <div class="interaction-buttons">
+                          {# Кнопка лайка из feature/S3-likes, но без {% block scripts %} внутри #}
+                          <button class="btn-interaction like-button {% if request.user in post.likes.all %}active{% endif %}"
+                              data-post-id="{{ post.pk }}"
+                              title="Нравится"
+                              {% if not request.user.is_authenticated %}disabled{% endif %}>
+                              <i class="fa-heart {% if request.user in post.likes.all %}fa-solid text-danger{% else %}fa-regular{% endif %}"></i> {# Улучшенная логика иконки #}
+                              <span class="interaction-count">{{ post.num_likes|default:"0" }}</span> {# Используем аннотированное поле num_likes #}
+                          </button>
+
+                          {# Счетчик комментариев из develop (с аннотацией) #}
+                          <a href="{% url 'posts:post-detail' pk=post.pk %}#comments" class="btn-interaction comment-button" title="Комментарии">
+                              <i class="fa-regular fa-comment"></i>
+                              <span class="interaction-count">{{ post.num_comments|default:"0" }}</span>
+                          </a>
+
+                          {# Кнопка Поделиться (остается как заглушка) #}
+                          <button class="btn-interaction share-button" title="Поделиться">
+                              <i class="fa-regular fa-share-from-square"></i>
+                          </button>
+                      </div>
                         <a href="{% url 'posts:post-detail' pk=post.pk %}" class="btn-view-post">
                             <i class="fa-solid fa-angle-right me-1"></i> Перейти к посту
                         </a>

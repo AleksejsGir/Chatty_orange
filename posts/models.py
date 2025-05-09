@@ -29,6 +29,17 @@ class Post(models.Model):
         blank=True, # Разрешим быть пустым, чтобы автогенерация работала
         verbose_name="URL-адрес (slug)"
     )
+    likes = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='liked_posts',
+        blank=True,
+        verbose_name="Лайки"
+    )
+
+    def total_likes(self):
+        """Возвращает общее количество лайков для поста."""
+        return self.likes.count()
+
 
     def __str__(self):
         return self.title
@@ -57,6 +68,7 @@ class Post(models.Model):
         verbose_name = "Пост"
         verbose_name_plural = "Посты"
         ordering = ["-pub_date"]
+
 
 class Comment(models.Model):
     post = models.ForeignKey(

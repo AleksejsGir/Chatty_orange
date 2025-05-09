@@ -51,8 +51,10 @@
     <!-- Custom JS (если будет) -->
     {# <script src="{% static 'js/main.js' %}"></script> #}
 
-    {% block extra_js %}{% endblock %} {# Блок для дополнительных скриптов #}
+    {# --- Блок для дополнительных скриптов --- #}
+    {% block extra_js %}
+        {# likes.js нужен глобально для всех страниц с лайками #}
+        <script src="{% static 'js/likes.js' %}"></script>
+    {% endblock %}
 </body>
 </html>
-
-<!-- TODO: Создать и подключить локальные css/main.css и js/main.js при необходимости. -->

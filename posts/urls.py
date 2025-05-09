@@ -10,11 +10,9 @@ urlpatterns = [
     path('create/', views.PostCreateView.as_view(), name='post-create'),
     path('<int:pk>/update/', views.PostUpdateView.as_view(), name='post-update'),
     path('<int:pk>/delete/', views.PostDeleteView.as_view(), name='post-delete'),
-    path('post/<int:pk>/', views.PostDetailWithComments.as_view(), name='post-detail'),
-    path('comment/<int:pk>/delete/', views.CommentDeleteView.as_view(), name='comment-delete'),
-    path('post/<int:pk>/', views.PostDetailWithComments.as_view(), name='post-detail'),
     path('post/<int:pk>/comment/', views.PostCommentView.as_view(), name='post-comment'),  # Новый URL
     path('comment/<int:pk>/delete/', views.CommentDeleteView.as_view(), name='comment-delete'),
+    path('<int:pk>/like/', views.PostLikeView.as_view(), name='post-like'),
     # Здесь будут URL-паттерны для постов
     # path('', views.post_list, name='list'), # Пример будущего пути
 ]
