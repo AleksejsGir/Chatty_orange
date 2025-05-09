@@ -8,14 +8,26 @@ from django.views.generic.detail import SingleObjectMixin
 from django.views import View
 from django.shortcuts import redirect
 from django.core.paginator import Paginator
+from django.db.models import Count
 
 
 class PostListView(ListView):
     model = Post
     template_name = 'posts/post_list.html'
     context_object_name = 'posts'
-    ordering = ['-pub_date']
+    ordering = ['-pub_date'] # Используем правильное поле даты
     paginate_by = 10
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # Аннотируем количеством комментариев
+        # Используем related_name 'comments' из модели Comment
+        queryset = queryset.annotate(
+            num_comments=Count('comments', distinct=True)
+        )
+        # Предзагружаем автора для эффективности
+        queryset = queryset.select_related('author')
+        return queryset
 
 
 class PostDetailView(DetailView):
