@@ -1,7 +1,14 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Лента - Chatty{% endblock %}
+{% block title %}
+    {% if current_filter == 'tag' and current_tag %}
+        #{{ current_tag.name }}
+    {% else %}
+        Лента
+    {% endif %}
+    - Chatty
+{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -9,7 +16,13 @@
     <div class="col-lg-8">
         <!-- Заголовок страницы и кнопка создания поста -->
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="page-title">Лента постов</h1>
+            <h1 class="page-title">
+                {% if current_filter == 'tag' and current_tag %}
+                    Посты по теме <span class="text-accent">#{{ current_tag.name }}</span>
+                {% else %}
+                    Лента постов
+                {% endif %}
+            </h1>
             {% if user.is_authenticated %}
             <a href="{% url 'posts:post-create' %}" class="btn btn-create">
                 <i class="fa-solid fa-plus-circle me-2"></i>Создать пост
@@ -32,6 +45,11 @@
                 <a href="{% url 'posts:post-list' %}?filter=subscriptions{% if request.GET.page %}&page={{ request.GET.page }}{% endif %}"
                    class="btn btn-filter {% if current_filter == 'subscriptions' %}active{% endif %}">
                     Подписки
+                </a>
+                {% endif %}
+                {% if current_filter == 'tag' and current_tag %}
+                <a href="{% url 'posts:tag-posts' slug=current_tag.slug %}" class="btn btn-filter active">
+                    #{{ current_tag.name }}
                 </a>
                 {% endif %}
             </div>
@@ -91,6 +109,17 @@
                         {% endif %}
                     </div>
 
+                    <!-- Теги поста, если есть -->
+                    {% if post.tags.all %}
+                    <div class="post-tags mb-2">
+                        {% for tag in post.tags.all %}
+                        <a href="{% url 'posts:tag-posts' slug=tag.slug %}" class="badge rounded-pill bg-light text-primary me-1">
+                            #{{ tag.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
                     <!-- Изображение поста, если есть -->
                     {% if post.image %}
                     <div class="post-image">
@@ -101,22 +130,19 @@
                     <!-- Футер поста с кнопками взаимодействия -->
                     <div class="post-footer">
                       <div class="interaction-buttons">
-                          {# Кнопка лайка из feature/S3-likes, но без {% block scripts %} внутри #}
                           <button class="btn-interaction like-button {% if request.user in post.likes.all %}active{% endif %}"
                               data-post-id="{{ post.pk }}"
                               title="Нравится"
                               {% if not request.user.is_authenticated %}disabled{% endif %}>
-                              <i class="fa-heart {% if request.user in post.likes.all %}fa-solid text-danger{% else %}fa-regular{% endif %}"></i> {# Улучшенная логика иконки #}
-                              <span class="interaction-count">{{ post.num_likes|default:"0" }}</span> {# Используем аннотированное поле num_likes #}
+                              <i class="fa-heart {% if request.user in post.likes.all %}fa-solid text-danger{% else %}fa-regular{% endif %}"></i>
+                              <span class="interaction-count">{{ post.num_likes|default:"0" }}</span>
                           </button>
 
-                          {# Счетчик комментариев из develop (с аннотацией) #}
                           <a href="{% url 'posts:post-detail' pk=post.pk %}#comments" class="btn-interaction comment-button" title="Комментарии">
                               <i class="fa-regular fa-comment"></i>
                               <span class="interaction-count">{{ post.num_comments|default:"0" }}</span>
                           </a>
 
-                          {# Кнопка Поделиться (остается как заглушка) #}
                           <button class="btn-interaction share-button" title="Поделиться">
                               <i class="fa-regular fa-share-from-square"></i>
                           </button>
@@ -237,32 +263,41 @@
         <div class="sidebar-card trending-card">
             <h3 class="sidebar-card-title">Популярные темы</h3>
             <ul class="trending-topics">
-                <li class="trending-topic">
-                    <a href="#" class="trending-topic-link">#технологии</a>
-                    <span class="trending-count">42 поста</span>
-                </li>
-                <li class="trending-topic">
-                    <a href="#" class="trending-topic-link">#спорт</a>
-                    <span class="trending-count">38 постов</span>
-                </li>
-                <li class="trending-topic">
-                    <a href="#" class="trending-topic-link">#путешествия</a>
-                    <span class="trending-count">24 поста</span>
-                </li>
-                <li class="trending-topic">
-                    <a href="#" class="trending-topic-link">#музыка</a>
-                    <span class="trending-count">19 постов</span>
-                </li>
-                <li class="trending-topic">
-                    <a href="#" class="trending-topic-link">#кулинария</a>
-                    <span class="trending-count">15 постов</span>
-                </li>
+                {% if popular_tags %}
+                    {% for tag in popular_tags %}
+                    <li class="trending-topic">
+                        <a href="{% url 'posts:tag-posts' slug=tag.slug %}" class="trending-topic-link">#{{ tag.name }}</a>
+                        <span class="trending-count">{{ tag.posts_count }} пост{{ tag.posts_count|pluralize:"ов" }}</span>
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <li class="trending-topic">
+                        <a href="#" class="trending-topic-link">#технологии</a>
+                        <span class="trending-count">42 поста</span>
+                    </li>
+                    <li class="trending-topic">
+                        <a href="#" class="trending-topic-link">#спорт</a>
+                        <span class="trending-count">38 постов</span>
+                    </li>
+                    <li class="trending-topic">
+                        <a href="#" class="trending-topic-link">#путешествия</a>
+                        <span class="trending-count">24 поста</span>
+                    </li>
+                    <li class="trending-topic">
+                        <a href="#" class="trending-topic-link">#музыка</a>
+                        <span class="trending-count">19 постов</span>
+                    </li>
+                    <li class="trending-topic">
+                        <a href="#" class="trending-topic-link">#кулинария</a>
+                        <span class="trending-count">15 постов</span>
+                    </li>
+                {% endif %}
             </ul>
         </div>
 
         <!-- Кого подписаться -->
         <div class="sidebar-card who-to-follow-card">
-            <h3 class="sidebar-card-title">Кого подписаться</h3>
+            <h3 class="sidebar-card-title">На кого подписаться🧐</h3>
             <ul class="who-to-follow-list">
                 {% for suggested_user in suggested_users %}
                 <li class="suggested-user">

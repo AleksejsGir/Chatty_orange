@@ -5,14 +5,15 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.contrib.auth import get_user_model
-from .models import Post, Comment
-from .forms import PostForm, CommentForm
-from django.views.generic.detail import SingleObjectMixin
-from django.views import View
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.db.models import Count
+from django.views.generic.detail import SingleObjectMixin
+from django.views import View
+
+from .models import Post, Comment, Tag
+from .forms import PostForm, CommentForm
 from subscriptions.models import Subscription  # Добавляем импорт модели подписок
 
 User = get_user_model()  # Получаем модель пользователя
@@ -66,6 +67,9 @@ class PostListView(ListView):
         # Добавляем текущий фильтр в контекст
         context['current_filter'] = self.request.GET.get('filter', 'latest')
 
+        # Добавляем популярные теги
+        context['popular_tags'] = Tag.get_popular_tags()
+
         if self.request.user.is_authenticated:
             try:
                 # Получаем ID пользователей, на которых подписан текущий пользователь
@@ -103,6 +107,9 @@ class PostDetailView(DetailView):
         paginator = Paginator(comments, self.paginate_comments_by)
         page_number = self.request.GET.get('comment_page')
         context['comments'] = paginator.get_page(page_number)
+
+        # Добавляем популярные теги
+        context['popular_tags'] = Tag.get_popular_tags()
 
         return context
 
@@ -220,3 +227,44 @@ class PostLikeView(LoginRequiredMixin, View):
                 'status': 'error',
                 'message': str(e)
             }, status=500)
+
+
+class TagPostListView(ListView):
+    model = Post
+    template_name = 'posts/post_list.html'
+    context_object_name = 'posts'
+    paginate_by = 10
+
+    def get_queryset(self):
+        self.tag = get_object_or_404(Tag, slug=self.kwargs['slug'])
+        queryset = Post.objects.filter(tags=self.tag).annotate(
+            num_comments=Count('comments', distinct=True),
+            num_likes=Count('likes', distinct=True)
+        ).select_related('author').order_by('-pub_date')
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['current_filter'] = 'tag'
+        context['current_tag'] = self.tag
+        context['page_title'] = f'#{self.tag.name}'
+
+        # Рекомендуемые пользователи как в PostListView
+        if self.request.user.is_authenticated:
+            try:
+                subscribed_to = Subscription.objects.filter(
+                    subscriber=self.request.user
+                ).values_list('author_id', flat=True)
+
+                context['suggested_users'] = User.objects.exclude(
+                    id__in=list(subscribed_to) + [self.request.user.id]
+                ).annotate(
+                    subscribers_count=Count('subscribers')
+                ).order_by('-subscribers_count')[:3]
+            except Exception as e:
+                context['suggested_users'] = []
+                print(f"Error getting suggested users: {e}")
+
+        # Добавляем популярные теги
+        context['popular_tags'] = Tag.get_popular_tags()
+        return context
