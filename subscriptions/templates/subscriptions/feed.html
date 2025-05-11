@@ -4,171 +4,181 @@
 {% block title %}Лента подписок - Chatty{% endblock %}
 
 {% block content %}
-<div class="container mt-4 orange-background">
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="page-title">Лента подписок</h1>
-                {% if user.is_authenticated %}
-                    <a href="{% url 'posts:post-create' %}" class="btn btn-create">
-                        <i class="fa-solid fa-plus-circle me-1"></i>Создать пост
-                    </a>
-                {% endif %}
-            </div>
-
-            {% if posts %}
-                {% for post in posts %}
-                    <div class="post-card">
-                        <div class="post-header">
-                            <div class="post-author">
-                                {% if post.author.avatar %}
-                                    <img src="{{ post.author.avatar.url }}" alt="{{ post.author.username }}" class="post-avatar">
-                                {% else %}
-                                    <div class="avatar-placeholder">
-                                        <span>{{ post.author.username|first|upper }}</span>
-                                    </div>
-                                {% endif %}
-                                <div class="post-meta">
-                                    <a href="{% url 'users:profile' post.author.username %}" class="post-author-name">{{ post.author.username }}</a>
-                                    <span class="post-time">{{ post.pub_date|date:"d M Y, H:i" }}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <h2 class="post-title">
-                            <a href="{% url 'posts:post-detail' pk=post.pk %}">{{ post.title }}</a>
-                        </h2>
-
-                        <div class="post-content">
-                            <p class="post-text">{{ post.text|truncatechars:200 }}</p>
-                            {% if post.text|length > 200 %}
-                                <a href="{% url 'posts:post-detail' pk=post.pk %}" class="read-more">Читать далее</a>
-                            {% endif %}
-                        </div>
-
-                        {% if post.image %}
-                            <div class="post-image">
-                                <a href="{% url 'posts:post-detail' pk=post.pk %}">
-                                    <img src="{{ post.image.url }}" alt="{{ post.title }}" class="img-fluid rounded">
-                                </a>
-                            </div>
-                        {% endif %}
-
-                        <div class="post-footer">
-                            <div class="interaction-buttons">
-                                <button class="btn-interaction like-button {% if post.is_liked %}active{% endif %}" data-post-id="{{ post.pk }}">
-                                    <i class="fa-{% if post.is_liked %}solid{% else %}regular{% endif %} fa-heart"></i>
-                                    <span class="interaction-count">{{ post.num_likes }}</span>
-                                </button>
-
-                                <a href="{% url 'posts:post-detail' pk=post.pk %}#comments" class="btn-interaction comment-button">
-                                    <i class="fa-regular fa-comment"></i>
-                                    <span class="interaction-count">{{ post.num_comments }}</span>
-                                </a>
-                            </div>
-
-                            <a href="{% url 'posts:post-detail' pk=post.pk %}" class="btn-view-post">
-                                Подробнее
-                            </a>
-                        </div>
-                    </div>
-                {% endfor %}
-
-                {% if is_paginated %}
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination justify-content-center">
-                            {% if page_obj.has_previous %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
-                                        <span aria-hidden="true">&laquo;</span>
-                                    </a>
-                                </li>
-                            {% else %}
-                                <li class="page-item disabled">
-                                    <span class="page-link" aria-hidden="true">&laquo;</span>
-                                </li>
-                            {% endif %}
-
-                            {% for num in page_obj.paginator.page_range %}
-                                {% if page_obj.number == num %}
-                                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                                    <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
-                                {% endif %}
-                            {% endfor %}
-
-                            {% if page_obj.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
-                                        <span aria-hidden="true">&raquo;</span>
-                                    </a>
-                                </li>
-                            {% else %}
-                                <li class="page-item disabled">
-                                    <span class="page-link" aria-hidden="true">&raquo;</span>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                {% endif %}
-            {% else %}
-                <div class="empty-state">
-                    <div class="empty-state-icon">
-                        <i class="fa-solid fa-rss"></i>
-                    </div>
-                    <h3 class="empty-state-title">Ваша лента пуста!</h3>
-                    <p class="empty-state-description">В вашей ленте подписок пока нет постов. Это может быть по одной из следующих причин:</p>
-                    <ul class="text-start mx-auto" style="max-width: 400px;">
-                        <li>Вы еще не подписались ни на одного пользователя</li>
-                        <li>Пользователи, на которых вы подписаны, еще не опубликовали посты</li>
-                    </ul>
-                    <div class="mt-4">
-                        <a href="{% url 'posts:post-list' %}" class="btn btn-primary">Посмотреть общую ленту постов</a>
-                    </div>
+<div class="orange-background">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="page-title">Лента подписок</h1>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'posts:post-create' %}" class="btn btn-create">
+                            <i class="fa-solid fa-plus-circle me-2"></i>Создать пост
+                        </a>
+                    {% endif %}
                 </div>
-            {% endif %}
-        </div>
 
-        <div class="col-lg-4">
-            <!-- Боковая панель -->
-            <div class="sidebar-card">
-                <h5 class="sidebar-card-title">Мои подписки</h5>
-                {% if user.subscriptions.count > 0 %}
-                    <div class="who-to-follow-list">
-                        {% for subscription in user.subscriptions.all|slice:":5" %}
-                            <div class="suggested-user">
-                                {% if subscription.author.avatar %}
-                                    <img src="{{ subscription.author.avatar.url }}" alt="{{ subscription.author.username }}" class="post-avatar" style="width: 40px; height: 40px;">
-                                {% else %}
-                                    <div class="suggested-user-avatar-placeholder">
-                                        {{ subscription.author.username|first|upper }}
+                {% if posts %}
+                    <div class="posts-container">
+                        {% for post in posts %}
+                            <article class="post-card">
+                                <div class="post-header">
+                                    <div class="post-author">
+                                        {% if post.author.avatar %}
+                                            <img src="{{ post.author.avatar.url }}" alt="{{ post.author.username }}" class="post-avatar">
+                                        {% else %}
+                                            <div class="avatar-placeholder">
+                                                <span>{{ post.author.username|first|upper }}</span>
+                                            </div>
+                                        {% endif %}
+                                        <div class="post-meta">
+                                            <a href="{% url 'users:profile' post.author.username %}" class="post-author-name">{{ post.author.username }}</a>
+                                            <span class="post-time">{{ post.pub_date|date:"d.m.Y в H:i" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Заголовок поста - основной способ перехода -->
+                                <h2 class="post-title">
+                                    <a href="{% url 'posts:post-detail' pk=post.pk %}">{{ post.title }}</a>
+                                </h2>
+
+                                <!-- Содержимое поста - без ссылки "Читать далее" -->
+                                <div class="post-content">
+                                    <p class="post-text">{{ post.text|truncatechars:200 }}</p>
+                                </div>
+
+                                <!-- Изображение поста с кликабельной ссылкой -->
+                                {% if post.image %}
+                                    <div class="post-image">
+                                        <a href="{% url 'posts:post-detail' pk=post.pk %}" class="d-block">
+                                            <img src="{{ post.image.url }}" alt="{{ post.title }}" class="img-fluid rounded">
+                                        </a>
                                     </div>
                                 {% endif %}
-                                <div class="suggested-user-info">
-                                    <a href="{% url 'users:profile' subscription.author.username %}" class="suggested-user-name">{{ subscription.author.username }}</a>
-                                    <span class="suggested-user-handle">@{{ subscription.author.username }}</span>
+
+                                <!-- Футер поста без кнопки "Подробнее" -->
+                                <div class="post-footer">
+                                    <div class="interaction-buttons">
+                                        <button class="btn-interaction like-button {% if post.is_liked %}active{% endif %}" data-post-id="{{ post.pk }}">
+                                            <i class="fa-{% if post.is_liked %}solid{% else %}regular{% endif %} fa-heart"></i>
+                                            <span class="interaction-count">{{ post.num_likes }}</span>
+                                        </button>
+
+                                        <a href="{% url 'posts:post-detail' pk=post.pk %}#comments" class="btn-interaction comment-button">
+                                            <i class="fa-regular fa-comment"></i>
+                                            <span class="interaction-count">{{ post.num_comments }}</span>
+                                        </a>
+
+                                        <button class="btn-interaction share-button" title="Поделиться">
+                                            <i class="fa-regular fa-share-from-square"></i>
+                                        </button>
+                                    </div>
+                                    <!-- Удалена кнопка "Подробнее" -->
                                 </div>
-                            </div>
+                            </article>
                         {% endfor %}
                     </div>
-                    {% if user.subscriptions.count > 5 %}
-                        <a href="{% url 'subscriptions:following' user.username %}" class="sidebar-card-footer-link">Показать все подписки</a>
+
+                    {% if is_paginated %}
+                        <nav aria-label="Page navigation" class="my-4">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                                            <i class="fa-solid fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="fa-solid fa-chevron-left"></i></span>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                                            <i class="fa-solid fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="fa-solid fa-chevron-right"></i></span>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
                     {% endif %}
                 {% else %}
-                    <p class="text-center text-muted py-3">
-                        Вы пока ни на кого не подписаны
-                    </p>
-                    <a href="{% url 'posts:post-list' %}" class="btn btn-primary btn-sm w-100">Найти интересных авторов</a>
+                    <div class="empty-state content-card-on-oranges">
+                        <div class="empty-state-icon">
+                            <i class="fa-solid fa-rss"></i>
+                        </div>
+                        <h3 class="empty-state-title">Ваша лента пуста!</h3>
+                        <p class="empty-state-description">В вашей ленте подписок пока нет постов. Это может быть по одной из следующих причин:</p>
+                        <ul class="text-start mx-auto" style="max-width: 400px;">
+                            <li>Вы еще не подписались ни на одного пользователя</li>
+                            <li>Пользователи, на которых вы подписаны, еще не опубликовали посты</li>
+                        </ul>
+                        <div class="mt-4">
+                            <a href="{% url 'posts:post-list' %}" class="btn btn-primary">Посмотреть общую ленту постов</a>
+                        </div>
+                    </div>
                 {% endif %}
             </div>
 
-            <div class="sidebar-card">
-                <h5 class="sidebar-card-title">Популярные авторы</h5>
-                <div class="who-to-follow-list">
-                    <!-- Здесь будут популярные авторы -->
-                    <p class="text-center text-muted py-3">
-                        Функционал в разработке
-                    </p>
+            <div class="col-lg-4">
+                <!-- Боковая панель со sticky позиционированием -->
+                <div class="position-sticky" style="top: 96px; max-height: calc(100vh - 96px); overflow-y: auto;">
+                    <!-- Мои подписки -->
+                    <div class="sidebar-card content-card-on-oranges">
+                        <h5 class="sidebar-card-title">Мои подписки</h5>
+                        {% if user.subscriptions.count > 0 %}
+                            <div class="who-to-follow-list">
+                                {% for subscription in user.subscriptions.all|slice:":5" %}
+                                    <div class="suggested-user">
+                                        {% if subscription.author.avatar %}
+                                            <img src="{{ subscription.author.avatar.url }}" alt="{{ subscription.author.username }}" class="post-avatar" style="width: 40px; height: 40px;">
+                                        {% else %}
+                                            <div class="suggested-user-avatar-placeholder">
+                                                {{ subscription.author.username|first|upper }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="suggested-user-info">
+                                            <a href="{% url 'users:profile' subscription.author.username %}" class="suggested-user-name">{{ subscription.author.username }}</a>
+                                            <span class="suggested-user-handle">@{{ subscription.author.username }}</span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            {% if user.subscriptions.count > 5 %}
+                                <a href="{% url 'subscriptions:following' user.username %}" class="sidebar-card-footer-link">Показать все подписки</a>
+                            {% endif %}
+                        {% else %}
+                            <p class="text-center text-muted py-3">
+                                Вы пока ни на кого не подписаны
+                            </p>
+                            <a href="{% url 'posts:post-list' %}" class="btn btn-primary btn-sm w-100">Найти интересных авторов</a>
+                        {% endif %}
+                    </div>
+
+                    <!-- Популярные авторы -->
+                    <div class="sidebar-card content-card-on-oranges">
+                        <h5 class="sidebar-card-title">Популярные авторы</h5>
+                        <div class="who-to-follow-list">
+                            <!-- Здесь будут популярные авторы -->
+                            <p class="text-center text-muted py-3">
+                                Функционал в разработке
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
