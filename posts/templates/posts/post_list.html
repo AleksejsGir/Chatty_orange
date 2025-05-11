@@ -223,6 +223,8 @@
 
     <!-- Боковая панель -->
     <div class="col-lg-4 d-none d-lg-block">
+         <div class="position-sticky" style="top: 96px; max-height: calc(100vh - 96px); overflow-y: auto;">
+
         <!-- Профиль пользователя (если авторизован) -->
         {% if user.is_authenticated %}
         <div class="sidebar-card user-profile-card">
