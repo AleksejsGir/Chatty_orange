@@ -1433,3 +1433,41 @@ h1, h2, h3, h4, h5, h6 {
         font-size: 0.9rem;
     }
 }
+/* Фон с изображением апельсинов */
+.orange-background {
+    position: relative;
+}
+
+.orange-background::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/static/images/oranges-background.jpg'); /* Путь к изображению */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    opacity: 0.15; /* Приглушенная яркость для лучшей читаемости */
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Для блоков контента на фоне апельсинов */
+.content-card-on-oranges {
+    background-color: rgba(255, 255, 255, 0.85);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Для улучшения контраста текста на фоне */
+.orange-background h1,
+.orange-background h2,
+.orange-background h3,
+.orange-background .page-title {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+}
