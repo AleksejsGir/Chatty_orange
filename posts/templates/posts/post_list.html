@@ -234,22 +234,22 @@
                 {% endif %}
                 <div class="user-profile-info">
                     <h3 class="user-profile-name">{{ user.username }}</h3>
-                    <a href="{% url 'users:profile' user.username %}" class="user-profile-link">Просмотреть профиль</a>
+                    <a href="{% url 'users:profile' user.username %}" class="user-profile-link">Просмотреть профиль😎</a>
                 </div>
             </div>
             <div class="user-profile-stats">
-                <div class="stat-item">
+                <a href="{% url 'users:profile' user.username %}" class="stat-item">
                     <span class="stat-value">{{ user.post_set.count }}</span>
                     <span class="stat-label">Постов</span>
-                </div>
-                <div class="stat-item">
+                </a>
+                <a href="{% url 'subscriptions:followers' user.username %}" class="stat-item">
                     <span class="stat-value">{{ user.subscribers.count }}</span>
                     <span class="stat-label">Подписчиков</span>
-                </div>
-                <div class="stat-item">
+                </a>
+                <a href="{% url 'subscriptions:following' user.username %}" class="stat-item">
                     <span class="stat-value">{{ user.subscriptions.count }}</span>
                     <span class="stat-label">Подписок</span>
-                </div>
+                </a>
             </div>
             <div class="user-profile-actions">
                 <a href="{% url 'posts:post-create' %}" class="btn btn-primary btn-sm w-100">
@@ -261,7 +261,7 @@
 
         <!-- Популярные темы -->
         <div class="sidebar-card trending-card">
-            <h3 class="sidebar-card-title">Популярные темы</h3>
+            <h3 class="sidebar-card-title">Популярные темы🍊</h3>
             <ul class="trending-topics">
                 {% if popular_tags %}
                     {% for tag in popular_tags %}
