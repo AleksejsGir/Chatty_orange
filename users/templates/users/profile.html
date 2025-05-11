@@ -5,45 +5,60 @@
 
 {% block content %}
 <div class="container mt-4">
-    <div class="row">
-        <div class="col-md-3 text-center">
-            {% if profile_user.avatar %}
-                <img src="{{ profile_user.avatar.url }}" alt="Аватар {{ profile_user.username }}" class="img-thumbnail rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
-            {% else %}
-                <div class="avatar-placeholder-lg mb-3">
-                    <span>{{ profile_user.username|first|upper }}</span>
-                </div>
-            {% endif %}
-            <h2 class="h4">{{ profile_user.username }}</h2>
-            {% if profile_user.first_name or profile_user.last_name %}
-                <p class="text-muted">{{ profile_user.get_full_name }}</p>
-            {% endif %}
+    <div class="profile-container">
+        <!-- Шапка профиля с градиентом -->
+        <div class="profile-header">
+            <div class="profile-cover">
+                <div class="profile-cover-gradient"></div>
+            </div>
+        </div>
 
-            <!-- Статистика пользователя -->
-            <div class="row text-center mt-3">
-                <div class="col">
-                    <h5>{{ profile_user.post_set.count }}</h5>
-                    <small class="text-muted">Постов</small>
-                </div>
-                <div class="col">
+        <!-- Основной блок информации -->
+        <div class="profile-info-container">
+            <!-- Аватар -->
+            <div class="profile-avatar-container">
+                {% if profile_user.avatar %}
+                    <img src="{{ profile_user.avatar.url }}" alt="Аватар {{ profile_user.username }}" class="profile-avatar">
+                {% else %}
+                    <div class="profile-avatar-placeholder">
+                        <span>{{ profile_user.username|first|upper }}</span>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Информация о пользователе -->
+            <div class="profile-info">
+                <h1 class="profile-name">{{ profile_user.username }}</h1>
+                {% if profile_user.first_name or profile_user.last_name %}
+                    <div class="profile-fullname">{{ profile_user.get_full_name }}</div>
+                {% endif %}
+
+                <!-- Статистика профиля -->
+                <div class="profile-stats">
+                    <div class="profile-stat">
+                        <span class="stat-value">{{ profile_user.post_set.count }}</span>
+                        <span class="stat-label">Постов</span>
+                    </div>
                     <a href="{% url 'subscriptions:followers' username=profile_user.username %}" class="text-decoration-none">
-                        <h5 id="subscribers-count">{{ profile_user.subscribers.count }}</h5>
-                        <small class="text-muted">Подписчиков</small>
+                        <div class="profile-stat">
+                            <span class="stat-value" id="subscribers-count">{{ profile_user.subscribers.count }}</span>
+                            <span class="stat-label">Подписчиков</span>
+                        </div>
                     </a>
-                </div>
-                <div class="col">
                     <a href="{% url 'subscriptions:following' username=profile_user.username %}" class="text-decoration-none">
-                        <h5>{{ profile_user.subscriptions.count }}</h5>
-                        <small class="text-muted">Подписок</small>
+                        <div class="profile-stat">
+                            <span class="stat-value">{{ profile_user.subscriptions.count }}</span>
+                            <span class="stat-label">Подписок</span>
+                        </div>
                     </a>
                 </div>
             </div>
 
             <!-- Кнопки действий -->
-            <div class="mt-3">
+            <div class="profile-actions">
                 {% if user.is_authenticated %}
                     {% if user == profile_user %}
-                        <a href="{% url 'users:profile-edit' pk=user.pk %}" class="btn btn-secondary w-100 mb-2">
+                        <a href="{% url 'users:profile-edit' pk=user.pk %}" class="btn btn-edit-profile">
                             <i class="fa-solid fa-user-edit me-1"></i>Редактировать профиль
                         </a>
                     {% else %}
@@ -51,11 +66,11 @@
                         <form action="{% url 'subscriptions:toggle' username=profile_user.username %}" method="post">
                             {% csrf_token %}
                             {% if is_subscribed %}
-                                <button type="submit" class="btn btn-outline-secondary w-100 mb-2 subscription-toggle" data-username="{{ profile_user.username }}">
+                                <button type="submit" class="btn btn-outline-secondary subscription-toggle" data-username="{{ profile_user.username }}">
                                     <i class="fa-solid fa-user-minus me-1"></i>Отписаться
                                 </button>
                             {% else %}
-                                <button type="submit" class="btn btn-primary w-100 mb-2 subscription-toggle" data-username="{{ profile_user.username }}">
+                                <button type="submit" class="btn btn-follow-profile subscription-toggle" data-username="{{ profile_user.username }}">
                                     <i class="fa-solid fa-user-plus me-1"></i>Подписаться
                                 </button>
                             {% endif %}
@@ -63,54 +78,93 @@
                     {% endif %}
                 {% endif %}
             </div>
-        </div> <!-- ДОБАВЛЕН ЗАКРЫВАЮЩИЙ ТЕГ ДЛЯ col-md-3 -->
+        </div>
 
-        <div class="col-md-9">
-            {% if profile_user.bio %}
-                <h4>О себе:</h4>
-                <p>{{ profile_user.bio|linebreaksbr }}</p>
-            {% endif %}
-
-            {% if profile_user.contacts %}
-                <h4>Контакты:</h4>
-                <p>{{ profile_user.contacts }}</p>
-            {% endif %}
-
-            <h4>Email:</h4>
-            <p>{{ profile_user.email }}</p>
-
-            <!-- Последние посты пользователя -->
-            <h4 class="mt-4">Последние посты:</h4>
-            {% if user_posts %}
-                <div class="row">
-                    {% for post in user_posts %}
-                        <div class="col-md-6 mb-3">
-                            <div class="card h-100">
-                                {% if post.image %}
-                                    <img src="{{ post.image.url }}" alt="{{ post.title }}" class="card-img-top" style="height: 200px; object-fit: cover;">
-                                {% endif %}
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ post.title }}</h5>
-                                    <p class="card-text">{{ post.text|truncatechars:100 }}</p>
-                                    <p class="card-text"><small class="text-muted">{{ post.pub_date|date:"d.m.Y H:i" }}</small></p>
-                                    <a href="{% url 'posts:post-detail' pk=post.pk %}" class="btn btn-sm btn-outline-primary">Читать дальше</a>
-                                </div>
+        <!-- Основной контент профиля -->
+        <div class="profile-content">
+            <!-- Информация "О себе" и контакты -->
+            <div class="profile-card">
+                <h3 class="profile-card-title">
+                    <i class="fa-solid fa-circle-info profile-info-icon"></i>
+                    Информация
+                </h3>
+                <div class="profile-card-content">
+                    {% if profile_user.bio %}
+                        <div class="profile-info-item">
+                            <div class="profile-info-icon">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <div class="profile-info-text">
+                                <span class="profile-info-label">О себе:</span>
+                                <div class="profile-info-value">{{ profile_user.bio|linebreaksbr }}</div>
                             </div>
                         </div>
-                    {% endfor %}
-                </div>
-                {% if user_posts.count > 4 %}
-                    <div class="text-center mt-3">
-                        <a href="{% url 'posts:user-posts' username=profile_user.username %}" class="btn btn-outline-secondary">
-                            Все посты пользователя
-                        </a>
+                    {% endif %}
+
+                    {% if profile_user.contacts %}
+                        <div class="profile-info-item">
+                            <div class="profile-info-icon">
+                                <i class="fa-solid fa-address-book"></i>
+                            </div>
+                            <div class="profile-info-text">
+                                <span class="profile-info-label">Контакты:</span>
+                                <div class="profile-info-value">{{ profile_user.contacts }}</div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="profile-info-item">
+                        <div class="profile-info-icon">
+                            <i class="fa-solid fa-envelope"></i>
+                        </div>
+                        <div class="profile-info-text">
+                            <span class="profile-info-label">Email:</span>
+                            <div class="profile-info-value">{{ profile_user.email }}</div>
+                        </div>
                     </div>
-                {% endif %}
-            {% else %}
-                <div class="alert alert-light">
-                    Пользователь пока не опубликовал ни одного поста.
                 </div>
-            {% endif %}
+            </div>
+
+            <!-- Последние посты пользователя -->
+            <div class="profile-card">
+                <h3 class="profile-card-title">
+                    <i class="fa-solid fa-newspaper profile-info-icon"></i>
+                    Последние посты
+                </h3>
+                <div class="profile-card-content p-3">
+                    {% if user_posts %}
+                        <div class="row">
+                            {% for post in user_posts %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="post-card h-100">
+                                        {% if post.image %}
+                                            <img src="{{ post.image.url }}" alt="{{ post.title }}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                                        {% endif %}
+                                        <div class="card-body">
+                                            <h5 class="post-title">{{ post.title }}</h5>
+                                            <p class="post-text">{{ post.text|truncatechars:100 }}</p>
+                                            <p class="post-meta-compact"><small>{{ post.pub_date|date:"d.m.Y H:i" }}</small></p>
+                                            <a href="{% url 'posts:post-detail' pk=post.pk %}" class="btn btn-sm btn-primary">Читать дальше</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if user_posts.count > 4 %}
+                            <div class="text-center mt-3">
+                                <a href="{% url 'posts:user-posts' username=profile_user.username %}" class="btn btn-outline-primary">
+                                    Все посты пользователя
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="profile-gallery-empty">
+                            <i class="fa-solid fa-newspaper fa-2x mb-2"></i>
+                            <p>Пользователь пока не опубликовал ни одного поста.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 </div>
