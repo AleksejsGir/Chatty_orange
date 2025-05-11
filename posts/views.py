@@ -8,17 +8,30 @@ from .models import Post, Comment
 from .forms import PostForm, CommentForm
 from django.views.generic.detail import SingleObjectMixin
 from django.views import View
-from django.shortcuts import redirect
-from django.core.paginator import Paginator
+from django.shortcuts import redirect # Не используется в PostListView, но может быть в других
+from django.core.paginator import Paginator # Не используется напрямую в PostListView, ListView делает это сам
 from django.http import JsonResponse
+from django.db.models import Count
+
 
 
 class PostListView(ListView):
     model = Post
     template_name = 'posts/post_list.html'
-    context_object_name = 'posts'
+    context_object_name = 'posts' # <<< В шаблоне используется `posts`, а не `object_list`
     ordering = ['-pub_date']
     paginate_by = 10
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # Аннотируем количеством комментариев И ЛАЙКОВ
+        queryset = queryset.annotate(
+            num_comments=Count('comments', distinct=True),
+            num_likes=Count('likes', distinct=True)  # <<< ВОТ ЭТА СТРОКА НУЖНА
+        )
+        # Предзагружаем автора для эффективности
+        queryset = queryset.select_related('author')
+        return queryset
 
 
 class PostDetailView(DetailView):
