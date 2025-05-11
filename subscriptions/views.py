@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
-
+from django.db.models import Count, Exists, OuterRef  # Добавляем недостающие импорты
 from posts.models import Post
 from .models import Subscription
 
@@ -142,7 +142,10 @@ class FeedView(LoginRequiredMixin, ListView):
             subscriber=self.request.user
         ).values_list('author_id', flat=True)
 
-        # Возвращаем посты от этих пользователей
+        # Возвращаем посты от этих пользователей с аннотациями для количества лайков и комментариев
         return Post.objects.filter(
             author_id__in=following_users
-        ).select_related('author').order_by('-pub_date')
+        ).select_related('author').annotate(
+            num_comments=Count('comments', distinct=True),
+            num_likes=Count('likes', distinct=True)
+        ).order_by('-pub_date')
