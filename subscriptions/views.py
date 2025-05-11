@@ -59,6 +59,9 @@ class SubscriptionToggleView(LoginRequiredMixin, View):
                 else:
                     return redirect('users:profile', username=username)
 
+        # Получаем URL для перенаправления после завершения операции
+        next_url = request.POST.get('next')
+
         # Возвращаем ответ в зависимости от типа запроса (AJAX или обычный)
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             # Формируем JSON-ответ для AJAX-запроса
@@ -69,8 +72,11 @@ class SubscriptionToggleView(LoginRequiredMixin, View):
                 'subscribers_count': author.subscribers.count()
             })
         else:
-            # Для обычного запроса перенаправляем обратно на профиль
-            return redirect('users:profile', username=username)
+            # Для обычного запроса перенаправляем на URL из параметра next или на профиль
+            if next_url:
+                return redirect(next_url)
+            else:
+                return redirect('users:profile', username=username)
 
 
 class FollowersListView(ListView):

@@ -6,14 +6,14 @@
 {% block content %}
 <div class="container mt-4">
     <div class="profile-container p-4">
-        <h1 class="page-title mb-4">{{ profile_user.username }} подписан на</h1>
+        <h1 class="page-title mb-4">Мои подписки:</h1>
 
         <div class="mb-4">
             <a href="{% url 'users:profile' profile_user.username %}" class="btn btn-outline-secondary">
                 <i class="fa-solid fa-arrow-left me-1"></i> Вернуться к профилю
             </a>
             <a href="{% url 'subscriptions:followers' profile_user.username %}" class="btn btn-outline-primary ms-2">
-                <i class="fa-solid fa-users me-1"></i> Подписчики {{ profile_user.username }}
+                <i class="fa-solid fa-users me-1"></i> Мои подписчики
             </a>
         </div>
 
@@ -48,10 +48,14 @@
 
                                 {% if user.is_authenticated and user == profile_user %}
                                     <div class="ms-auto">
-                                        <button class="btn btn-outline-secondary btn-sm subscription-toggle"
-                                                data-username="{{ subscription.author.username }}">
-                                            <i class="fa-solid fa-user-minus me-1"></i>Отписаться
-                                        </button>
+                                        <form action="{% url 'subscriptions:toggle' username=subscription.author.username %}" method="post" class="subscription-form">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="next" value="{{ request.path }}?{% if request.GET.page %}page={{ request.GET.page }}{% endif %}">
+                                            <button type="submit" class="btn btn-outline-secondary btn-sm subscription-toggle"
+                                                    data-username="{{ subscription.author.username }}">
+                                                <i class="fa-solid fa-user-minus me-1"></i>Отписаться
+                                            </button>
+                                        </form>
                                     </div>
                                 {% endif %}
                             </div>

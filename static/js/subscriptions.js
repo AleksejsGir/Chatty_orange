@@ -1,28 +1,63 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Находим все кнопки подписки/отписки на странице
-    const subscriptionButtons = document.querySelectorAll('.subscription-toggle');
+    console.log('Subscription script loaded!');
 
-    // Для каждой кнопки добавляем обработчик события клика
-    subscriptionButtons.forEach(button => {
-        button.addEventListener('click', function(event) {
+    // Находим все элементы, с которыми можно работать
+    const subscriptionButtons = document.querySelectorAll('.subscription-toggle, [data-username], .otpis-btn, button:contains("Отписаться")');
+    console.log('Found subscription elements:', subscriptionButtons.length);
+
+    // Обрабатываем клики на всем документе
+    document.addEventListener('click', function(event) {
+        // Если клик был на кнопку отписки/подписки или внутри неё
+        if (event.target.closest('[data-username], .subscription-toggle, .otpis-btn') ||
+            event.target.textContent.includes('Отписаться')) {
+
+            const button = event.target.closest('button, [type="submit"]');
+            if (!button) return;
+
             event.preventDefault();
+            console.log('Subscription button clicked:', button);
 
-            // Получаем имя пользователя из атрибута data-username
-            const username = this.dataset.username;
+            // Проверяем, есть ли у кнопки атрибут data-username
+            let username = button.dataset.username;
 
-            // Формируем URL для запроса
-            const url = `/subscriptions/toggle/${username}/`;
+            // Если нет, пытаемся найти его в ближайшей форме
+            if (!username && button.form) {
+                const formAction = button.form.action;
+                // Попытка извлечь имя пользователя из URL формы
+                const matches = formAction.match(/\/subscriptions\/toggle\/([^\/]+)\//);
+                if (matches && matches[1]) {
+                    username = matches[1];
+                }
+            }
 
-            // Получаем CSRF токен для запроса
+            // Если всё еще нет, ищем в ближайших элементах с data-username
+            if (!username) {
+                const parentWithUsername = button.closest('[data-username]');
+                if (parentWithUsername) {
+                    username = parentWithUsername.dataset.username;
+                }
+            }
+
+            if (!username) {
+                console.error('Could not determine username for subscription toggle');
+                return;
+            }
+
+            console.log('Processing subscription for username:', username);
+
+            // Сохраняем оригинальное состояние кнопки
+            const originalHTML = button.innerHTML;
+            const originalDisabled = button.disabled;
+
+            // Показываем загрузку
+            button.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+            button.disabled = true;
+
+            // Получаем CSRF токен
             const csrftoken = getCookie('csrftoken');
 
-            // Отображаем состояние загрузки
-            const originalText = this.innerHTML;
-            this.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
-            this.disabled = true;
-
-            // Отправляем AJAX запрос
-            fetch(url, {
+            // Отправляем запрос
+            fetch(`/subscriptions/toggle/${username}/`, {
                 method: 'POST',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
@@ -32,81 +67,25 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Ошибка сети или сервера');
+                    throw new Error(`Server error: ${response.status}`);
                 }
                 return response.json();
             })
             .then(data => {
-                // Обновляем текст и стиль кнопки в зависимости от результата
-                if (data.is_subscribed) {
-                    button.innerHTML = '<i class="fa-solid fa-user-minus me-1"></i>Отписаться';
-                    button.classList.remove('btn-primary', 'btn-follow-profile');
-                    button.classList.add('btn-outline-secondary');
-                } else {
-                    button.innerHTML = '<i class="fa-solid fa-user-plus me-1"></i>Подписаться';
-                    button.classList.remove('btn-outline-secondary');
-                    button.classList.add('btn-primary', 'btn-follow-profile');
-                }
-
-                // Разблокируем кнопку
-                button.disabled = false;
-
-                // Обновляем счетчик подписчиков, если он есть на странице
-                const subscribersCounter = document.getElementById('subscribers-count');
-                if (subscribersCounter) {
-                    subscribersCounter.textContent = data.subscribers_count;
-                }
-
-                // Отображаем сообщение об успешной подписке/отписке
-                showNotification(data.message, 'success');
+                console.log('Server response:', data);
+                // Перезагружаем страницу для гарантированного обновления
+                window.location.reload();
             })
             .catch(error => {
-                console.error('Ошибка:', error);
-                // Восстанавливаем исходное состояние кнопки
-                button.innerHTML = originalText;
-                button.disabled = false;
-                showNotification('Произошла ошибка при обработке запроса', 'danger');
+                console.error('Error toggling subscription:', error);
+                button.innerHTML = originalHTML;
+                button.disabled = originalDisabled;
+                alert('Произошла ошибка при обработке запроса: ' + error.message);
             });
-        });
+        }
     });
 
-    // Функция для отображения уведомления
-    function showNotification(message, type = 'success') {
-        // Создаем элемент уведомления
-        const notification = document.createElement('div');
-        notification.className = `alert alert-${type} subscription-notification`;
-        notification.style.position = 'fixed';
-        notification.style.top = '20px';
-        notification.style.right = '20px';
-        notification.style.zIndex = '1050';
-        notification.style.maxWidth = '300px';
-        notification.style.opacity = '0';
-        notification.style.transform = 'translateY(-20px)';
-        notification.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-        notification.innerHTML = message;
-
-        // Добавляем уведомление на страницу
-        document.body.appendChild(notification);
-
-        // Запускаем анимацию появления
-        setTimeout(() => {
-            notification.style.opacity = '1';
-            notification.style.transform = 'translateY(0)';
-        }, 10);
-
-        // Удаляем уведомление через 3 секунды
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateY(-20px)';
-
-            // Полностью удаляем элемент после завершения анимации
-            setTimeout(() => {
-                document.body.removeChild(notification);
-            }, 300);
-        }, 3000);
-    }
-
-    // Функция для получения CSRF токена из cookies
+    // Функция для получения CSRF-токена из куки
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
