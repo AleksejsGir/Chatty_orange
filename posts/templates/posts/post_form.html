@@ -12,52 +12,120 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4 mb-5"> {# Добавил отступ снизу #}
+<div class="container mt-4 mb-5">
     <div class="row justify-content-center">
-        <div class="col-lg-8"> {# Ограничиваем ширину формы #}
-             <div class="card profile-card shadow-sm"> {# Используем стиль карточки #}
-                 <div class="card-header profile-card-title"> {# Стиль заголовка карточки #}
+        <div class="col-lg-8">
+             <div class="card profile-card shadow-sm">
+                 <div class="card-header profile-card-title">
                      {% if form.instance.pk %}
                         <i class="fa-solid fa-pen-to-square fa-fw me-2"></i>Редактирование поста
                     {% else %}
                         <i class="fa-solid fa-plus-circle fa-fw me-2"></i>Создание нового поста
                     {% endif %}
                  </div>
-                 <div class="card-body profile-card-content"> {# Стиль контента карточки #}
-                    {# Выводим заголовок поста при редактировании, если он есть #}
+                 <div class="card-body profile-card-content">
                     {% if form.instance.pk and form.instance.title %}
                         <h3 class="h5 mb-3 text-muted">Пост: {{ form.instance.title|truncatechars:70 }}</h3>
                     {% endif %}
 
-                    <form method="post" enctype="multipart/form-data"> {# enctype для файлов #}
+                    <form method="post" enctype="multipart/form-data" class="post-form">
                         {% csrf_token %}
 
-                        {# Используем django-bootstrap5, layout='vertical' обычно лучше для таких форм #}
-                        {% bootstrap_form form layout='vertical' %}
+                        {% bootstrap_field form.title layout='vertical' %}
+                        {% bootstrap_field form.text layout='vertical' %}
+                        {% bootstrap_field form.image layout='vertical' %}
 
-                        <hr class="my-4"> {# Разделитель перед кнопками #}
+                        <!-- Специальное форматирование для тегов -->
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-medium">Теги:</label>
+                            <div class="tag-selection">
+                                <!-- Скрытое поле для хранения значений тегов -->
+                                {{ form.tags.as_hidden }}
 
-                        <div class="d-flex justify-content-end"> {# Кнопки справа #}
+                                <ul class="tag-checkbox-list">
+                                    {% for choice in form.tags.field.choices %}
+                                        {% with value=choice.0 label=choice.1 %}
+                                            <li class="{% if value|slugify in form.tags.value|stringformat:'s'|slugify %}active{% endif %}">
+                                                <input type="checkbox"
+                                                       id="id_tags_{{ forloop.counter0 }}"
+                                                       name="tags"
+                                                       value="{{ value }}"
+                                                       {% if value|slugify in form.tags.value|stringformat:'s'|slugify %}checked{% endif %}
+                                                       class="tag-checkbox">
+                                                <label for="id_tags_{{ forloop.counter0 }}">{{ label }}</label>
+                                            </li>
+                                        {% endwith %}
+                                    {% endfor %}
+                                </ul>
+
+                                {% if form.tags.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.tags.errors }}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted">Выберите одну или несколько тем для вашего поста.</small>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-end">
                             <a href="{% if form.instance.pk %}{{ form.instance.get_absolute_url }}{% else %}{% url 'posts:post-list' %}{% endif %}" class="btn btn-outline-secondary me-2">
                                 Отмена
                             </a>
-                            <button type="submit" class="btn btn-primary"> {# Основная оранжевая кнопка #}
+                            <button type="submit" class="btn btn-primary">
                                 {% if form.instance.pk %}
                                     <i class="fa-solid fa-save me-1"></i>
                                     Сохранить изменения
                                 {% else %}
-                                    <i class="fa-solid fa-paper-plane me-1"></i> {# Изменил иконку на paper-plane #}
+                                    <i class="fa-solid fa-paper-plane me-1"></i>
                                     Опубликовать пост
                                 {% endif %}
                             </button>
                         </div>
                     </form>
-                </div> {# Конец card-body #}
-            </div> {# Конец card #}
+                </div>
+            </div>
         </div>
     </div>
 </div>
-{% endblock %}
 
-<!-- TODO: Убедиться, что PostForm корректно обрабатывает поле 'image' (например, виджет ClearableFileInput). -->
-<!-- TODO: Убедиться, что метод get_absolute_url() модели Post работает. -->
+<!-- JavaScript для интерактивности тегов -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tagItems = document.querySelectorAll('.tag-checkbox-list li');
+
+        tagItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                // Если клик не по чекбоксу или метке
+                if (e.target !== this.querySelector('input[type="checkbox"]') &&
+                    e.target !== this.querySelector('label')) {
+                    // Находим чекбокс внутри элемента
+                    const checkbox = this.querySelector('input[type="checkbox"]');
+                    // Изменяем состояние чекбокса
+                    checkbox.checked = !checkbox.checked;
+                    // Вызываем событие change вручную
+                    const event = new Event('change', { bubbles: true });
+                    checkbox.dispatchEvent(event);
+                }
+
+                // Обновляем активный класс на основе состояния чекбокса
+                setTimeout(() => {
+                    const checkbox = this.querySelector('input[type="checkbox"]');
+                    if (checkbox) {
+                        this.classList.toggle('active', checkbox.checked);
+                    }
+                }, 10);
+            });
+
+            // Слушаем изменение состояния чекбокса
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            if (checkbox) {
+                checkbox.addEventListener('change', function() {
+                    item.classList.toggle('active', this.checked);
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

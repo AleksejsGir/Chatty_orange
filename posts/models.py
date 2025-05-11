@@ -4,6 +4,7 @@ from django.conf import settings
 from django.utils.text import slugify
 from django.urls import reverse # <<< Убедитесь, что reverse импортирован
 from django.utils import timezone
+from django.db.models import Count
 
 class Post(models.Model):
     author = models.ForeignKey(
@@ -34,6 +35,12 @@ class Post(models.Model):
         related_name='liked_posts',
         blank=True,
         verbose_name="Лайки"
+    )
+    tags = models.ManyToManyField(
+        'Tag',
+        related_name='posts',
+        blank=True,
+        verbose_name="Теги"
     )
 
     def total_likes(self):
@@ -99,3 +106,27 @@ class Comment(models.Model):
         verbose_name = "Комментарий"
         verbose_name_plural = "Комментарии"
         ordering = ["-created_at"]
+
+
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True, verbose_name="Название")
+    slug = models.SlugField(max_length=50, unique=True, verbose_name="URL-адрес")
+
+    def __str__(self):
+        return self.name
+
+    @staticmethod
+    def get_popular_tags(limit=5):
+        """Возвращает список популярных тегов с количеством постов."""
+        return Tag.objects.annotate(
+            posts_count=Count('posts')
+        ).order_by('-posts_count')[:limit]
+
+    def get_absolute_url(self):
+        """Возвращает URL для просмотра постов с данным тегом."""
+        return reverse('posts:tag-posts', kwargs={'slug': self.slug})
+
+    class Meta:
+        verbose_name = "Тег"
+        verbose_name_plural = "Теги"
+        ordering = ['name']
