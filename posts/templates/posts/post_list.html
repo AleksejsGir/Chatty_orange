@@ -20,10 +20,19 @@
         <!-- Фильтры постов -->
         <div class="post-filters mb-4">
             <div class="btn-group" role="group" aria-label="Фильтры постов">
-                <button type="button" class="btn btn-filter active">Последние</button>
-                <button type="button" class="btn btn-filter">Популярные</button>
+                <a href="{% url 'posts:post-list' %}{% if request.GET.page %}?page={{ request.GET.page }}{% endif %}"
+                   class="btn btn-filter {% if not current_filter or current_filter == 'latest' %}active{% endif %}">
+                    Последние
+                </a>
+                <a href="{% url 'posts:post-list' %}?filter=popular{% if request.GET.page %}&page={{ request.GET.page }}{% endif %}"
+                   class="btn btn-filter {% if current_filter == 'popular' %}active{% endif %}">
+                    Популярные
+                </a>
                 {% if user.is_authenticated %}
-                <button type="button" class="btn btn-filter">Подписки</button>
+                <a href="{% url 'posts:post-list' %}?filter=subscriptions{% if request.GET.page %}&page={{ request.GET.page }}{% endif %}"
+                   class="btn btn-filter {% if current_filter == 'subscriptions' %}active{% endif %}">
+                    Подписки
+                </a>
                 {% endif %}
             </div>
         </div>
@@ -126,7 +135,7 @@
                 <ul class="pagination justify-content-center">
                     {% if page_obj.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                        <a class="page-link" href="?{% if current_filter != 'latest' %}filter={{ current_filter }}&{% endif %}page={{ page_obj.previous_page_number }}">
                             <i class="fa-solid fa-chevron-left"></i>
                         </a>
                     </li>
@@ -143,14 +152,14 @@
                         </li>
                         {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            <a class="page-link" href="?{% if current_filter != 'latest' %}filter={{ current_filter }}&{% endif %}page={{ num }}">{{ num }}</a>
                         </li>
                         {% endif %}
                     {% endfor %}
 
                     {% if page_obj.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                        <a class="page-link" href="?{% if current_filter != 'latest' %}filter={{ current_filter }}&{% endif %}page={{ page_obj.next_page_number }}">
                             <i class="fa-solid fa-chevron-right"></i>
                         </a>
                     </li>
@@ -204,15 +213,15 @@
             </div>
             <div class="user-profile-stats">
                 <div class="stat-item">
-                    <span class="stat-value">0</span>
+                    <span class="stat-value">{{ user.post_set.count }}</span>
                     <span class="stat-label">Постов</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-value">0</span>
+                    <span class="stat-value">{{ user.subscribers.count }}</span>
                     <span class="stat-label">Подписчиков</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-value">0</span>
+                    <span class="stat-value">{{ user.subscriptions.count }}</span>
                     <span class="stat-label">Подписок</span>
                 </div>
             </div>
@@ -255,38 +264,35 @@
         <div class="sidebar-card who-to-follow-card">
             <h3 class="sidebar-card-title">Кого подписаться</h3>
             <ul class="who-to-follow-list">
+                {% for suggested_user in suggested_users %}
                 <li class="suggested-user">
+                    {% if suggested_user.avatar %}
+                    <img src="{{ suggested_user.avatar.url }}" alt="{{ suggested_user.username }}" class="post-avatar" style="width: 40px; height: 40px;">
+                    {% else %}
                     <div class="suggested-user-avatar-placeholder">
-                        <span>А</span>
+                        <span>{{ suggested_user.username|first|upper }}</span>
                     </div>
+                    {% endif %}
                     <div class="suggested-user-info">
-                        <span class="suggested-user-name">Alex123</span>
-                        <span class="suggested-user-handle">@alex123</span>
+                        <span class="suggested-user-name">{{ suggested_user.username }}</span>
+                        <span class="suggested-user-handle">@{{ suggested_user.username }}</span>
                     </div>
-                    <button class="btn btn-follow">Подписаться</button>
+                    <form action="{% url 'subscriptions:toggle' username=suggested_user.username %}" method="post" class="subscription-form">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-follow subscription-toggle" data-username="{{ suggested_user.username }}">
+                            Подписаться
+                        </button>
+                    </form>
                 </li>
-                <li class="suggested-user">
-                    <div class="suggested-user-avatar-placeholder">
-                        <span>М</span>
-                    </div>
-                    <div class="suggested-user-info">
-                        <span class="suggested-user-name">Maria</span>
-                        <span class="suggested-user-handle">@maria_design</span>
-                    </div>
-                    <button class="btn btn-follow">Подписаться</button>
-                </li>
-                <li class="suggested-user">
-                    <div class="suggested-user-avatar-placeholder">
-                        <span>С</span>
-                    </div>
-                    <div class="suggested-user-info">
-                        <span class="suggested-user-name">СпортБлог</span>
-                        <span class="suggested-user-handle">@sport_blog</span>
-                    </div>
-                    <button class="btn btn-follow">Подписаться</button>
-                </li>
+                {% empty %}
+                <p class="text-center text-muted py-3">
+                    Нет рекомендаций для подписки
+                </p>
+                {% endfor %}
             </ul>
+            {% if suggested_users.count > 3 %}
             <a href="#" class="sidebar-card-footer-link">Показать больше</a>
+            {% endif %}
         </div>
     </div>
 </div>

@@ -4,34 +4,87 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
+from django.contrib.auth import get_user_model
 from .models import Post, Comment
 from .forms import PostForm, CommentForm
 from django.views.generic.detail import SingleObjectMixin
 from django.views import View
-from django.shortcuts import redirect # Не используется в PostListView, но может быть в других
-from django.core.paginator import Paginator # Не используется напрямую в PostListView, ListView делает это сам
+from django.shortcuts import redirect
+from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.db.models import Count
+from subscriptions.models import Subscription  # Добавляем импорт модели подписок
 
+User = get_user_model()  # Получаем модель пользователя
 
 
 class PostListView(ListView):
     model = Post
     template_name = 'posts/post_list.html'
-    context_object_name = 'posts' # <<< В шаблоне используется `posts`, а не `object_list`
-    ordering = ['-pub_date']
+    context_object_name = 'posts'
     paginate_by = 10
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        # Аннотируем количеством комментариев И ЛАЙКОВ
+
+        # Аннотируем количеством комментариев и лайков
         queryset = queryset.annotate(
             num_comments=Count('comments', distinct=True),
-            num_likes=Count('likes', distinct=True)  # <<< ВОТ ЭТА СТРОКА НУЖНА
+            num_likes=Count('likes', distinct=True)
         )
+
         # Предзагружаем автора для эффективности
         queryset = queryset.select_related('author')
+
+        # Определяем тип фильтрации
+        filter_type = self.request.GET.get('filter', 'latest')
+
+        if filter_type == 'popular':
+            # Популярные посты - сортировка по количеству лайков
+            queryset = queryset.order_by('-num_likes', '-pub_date')
+        elif filter_type == 'subscriptions' and self.request.user.is_authenticated:
+            # Посты от подписок - только от авторов, на которых подписан пользователь
+            try:
+                subscribed_to = Subscription.objects.filter(
+                    subscriber=self.request.user
+                ).values_list('author_id', flat=True)
+
+                queryset = queryset.filter(author_id__in=subscribed_to).order_by('-pub_date')
+            except Exception as e:
+                # В случае ошибки - показываем обычную ленту
+                print(f"Error filtering by subscriptions: {e}")
+                queryset = queryset.order_by('-pub_date')
+        else:
+            # По умолчанию - последние посты
+            queryset = queryset.order_by('-pub_date')
+
         return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Добавляем текущий фильтр в контекст
+        context['current_filter'] = self.request.GET.get('filter', 'latest')
+
+        if self.request.user.is_authenticated:
+            try:
+                # Получаем ID пользователей, на которых подписан текущий пользователь
+                subscribed_to = Subscription.objects.filter(
+                    subscriber=self.request.user
+                ).values_list('author_id', flat=True)
+
+                # Получаем рекомендуемых пользователей (не включая тех, на кого уже подписан, и себя)
+                context['suggested_users'] = User.objects.exclude(
+                    id__in=list(subscribed_to) + [self.request.user.id]
+                ).annotate(
+                    subscribers_count=Count('subscribers')
+                ).order_by('-subscribers_count')[:3]  # Показываем 3 самых популярных пользователя
+            except Exception as e:
+                # В случае ошибки просто не добавляем рекомендации
+                context['suggested_users'] = []
+                print(f"Error getting suggested users: {e}")
+
+        return context
 
 
 class PostDetailView(DetailView):
