@@ -1,12 +1,17 @@
-# subscriptions/urls.py
 from django.urls import path
-from . import views # Импортируем views, хотя их пока нет
+from . import views
 
-app_name = 'subscriptions' # Определяем пространство имен URL
+app_name = 'subscriptions'
 
 urlpatterns = [
-    # Здесь будут URL-паттерны для подписок
-    # path('feed/', views.feed, name='feed'), # Пример будущего пути
-]
+    # Подписаться/отписаться от пользователя
+    path('toggle/<str:username>/', views.SubscriptionToggleView.as_view(), name='toggle'),
 
-# <!-- TODO: Добавлять сюда URL-паттерны для приложения subscriptions по мере реализации views. -->
+    # Список подписчиков пользователя
+    path('followers/<str:username>/', views.FollowersListView.as_view(), name='followers'),
+
+    # Список подписок пользователя
+    path('following/<str:username>/', views.FollowingListView.as_view(), name='following'),
+
+    path('feed/', views.FeedView.as_view(), name='feed'),
+]

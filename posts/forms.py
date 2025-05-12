@@ -6,7 +6,7 @@ from .models import Post, Comment
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['title', 'text', 'image']
+        fields = ['title', 'text', 'image', 'tags']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -19,6 +19,9 @@ class PostForm(forms.ModelForm):
             }),
             'image': forms.ClearableFileInput(attrs={
                 'class': 'form-control-file'
+            }),
+            'tags': forms.CheckboxSelectMultiple(attrs={
+                'class': 'tag-checkbox-list'
             })
         }
 
