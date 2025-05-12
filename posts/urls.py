@@ -13,8 +13,6 @@ urlpatterns = [
     path('post/<int:pk>/comment/', views.PostCommentView.as_view(), name='post-comment'),  # Новый URL
     path('comment/<int:pk>/delete/', views.CommentDeleteView.as_view(), name='comment-delete'),
     path('<int:pk>/like/', views.PostLikeView.as_view(), name='post-like'),
-    # Здесь будут URL-паттерны для постов
-    # path('', views.post_list, name='list'), # Пример будущего пути
-]
+    path('tag/<slug:slug>/', views.TagPostListView.as_view(), name='tag-posts'),
 
-# <!-- TODO: Добавлять сюда URL-паттерны для приложения posts по мере реализации views. -->
+]
