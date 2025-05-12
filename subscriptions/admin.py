@@ -7,8 +7,11 @@ class SubscriptionAdmin(admin.ModelAdmin):
     list_display = ('subscriber', 'author', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('subscriber__username', 'author__username')
-    readonly_fields = ('created_at',)
-    actions = ['send_notifications']
+    date_hierarchy = 'created_at'
+
+    def has_add_permission(self, request):
+        # Разрешаем добавление только через интерфейс подписки
+        return True
 
     def send_notifications(self, request, queryset):
         # Здесь можно добавить логику отправки уведомлений

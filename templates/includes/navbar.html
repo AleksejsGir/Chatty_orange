@@ -32,6 +32,11 @@
                     </a>
                     {# TODO: В будущем изменить href для user.is_authenticated на {% url 'subscriptions:feed' %} #}
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.view_name == 'subscriptions:feed' %}active{% endif %}" href="{% url 'subscriptions:feed' %}">
+                        <i class="fa-solid fa-rss me-1"></i>Подписки
+                    </a>
+                </li>
             </ul>
 
             {# Поиск (статичная заглушка) #}

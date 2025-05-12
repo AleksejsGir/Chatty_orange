@@ -1314,3 +1314,160 @@ h1, h2, h3, h4, h5, h6 {
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+/* Стили для тегов на странице поста */
+.post-tags {
+    margin-top: 1rem;
+}
+
+.badge.rounded-pill.bg-light.text-primary {
+    background-color: var(--primary-ultra-light) !important;
+    color: var(--primary) !important;
+    font-weight: 500;
+    padding: 0.35rem 0.75rem;
+    margin-right: 0.5rem;
+    transition: all var(--transition-fast);
+}
+
+.badge.rounded-pill.bg-light.text-primary:hover {
+    background-color: var(--primary-light) !important;
+    color: white !important;
+}
+
+/* Стили для выбора тегов на форме */
+.tag-selection {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.tag-checkbox-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    list-style: none;
+    padding: 0;
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.tag-checkbox-list li {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-gray);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+    cursor: pointer;
+    user-select: none;
+}
+
+.tag-checkbox-list li:hover {
+    background-color: var(--primary-ultra-light);
+}
+
+.tag-checkbox-list li label {
+    margin-left: 0.5rem;
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
+.tag-checkbox-list li input[type="checkbox"]:checked + label {
+    color: var(--primary);
+    font-weight: 500;
+}
+
+/* Улучшенные стили для чекбоксов тегов */
+.tag-checkbox-list li.active {
+    background-color: var(--primary-ultra-light);
+    border: 1px solid var(--primary-light);
+}
+
+.tag-checkbox-list li input[type="checkbox"] {
+    /* Комментируем, чтобы не скрывать нативные чекбоксы совсем - это может быть проблемой для доступности */
+    /* display: none; */
+    /* Вместо этого делаем их меньше и стилизуем */
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary);
+}
+
+/* Анимация для выбора тега */
+.tag-checkbox-list li {
+    position: relative;
+    overflow: hidden;
+}
+
+.tag-checkbox-list li::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: var(--primary);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%, -50%);
+    transform-origin: 50% 50%;
+}
+
+.tag-checkbox-list li:active::after {
+    opacity: 0.3;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-md);
+    transform: scale(0, 0) translate(-50%, -50%);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Стиль для мобильных устройств */
+@media (max-width: 576px) {
+    .tag-checkbox-list {
+        gap: 0.5rem;
+    }
+
+    .tag-checkbox-list li {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.9rem;
+    }
+}
+/* Фон с изображением апельсинов */
+.orange-background {
+    position: relative;
+}
+
+.orange-background::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/static/images/oranges-background.jpg'); /* Путь к изображению */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    opacity: 0.15; /* Приглушенная яркость для лучшей читаемости */
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Для блоков контента на фоне апельсинов */
+.content-card-on-oranges {
+    background-color: rgba(255, 255, 255, 0.85);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Для улучшения контраста текста на фоне */
+.orange-background h1,
+.orange-background h2,
+.orange-background h3,
+.orange-background .page-title {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+}
