@@ -94,6 +94,10 @@ class Comment(models.Model):
         auto_now_add=True,
         verbose_name="Дата создания"
     )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Активен"
+    )
 
     def __str__(self):
         return f"Комментарий от {self.author} к посту {self.post.title}"
