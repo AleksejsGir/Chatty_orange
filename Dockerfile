@@ -30,7 +30,7 @@ EXPOSE 8000
 
 # Команда по умолчанию для запуска контейнера
 # Запускаем Django development server, доступный извне контейнера (на 0.0.0.0)
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
 
 # <!-- TODO: При переходе на production использовать gunicorn или uwsgi вместо runserver. -->
 # <!-- TODO: Рассмотреть многостадийную сборку для уменьшения размера финального образа. -->
