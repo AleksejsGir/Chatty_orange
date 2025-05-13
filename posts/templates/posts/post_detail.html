@@ -39,7 +39,7 @@
                 </div>
 
                 {# --- Заголовок поста --- #}
-                <h1 class="post-title display-5 mb-3">{{ post.title }}</h1>
+                <h1 class="post-title mb-3">{{ post.title }}</h1>
 
                  {# --- Изображение поста --- #}
                 {% if post.image %}
@@ -50,7 +50,7 @@
 
                 {# --- Текст поста --- #}
                 <div class="post-content fs-5 mb-4">
-                    {{ post.text|linebreaksbr }}
+                    {{ post.text|safe }}
                 </div>
 
                 {# --- Теги поста --- #}
@@ -69,8 +69,7 @@
                     <div class="interaction-buttons">
                         <button class="btn-interaction like-button {% if request.user in post.likes.all %}active{% endif %}"
                                 data-post-id="{{ post.pk }}"
-                                title="Нравится"
-                                {% if not request.user.is_authenticated %}disabled{% endif %}>
+                                title="Нравится">
                             <i class="fa-heart {% if request.user in post.likes.all %}fa-solid text-danger{% else %}fa-regular{% endif %}"></i>
                             <span class="interaction-count">{{ post.total_likes }}</span>
                         </button>
@@ -82,12 +81,12 @@
                 </div>
             </article>
 
-            {# --- Секция комментариев --- #}
+            {# --- Секция комментариев ---  #}
             <div id="comments" class="mt-5 border-top pt-4">
                 <h3 class="mb-4">Комментарии <span class="badge bg-secondary rounded-pill">{{ post.comments.count|default:"0" }}</span></h3>
 
                             {# Список комментариев #}
-                {% with comments=post.comments.all %}
+
                     {% if comments %}
                         <div class="comments-list">
                             {% for comment in comments %}
@@ -106,7 +105,13 @@
                                             <a href="{% url 'users:profile' comment.author.username %}" class="post-author-name">{{ comment.author.username }}</a>
                                             <small class="text-muted ms-2">{{ comment.created_at|date:"d.m.Y H:i" }}</small>
                                         </h6>
-                                        <p>{{ comment.text|linebreaksbr }}</p>
+                                        {% if not comment.is_active and user.is_staff %}
+                                            <div class="alert alert-warning py-2 px-3 mb-2 d-inline-block">
+                                                <i class="fa-solid fa-eye-slash me-1"></i> Комментарий скрыт от обычных пользователей
+                                            </div>
+                                                {% endif %}
+                                            <p>{{ comment.text|linebreaksbr }}</p>
+
                                         {% if user == comment.author or user.is_staff %}
                                         <div class="comment-actions mt-2">
                                             <form method="post" action="{% url 'posts:comment-delete' pk=comment.pk %}" class="d-inline">
@@ -176,7 +181,7 @@
                     {% else %}
                         <p class="text-center text-muted">Комментариев пока нет. Станьте первым!</p>
                     {% endif %}
-                {% endwith %}
+
             </div>
 
             {# Блок для отображения популярных тегов #}

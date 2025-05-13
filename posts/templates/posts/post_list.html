@@ -106,7 +106,7 @@
 
                             <!-- Содержимое поста - убрана ссылка "Читать дальше" -->
                             <div class="post-content">
-                                <p class="post-text">{{ post.text|truncatechars:300 }}</p>
+                                <div class="post-text">{{ post.text|safe|truncatewords_html:30 }}</div>
                             </div>
 
                             <!-- Теги поста, если есть -->
@@ -134,10 +134,9 @@
                                 <div class="interaction-buttons">
                                     <button class="btn-interaction like-button {% if request.user in post.likes.all %}active{% endif %}"
                                         data-post-id="{{ post.pk }}"
-                                        title="Нравится"
-                                        {% if not request.user.is_authenticated %}disabled{% endif %}>
+                                        title="Нравится">
                                         <i class="fa-heart {% if request.user in post.likes.all %}fa-solid text-danger{% else %}fa-regular{% endif %}"></i>
-                                        <span class="interaction-count">{{ post.num_likes|default:"0" }}</span>
+                                        <span class="interaction-count">{{ post.total_likes|default:"0" }}</span>
                                     </button>
 
                                     <a href="{% url 'posts:post-detail' pk=post.pk %}#comments" class="btn-interaction comment-button" title="Комментарии">
@@ -335,4 +334,13 @@
         </div>
     </div>
 </div>
+{% endblock %}
+{% block extra_css %}
+<style>
+    /* Улучшенный стиль для форматированного текста в списке постов */
+    .post-text {
+        /* ... */
+    }
+    /* ... остальные стили ... */
+</style>
 {% endblock %}

@@ -11,6 +11,25 @@
     - Chatty
 {% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Дополнительные стили для CKEditor */
+    .django-ckeditor-widget {
+        width: 100%;
+    }
+
+    /* Исправляем возможные проблемы с высотой */
+    .cke_chrome {
+        width: 100% !important;
+    }
+
+    /* Обеспечиваем корректную обертку для редактора */
+    .form-group .cke {
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4 mb-5">
     <div class="row justify-content-center">
@@ -24,15 +43,24 @@
                     {% endif %}
                  </div>
                  <div class="card-body profile-card-content">
-                    {% if form.instance.pk and form.instance.title %}
-                        <h3 class="h5 mb-3 text-muted">Пост: {{ form.instance.title|truncatechars:70 }}</h3>
-                    {% endif %}
-
                     <form method="post" enctype="multipart/form-data" class="post-form">
                         {% csrf_token %}
 
-                        {% bootstrap_field form.title layout='vertical' %}
-                        {% bootstrap_field form.text layout='vertical' %}
+                        <!-- Заголовок поста -->
+                        {% bootstrap_field form.title layout='vertical' placeholder="Введите заголовок" %}
+
+                        <!-- Поле с текстом поста - особое отображение для CKEditor -->
+                        <div class="form-group mb-4">
+                            <label for="{{ form.text.id_for_label }}" class="form-label fw-medium">{{ form.text.label }}</label>
+                            {{ form.text }}
+                            {% if form.text.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.text.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Изображение поста -->
                         {% bootstrap_field form.image layout='vertical' %}
 
                         <!-- Специальное форматирование для тегов -->
@@ -128,4 +156,8 @@
         });
     });
 </script>
+{% endblock %}
+
+{% block extra_js %}
+    {{ form.media }}  <!-- Это загрузит необходимые JS и CSS файлы для CKEditor -->
 {% endblock %}

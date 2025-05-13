@@ -2,9 +2,10 @@
 from django.db import models
 from django.conf import settings
 from django.utils.text import slugify
-from django.urls import reverse # <<< Убедитесь, что reverse импортирован
+from django.urls import reverse
 from django.utils import timezone
 from django.db.models import Count
+from ckeditor.fields import RichTextField  # Импортируем RichTextField
 
 class Post(models.Model):
     author = models.ForeignKey(
@@ -13,7 +14,7 @@ class Post(models.Model):
         verbose_name="Автор"
     )
     title = models.CharField(max_length=200, verbose_name="Заголовок")
-    text = models.TextField(verbose_name="Текст")
+    text = RichTextField(verbose_name="Текст")  # Заменяем TextField на RichTextField
     image = models.ImageField(
         upload_to="posts_images/",
         blank=True,
@@ -44,9 +45,10 @@ class Post(models.Model):
     )
 
     def total_likes(self):
-        """Возвращает общее количество лайков для поста."""
-        return self.likes.count()
-
+        """Возвращает общее количество лайков для поста, включая анонимные."""
+        auth_likes = self.likes.count()
+        anon_likes = self.anonymous_likes.count()
+        return auth_likes + anon_likes
 
     def __str__(self):
         return self.title
@@ -134,3 +136,13 @@ class Tag(models.Model):
         verbose_name = "Тег"
         verbose_name_plural = "Теги"
         ordering = ['name']
+
+class AnonymousLike(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='anonymous_likes')
+    session_key = models.CharField(max_length=40)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('post', 'session_key')
+        verbose_name = "Анонимный лайк"
+        verbose_name_plural = "Анонимные лайки"

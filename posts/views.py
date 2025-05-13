@@ -8,11 +8,11 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.views.generic.detail import SingleObjectMixin
 from django.views import View
 
-from .models import Post, Comment, Tag
+from .models import Post, Comment, Tag, AnonymousLike
 from .forms import PostForm, CommentForm
 from subscriptions.models import Subscription  # Добавляем импорт модели подписок
 
@@ -29,10 +29,17 @@ class PostListView(ListView):
         queryset = super().get_queryset()
 
         # Аннотируем количеством комментариев и лайков
-        queryset = queryset.annotate(
-            num_comments=Count('comments', distinct=True),
-            num_likes=Count('likes', distinct=True)
-        )
+        user = self.request.user
+        if user.is_staff:
+            queryset = queryset.annotate(
+                num_comments=Count('comments', distinct=True),
+                num_likes=Count('likes', distinct=True)
+            )
+        else:
+            queryset = queryset.annotate(
+                num_comments=Count('comments',filter=Q(comments__is_active=True), distinct=True),
+                num_likes=Count('likes', distinct=True)
+            )
 
         # Предзагружаем автора для эффективности
         queryset = queryset.select_related('author')
@@ -100,11 +107,15 @@ class PostDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['comment_form'] = CommentForm()
-        context['comments'] = self.object.comments.all().order_by('-created_at')
+
+        user = self.request.user
+        if user.is_staff:
+            comments_qs = self.object.comments.all().order_by('-created_at')
+        else:
+            comments_qs = self.object.comments.filter(is_active=True).order_by('-created_at')
 
         # Пагинация комментариев
-        comments = self.object.comments.all().order_by('created_at')
-        paginator = Paginator(comments, self.paginate_comments_by)
+        paginator = Paginator(comments_qs, self.paginate_comments_by)
         page_number = self.request.GET.get('comment_page')
         context['comments'] = paginator.get_page(page_number)
 
@@ -191,42 +202,46 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class PostLikeView(LoginRequiredMixin, View):
-    """Обработка лайков через AJAX."""
+class PostLikeView(View):
+    """Обработка лайков через AJAX, включая анонимных пользователей."""
 
     def post(self, request, *args, **kwargs):
         print("Like view called")  # Отладочное сообщение
         post_id = kwargs.get('pk')
-        try:
-            post = Post.objects.get(pk=post_id)
-            user = request.user
+        post = get_object_or_404(Post, pk=post_id)
 
+        if request.user.is_authenticated:
+            # Логика для авторизованных пользователей
+            user = request.user
             if post.likes.filter(id=user.id).exists():
                 post.likes.remove(user)
                 liked = False
-                print(f"User {user} unliked post {post_id}")
             else:
                 post.likes.add(user)
                 liked = True
-                print(f"User {user} liked post {post_id}")
+        else:
+            # Логика для анонимных пользователей
+            session_key = request.session.session_key
+            if not session_key:
+                request.session.create()
+                session_key = request.session.session_key
 
-            return JsonResponse({
-                'status': 'ok',
-                'liked': liked,
-                'total_likes': post.total_likes()
-            })
-        except Post.DoesNotExist:
-            print(f"Post {post_id} not found")
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Post not found'
-            }, status=404)
-        except Exception as e:
-            print(f"Error in like view: {str(e)}")
-            return JsonResponse({
-                'status': 'error',
-                'message': str(e)
-            }, status=500)
+            anon_like, created = AnonymousLike.objects.get_or_create(
+                post=post,
+                session_key=session_key
+            )
+            if created:
+                liked = True
+            else:
+                anon_like.delete()
+                liked = False
+
+        total_likes = post.total_likes()
+        return JsonResponse({
+            'status': 'ok',
+            'liked': liked,
+            'total_likes': total_likes
+        })
 
 
 class TagPostListView(ListView):
