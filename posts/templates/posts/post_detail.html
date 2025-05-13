@@ -82,6 +82,46 @@
                 </div>
             </article>
 
+            {# --- Комментарии --- #}
+            <div class="post-comments mt-5">
+                <h4 class="mb-4">Комментарии ({{ post.comments.count }})</h4>
+
+                {# Форма для добавления комментария #}
+                {% if user.is_authenticated %}
+                    <div class="comment-form">
+                        <form method="post" action="{% url 'posts:post-comment' pk=post.pk %}">
+                            {% csrf_token %}
+                            <textarea class="form-control" name="text" rows="3" placeholder="Ваш комментарий..." required></textarea>
+                            <button type="submit" class="btn btn-primary mt-2">Отправить</button>
+                        </form>
+                    </div>
+
+                {% else %}
+                    <p>Для добавления комментария, пожалуйста, <a href="{% url 'users:login' %}">войдите</a>.</p>
+                {% endif %}
+
+                {# Комментарии #}
+                {% for comment in post.comments.all %}
+                    {% if comment.is_active %}
+                        <div class="comment border-bottom pb-3 mb-3">
+                            <strong>{{ comment.author }}</strong> —
+                            <small class="text-muted">{{ comment.created_at|date:"d M Y H:i" }}</small><br>
+                            <p>{{ comment.text }}</p>
+                        </div>
+                    {% else %}
+                        <div class="comment border-bottom pb-3 mb-3 text-muted fst-italic inactive-comment">
+                            Комментарий скрыт модерацией
+                        </div>
+                    {% endif %}
+                {% empty %}
+                    <p class="text-muted">Комментариев пока нет.</p>
+                {% endfor %}
+            </div>
+
+
+
+
+
             {# --- Секция комментариев ---  #}
             <div id="comments" class="mt-5 border-top pt-4">
                 <h3 class="mb-4">Комментарии <span class="badge bg-secondary rounded-pill">{{ post.comments.count|default:"0" }}</span></h3>

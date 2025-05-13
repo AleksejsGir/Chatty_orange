@@ -15,4 +15,6 @@ urlpatterns = [
     path('<int:pk>/like/', views.PostLikeView.as_view(), name='post-like'),
     path('tag/<slug:slug>/', views.TagPostListView.as_view(), name='tag-posts'),
 
+    # path('post/<int:pk>/add_comment/', views.add_comment, name='add_comment'),
+
 ]

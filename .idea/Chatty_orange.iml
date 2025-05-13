@@ -17,19 +17,10 @@
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
       <excludeFolder url="file://$MODULE_DIR$/venv" />
     </content>
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     <orderEntry type="jdk" jdkName="Python 3.12" jdkType="Python SDK" />
-=======
     <orderEntry type="jdk" jdkName="Python 3.12 (Chatty_orange)" jdkType="Python SDK" />
->>>>>>> 0f40527d8a8a0d4aca113a43a865cde0a3b10ced
-=======
     <orderEntry type="jdk" jdkName="Python 3.13 (Chatty_orange)" jdkType="Python SDK" />
->>>>>>> ad9b4fc43a196900c68a33eceb2c2affbfe8fb76
-=======
     <orderEntry type="jdk" jdkName="Python 3.12 (Chatty_orange)" jdkType="Python SDK" />
->>>>>>> deff09ce529f7faecbdd2a34933393b4a9eaa3c3
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TemplatesService">

@@ -92,6 +92,18 @@ class CommentAdmin(admin.ModelAdmin):
 
     post_title.short_description = "Пост"
 
+
+    #
+    # def active_status_colored(self, obj):
+    #     color = 'green' if obj.is_active else 'red'
+    #     label = 'Активен' if obj.is_active else 'Неактивен'
+    #     return format_html('<span style="color: {};">{}</span>', color, label)
+    #
+    # active_status_colored.short_description = "Статус"
+
+
+
+
     actions = ['approve_comments', 'reject_comments']
 
     def approve_comments(self, request, queryset):

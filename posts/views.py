@@ -16,6 +16,15 @@ from .models import Post, Comment, Tag
 from .forms import PostForm, CommentForm
 from subscriptions.models import Subscription  # Добавляем импорт модели подписок
 
+
+
+# from django.shortcuts import render, redirect
+# from django.http import HttpResponse
+
+
+
+
+
 User = get_user_model()  # Получаем модель пользователя
 
 
@@ -279,3 +288,23 @@ class TagPostListView(ListView):
         # Добавляем популярные теги
         context['popular_tags'] = Tag.get_popular_tags()
         return context
+
+
+
+
+    # def add_comment(request, pk):
+    #     post = Post.objects.get(pk=pk)
+    #     if request.method == 'POST':
+    #         form = CommentForm(request.POST)
+    #         if form.is_valid():
+    #             comment = form.save(commit=False)
+    #             comment.post = post
+    #             comment.save()
+    #             return redirect('posts:post-detail', pk=post.pk)
+    #     else:
+    #         form = CommentForm()
+    #
+    #     return render(request, 'posts/add_comment.html', {'form': form, 'post': post})
+
+
+
