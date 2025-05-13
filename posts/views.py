@@ -100,11 +100,15 @@ class PostDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['comment_form'] = CommentForm()
-        context['comments'] = self.object.comments.all().order_by('-created_at')
+
+        user = self.request.user
+        if user.is_staff:
+            comments_qs = self.object.comments.all().order_by('-created_at')
+        else:
+            comments_qs = self.object.comments.filter(is_active=True).order_by('-created_at')
 
         # Пагинация комментариев
-        comments = self.object.comments.all().order_by('created_at')
-        paginator = Paginator(comments, self.paginate_comments_by)
+        paginator = Paginator(comments_qs, self.paginate_comments_by)
         page_number = self.request.GET.get('comment_page')
         context['comments'] = paginator.get_page(page_number)
 
