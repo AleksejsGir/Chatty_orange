@@ -37,6 +37,4 @@ CMD ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
 # <!-- TODO: Добавить команду для сбора статики (collectstatic) при сборке production-образа. -->
 
 
-#!/bin/sh
-python manage.py migrate
-exec "$@"
+
