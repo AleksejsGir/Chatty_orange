@@ -106,7 +106,7 @@
 
                             <!-- Содержимое поста - убрана ссылка "Читать дальше" -->
                             <div class="post-content">
-                                <p class="post-text">{{ post.text|truncatechars:300 }}</p>
+                                <div class="post-text">{{ post.text|safe|truncatewords_html:30 }}</div>
                             </div>
 
                             <!-- Теги поста, если есть -->
@@ -335,4 +335,13 @@
         </div>
     </div>
 </div>
+{% endblock %}
+{% block extra_css %}
+<style>
+    /* Улучшенный стиль для форматированного текста в списке постов */
+    .post-text {
+        /* ... */
+    }
+    /* ... остальные стили ... */
+</style>
 {% endblock %}
