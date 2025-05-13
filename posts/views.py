@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.views.generic.detail import SingleObjectMixin
 from django.views import View
 
@@ -29,10 +29,17 @@ class PostListView(ListView):
         queryset = super().get_queryset()
 
         # Аннотируем количеством комментариев и лайков
-        queryset = queryset.annotate(
-            num_comments=Count('comments', distinct=True),
-            num_likes=Count('likes', distinct=True)
-        )
+        user = self.request.user
+        if user.is_staff:
+            queryset = queryset.annotate(
+                num_comments=Count('comments', distinct=True),
+                num_likes=Count('likes', distinct=True)
+            )
+        else:
+            queryset = queryset.annotate(
+                num_comments=Count('comments',filter=Q(comments__is_active=True), distinct=True),
+                num_likes=Count('likes', distinct=True)
+            )
 
         # Предзагружаем автора для эффективности
         queryset = queryset.select_related('author')
