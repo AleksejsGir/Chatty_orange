@@ -1,0 +1,112 @@
+/* static/css/unified-styles.css */
+
+/* --- СТИЛИ ЗАГОЛОВКОВ --- */
+/* Единообразное отображение заголовков постов на всех страницах */
+.post-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+    line-height: 1.2;
+    transition: color 0.2s;
+}
+
+/* Заголовки на странице поста */
+.post-card h1.post-title {
+    font-size: 2rem;
+}
+
+/* Заголовки в списке постов */
+.posts-container h2.post-title,
+.profile-card h2.post-title {
+    font-size: 1.5rem;
+}
+
+.post-title a {
+    color: var(--text-dark);
+    text-decoration: none;
+}
+
+.post-title a:hover {
+    color: var(--primary);
+}
+
+/* --- СТИЛИ ДЛЯ ФОРМАТИРОВАННОГО ТЕКСТА CKEDITOR --- */
+/* Обработка текста от CKEditor в постах */
+.post-text {
+    overflow: hidden;
+    position: relative;
+    line-height: 1.6;
+}
+
+/* Ограничение высоты в списках постов и карточках в профиле */
+.posts-container .post-text,
+.profile-card .post-text {
+    max-height: 8rem;
+}
+
+/* Градиент затухания для обрезанного текста */
+.posts-container .post-text::after,
+.profile-card .post-text::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 2rem;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1));
+}
+
+/* Изображения внутри текста поста */
+.post-text img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Таблицы внутри текста поста */
+.post-text table {
+    width: 100%;
+    margin-bottom: 1rem;
+    border-collapse: collapse;
+}
+
+.post-text table td,
+.post-text table th {
+    padding: 0.5rem;
+    border: 1px solid #dee2e6;
+}
+
+/* Цитаты */
+.post-text blockquote {
+    border-left: 3px solid var(--primary);
+    padding-left: 1rem;
+    margin-left: 0;
+    color: var(--text-medium);
+    font-style: italic;
+}
+
+/* Код */
+.post-text code {
+    background-color: #f1f5f9;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+.post-text pre {
+    background-color: #f1f5f9;
+    padding: 1rem;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+
+/* Принудительное применение стилей для заголовков, чтобы не допустить переопределения */
+h1.post-title,
+h2.post-title,
+h3.post-title,
+h4.post-title,
+h5.post-title {
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 700 !important;
+    color: var(--text-dark) !important;
+}

@@ -1,7 +1,7 @@
 # posts/forms.py
 from django import forms
 from .models import Post, Comment
-
+from ckeditor.widgets import CKEditorWidget
 
 class PostForm(forms.ModelForm):
     class Meta:
@@ -12,11 +12,9 @@ class PostForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Введите заголовок'
             }),
-            'text': forms.Textarea(attrs={
-                'class': 'form-control',
-                'placeholder': 'Введите текст поста',
-                'rows': 5
-            }),
+            # Виджет CKEditor будет подключен автоматически, так как мы используем RichTextField в модели
+            # Если нужно дополнительно настроить, можно добавить:
+            # 'text': CKEditorWidget(config_name='default'),
             'image': forms.ClearableFileInput(attrs={
                 'class': 'form-control-file'
             }),

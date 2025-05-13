@@ -44,7 +44,7 @@
 
                                 <!-- Содержимое поста - без ссылки "Читать далее" -->
                                 <div class="post-content">
-                                    <p class="post-text">{{ post.text|truncatechars:200 }}</p>
+                                    <div class="post-text">{{ post.text|safe|truncatewords_html:30 }}</div>
                                 </div>
 
                                 <!-- Изображение поста с кликабельной ссылкой -->

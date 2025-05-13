@@ -2,9 +2,10 @@
 from django.db import models
 from django.conf import settings
 from django.utils.text import slugify
-from django.urls import reverse # <<< Убедитесь, что reverse импортирован
+from django.urls import reverse
 from django.utils import timezone
 from django.db.models import Count
+from ckeditor.fields import RichTextField  # Импортируем RichTextField
 
 class Post(models.Model):
     author = models.ForeignKey(
@@ -13,7 +14,7 @@ class Post(models.Model):
         verbose_name="Автор"
     )
     title = models.CharField(max_length=200, verbose_name="Заголовок")
-    text = models.TextField(verbose_name="Текст")
+    text = RichTextField(verbose_name="Текст")  # Заменяем TextField на RichTextField
     image = models.ImageField(
         upload_to="posts_images/",
         blank=True,
