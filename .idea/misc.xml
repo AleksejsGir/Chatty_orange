@@ -5,6 +5,7 @@
   </component>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12" project-jdk-type="Python SDK" />
 =======
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12 (Chatty_orange)" project-jdk-type="Python SDK" />
@@ -12,4 +13,7 @@
 =======
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.13 (Chatty_orange)" project-jdk-type="Python SDK" />
 >>>>>>> ad9b4fc43a196900c68a33eceb2c2affbfe8fb76
+=======
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12 (Chatty_orange)" project-jdk-type="Python SDK" />
+>>>>>>> deff09ce529f7faecbdd2a34933393b4a9eaa3c3
 </project>
