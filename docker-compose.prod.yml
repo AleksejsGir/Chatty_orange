@@ -1,9 +1,10 @@
-version: '3.9' # Можно оставить или убрать, т.к. для последних версий Docker Compose не обязательно
+version: '3.9'
 
 volumes:
-  postgres_data_prod: # Отдельный том для данных production БД
-  static_volume_prod: # Том для собранной статики (наполняется web_prod, используется nginx)
-  media_volume_prod:  # Том для медиа-файлов (наполняется web_prod, используется nginx)
+  postgres_data_prod:
+  static_volume_prod:
+  media_volume_prod:
+  certbot_data:
 
 services:
   db_prod:
@@ -12,17 +13,11 @@ services:
     volumes:
       - postgres_data_prod:/var/lib/postgresql/data/
     env_file:
-      - .env.prod # Переменные окружения для production БД
+      - .env.prod
     environment:
-      # Эти переменные будут взяты из .env.prod
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-    # Порт 5432 PostgreSQL не публикуется наружу VPS по умолчанию,
-    # web_prod будет подключаться к нему по имени сервиса 'db_prod' внутри Docker-сети.
-    # Раскомментируйте, если нужен прямой доступ к БД с хост-машины VPS (не рекомендуется для public IP):
-    # ports:
-    #   - "127.0.0.1:54321:5432" # Пример маппинга только на localhost VPS
     networks:
       - chatty_prod_network
     healthcheck:
@@ -30,57 +25,58 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   web_prod:
     build:
       context: .
-      dockerfile: Dockerfile.prod # Используем наш production Dockerfile
+      dockerfile: Dockerfile.prod
     container_name: chatty_web_prod
-    entrypoint: /app/entrypoint.prod.sh # Указываем наш скрипт для запуска
-    # command: будет выполняться из entrypoint.prod.sh (запуск Gunicorn)
     volumes:
-      # Том для статики (Nginx будет его читать)
-      # Django/Gunicorn может не нуждаться в прямом доступе к нему после collectstatic,
-      # но если вдруг Django генерирует какие-то пути к статике, лучше иметь его
       - static_volume_prod:/app/staticfiles
-      # Том для медиа (Django/Gunicorn будет сюда писать, Nginx читать)
       - media_volume_prod:/app/media
     env_file:
-      - .env.prod # Переменные окружения для production приложения
+      - .env.prod
+    environment:
+      - DJANGO_SETTINGS_MODULE=Chatty_orange.settings.production
+      - GUNICORN_CMD_ARGS="--workers 3 --bind 0.0.0.0:8000 --timeout 120"
     expose:
-      - "8000" # Gunicorn будет слушать на этом порту внутри контейнера (для Nginx)
+      - "8000"
     depends_on:
       db_prod:
-        condition: service_healthy # Запускаем web_prod только когда db_prod пройдет healthcheck
+        condition: service_healthy
     networks:
       - chatty_prod_network
-    restart: unless-stopped # Автоматический перезапуск контейнера, если он упал (кроме ручной остановки)
+    restart: unless-stopped
 
   nginx:
-    image: nginx:stable-alpine # Используем легковесный образ Nginx
+    image: nginx:stable-alpine
     container_name: chatty_nginx_prod
-    ports:
-      - "80:80"   # HTTP порт
-      # - "443:443" # HTTPS порт (потребует настройки SSL)
     volumes:
-      # Монтируем конфигурационные файлы Nginx (только для чтения)
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d/:/etc/nginx/conf.d/:ro
-      # Монтируем тома со статикой и медиа для раздачи Nginx'ом (только для чтения)
       - static_volume_prod:/app/staticfiles:ro
       - media_volume_prod:/app/media:ro
-      # - ./certs/:/etc/nginx/certs/:ro # Для SSL-сертификатов
+      - certbot_data:/etc/letsencrypt:ro
+    ports:
+      - "80:80"
+      - "443:443"
     depends_on:
-      - web_prod # Nginx должен стартовать после Django-приложения
+      - web_prod
     networks:
       - chatty_prod_network
-    restart: unless-stopped # Автоматический перезапуск
+    restart: unless-stopped
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: chatty_certbot
+    volumes:
+      - certbot_data:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    command: renew
+    depends_on:
+      - nginx
 
 networks:
   chatty_prod_network:
     driver: bridge
-
-# <!-- TODO: Создать файлы nginx/nginx.conf и nginx/conf.d/chatty.conf (или default.conf). -->
-# <!-- TODO: Создать entrypoint.prod.sh. -->
-# <!-- TODO: Настроить SSL/HTTPS в конфигурации Nginx и docker-compose.prod.yml. -->
-# <!-- TODO: Проверить и настроить переменные окружения в .env.prod. -->
