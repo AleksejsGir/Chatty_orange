@@ -1,52 +1,102 @@
 {# templates/includes/navbar.html #}
-<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+{% load static %}
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="{% url 'home' %}">Chatty</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <a class="navbar-brand" href="{% url 'home' %}">
+            <span class="brand-icon"><i class="fa-solid fa-comment-dots"></i></span>
+            <span class="brand-text">Chatty</span>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            {# Основные ссылки слева #}
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" aria-current="page" href="{% url 'home' %}">Главная</a>
+                    {# Проверяем имя URL для главной страницы #}
+                    <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" aria-current="page" href="{% url 'home' %}">
+                         <i class="fa-solid fa-house-chimney me-1"></i>Главная
+                    </a>
                 </li>
                 <li class="nav-item">
-                    {# Используем имя URL из posts/urls.py #}
-                    <a class="nav-link {% if request.resolver_match.view_name == 'posts:post-list' %}active{% endif %}" href="{% url 'posts:post-list' %}">Лента</a>
+                    {# Проверяем активную страницу: общая лента постов ИЛИ (в будущем) лента подписок #}
+                    <a class="nav-link
+                        {% if request.resolver_match.app_name == 'posts' and request.resolver_match.url_name == 'post-list' %}active{% endif %}
+                        {% comment %} {% elif request.resolver_match.app_name == 'subscriptions' and request.resolver_match.url_name == 'feed' %}active{% endif %} {% endcomment %}
+                       "
+                       {# ССЫЛКА ВСЕГДА ВЕДЕТ НА ОБЩУЮ ЛЕНТУ ПОСТОВ (пока нет ленты подписок) #}
+                       href="{% url 'posts:post-list' %}">
+                         <i class="fa-solid fa-stream me-1"></i>Лента
+                    </a>
+                    {# TODO: В будущем изменить href для user.is_authenticated на {% url 'subscriptions:feed' %} #}
                 </li>
-                {# TODO: Добавить другие ссылки, если нужно (например, на страницу подписок) #}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.view_name == 'subscriptions:feed' %}active{% endif %}" href="{% url 'subscriptions:feed' %}">
+                        <i class="fa-solid fa-rss me-1"></i>Подписки
+                    </a>
+                </li>
             </ul>
-            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+
+            {# Поиск (статичная заглушка) #}
+            <form class="d-flex mx-auto search-form d-none d-lg-flex" role="search">
+                <div class="input-group">
+                    <input class="form-control search-input" type="search" placeholder="Поиск..." aria-label="Search">
+                    <button class="btn btn-search" type="submit">
+                        <i class="fa-solid fa-search"></i>
+                    </button>
+                </div>
+            </form>
+
+            {# Правая часть навбара #}
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
                 {% if user.is_authenticated %}
-                    {# Меню для аутентифицированного пользователя #}
+                    <li class="nav-item me-2">
+                        <a class="nav-link create-post-btn px-2" href="{% url 'posts:post-create' %}" title="Создать пост">
+                            <i class="fa-solid fa-plus-circle"></i> <span class="d-none d-lg-inline">Создать</span>
+                        </a>
+                    </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle user-dropdown d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             {% if user.avatar %}
-                                <img src="{{ user.avatar.url }}" alt="{{ user.username }}" class="rounded-circle me-1" width="24" height="24" style="object-fit: cover;">
+                                <img src="{{ user.avatar.url }}" alt="{{ user.username }}" class="avatar-sm me-2">
+                            {% else %}
+                                <div class="avatar-placeholder-sm me-2">
+                                    <span>{{ user.username|first|upper }}</span>
+                                </div>
                             {% endif %}
-                            {{ user.username }}
+                            <span class="d-none d-lg-inline">{{ user.username }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="{% url 'users:profile' user.username %}">Мой профиль</a></li>
-                            {# Используем URL из users/urls.py (предполагая имя 'profile-edit') #}
-                            <li><a class="dropdown-item" href="{% url 'users:profile-edit' pk=user.pk %}">Редактировать профиль</a></li>
-                            <li><a class="dropdown-item" href="{% url 'posts:post-create' %}">Создать пост</a></li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'users:profile' user.username %}">
+                                    <i class="fa-solid fa-user fa-fw me-2"></i>Мой профиль
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'users:profile-edit' pk=user.pk %}">
+                                    <i class="fa-solid fa-gear fa-fw me-2"></i>Настройки
+                                </a>
+                            </li>
+                             <li><a class="dropdown-item" href="{% url 'posts:post-create' %}"><i class="fa-solid fa-pen-to-square fa-fw me-2"></i>Написать пост</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <form action="{% url 'account_logout' %}" method="post" class="d-inline"> {# Используем allauth URL #}
+                                <form action="{% url 'account_logout' %}" method="post" class="d-inline">
                                     {% csrf_token %}
-                                    <button type="submit" class="dropdown-item">Выйти</button>
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="fa-solid fa-right-from-bracket fa-fw me-2"></i>Выйти
+                                    </button>
                                 </form>
                             </li>
                         </ul>
                     </li>
                 {% else %}
-                    {# Ссылки для неаутентифицированного пользователя #}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'account_login' %}">Войти</a> {# allauth URL #}
+                        <a class="nav-link" href="{% url 'account_login' %}">Войти</a>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-primary btn-sm" href="{% url 'account_signup' %}" role="button">Регистрация</a> {# allauth URL #}
+                        <a class="btn btn-signup ms-2" href="{% url 'account_signup' %}" role="button">Регистрация</a>
                     </li>
                 {% endif %}
             </ul>

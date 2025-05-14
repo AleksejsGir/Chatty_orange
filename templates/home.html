@@ -1,30 +1,143 @@
 {% extends 'base.html' %}
-{% load i18n %}
-{% load allauth account %}
+{% load static %}
 
-{% block title %}Главная - Chatty{% endblock %}
+{% block title %}Chatty - Общайтесь, делитесь, находите друзей{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="p-5 mb-4 bg-light rounded-3 shadow-sm">
-        <div class="container-fluid py-5 text-center">
-            <h1 class="display-4 fw-bold">Добро пожаловать в Chatty!</h1>
-            <p class="fs-4 col-md-8 mx-auto">Присоединяйтесь к нашему сообществу, делитесь мыслями и находите новых друзей.</p>
-            <hr class="my-4">
+<!-- Применяем класс orange-background к основному контейнеру -->
+<div class="orange-background">
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="row align-items-center">
+        <div class="col-lg-6 hero-text-column">
+            <h1 class="hero-title">Добро пожаловать в <span class="text-accent">Chatty</span></h1>
+            <p class="hero-subtitle">Создавайте. Общайтесь. Находите. Делитесь.</p>
+            <p class="hero-description">Chatty — это место, где вы можете делиться своими мыслями, находить друзей по интересам и узнавать новое каждый день.</p>
 
             {% if user.is_authenticated %}
-                <p class="fs-5">Привет, <strong>{{ user.username }}</strong>!</p>
-                <a class="btn btn-primary btn-lg me-2" href="{% url 'posts:post-list' %}" role="button">Перейти в ленту</a>
-                <form action="{% url 'account_logout' %}" method="post" style="display: inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-secondary btn-lg">Выйти</button>
-                </form>
+                <div class="hero-buttons">
+                    {# Ссылка ведет на общую ленту постов #}
+                    <a href="{% url 'posts:post-list' %}" class="btn btn-primary btn-lg">
+                        <i class="fa-solid fa-stream me-2"></i>Перейти к ленте
+                    </a>
+                    <a href="{% url 'posts:post-create' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="fa-solid fa-pen-to-square me-2"></i>Создать пост
+                    </a>
+                </div>
+                <div class="welcome-back mt-4">
+                    <p class="mb-0">Рады видеть вас снова, <strong>{{ user.username }}</strong>!</p>
+                </div>
             {% else %}
-                <p>Войдите или зарегистрируйтесь, чтобы начать.</p>
-                <a class="btn btn-success btn-lg me-2" href="{% url 'account_signup' %}" role="button">Зарегистрироваться</a>
-                <a class="btn btn-primary btn-lg" href="{% url 'account_login' %}" role="button">Войти</a>
+                <div class="hero-buttons">
+                    <a href="{% url 'account_signup' %}" class="btn btn-primary btn-lg">
+                        <i class="fa-solid fa-user-plus me-2"></i>Присоединиться
+                    </a>
+                    <a href="{% url 'account_login' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="fa-solid fa-right-to-bracket me-2"></i>Войти
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+        <div class="col-lg-6 d-none d-lg-block">
+            <div class="hero-image-container">
+                 {# Основная иллюстрация #}
+                <img src="{% static 'images/hero-illustration.svg' %}" alt="Chatty Social Network" class="hero-image">
+
+                {# Плавающая карточка 1 (пример профиля) #}
+                <div class="floating-card floating-card-1">
+                    <div class="floating-card-avatar">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div class="floating-card-content">
+                        <div class="floating-card-line" style="width: 50px;"></div> {# Немного разной длины #}
+                        <div class="floating-card-line" style="width: 70px;"></div>
+                    </div>
+                </div>
+
+                {# Плавающая карточка 2 (пример поста) #}
+                <div class="floating-card floating-card-2">
+                    <div class="floating-card-avatar">
+                        <i class="fa-solid fa-image"></i>
+                    </div>
+                    <div class="floating-card-content">
+                        <div class="floating-card-line" style="width: 65px;"></div>
+                        <div class="floating-card-line" style="width: 45px;"></div>
+                    </div>
+                </div>
+
+                {# Плавающая иконка 1 (лайк) #}
+                <div class="floating-icon floating-icon-1">
+                    <i class="fa-solid fa-heart"></i>
+                </div>
+
+                {# Плавающая иконка 2 (комментарий) #}
+                <div class="floating-icon floating-icon-2">
+                    <i class="fa-solid fa-comment"></i>
+                </div>
+                {# --- Конец плавающих элементов --- #}
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section mt-5 pt-5">
+    <div class="text-center mb-5">
+        <h2 class="section-title">Почему <span class="text-accent">Chatty</span>?</h2>
+        <p class="section-subtitle">Простая и удобная платформа для общения</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fa-solid fa-user-group fa-xl"></i> {# Увеличил иконку #}
+                </div>
+                <h3 class="feature-title">Находите друзей</h3>
+                <p class="feature-description">Знакомьтесь с единомышленниками и расширяйте круг общения через общие интересы.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fa-solid fa-comment-dots fa-xl"></i>
+                </div>
+                <h3 class="feature-title">Общайтесь</h3>
+                <p class="feature-description">Комментируйте посты, обменивайтесь сообщениями и обсуждайте интересные темы.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fa-solid fa-share-nodes fa-xl"></i>
+                </div>
+                <h3 class="feature-title">Делитесь</h3>
+                <p class="feature-description">Публикуйте свои мысли, фотографии и интересные находки со своими подписчиками.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="cta-section my-5"> {# Добавил отступы #}
+    <div class="cta-container">
+        <div class="cta-content">
+            <h2 class="cta-title">Готовы начать?</h2>
+            <p class="cta-description">Присоединяйтесь к тысячам пользователей, которые уже делятся своими историями в Chatty.</p>
+            {% if not user.is_authenticated %}
+            <div class="cta-buttons">
+                <a href="{% url 'account_signup' %}" class="btn btn-light btn-lg">Создать аккаунт</a> {# Сделал кнопку светлой на оранжевом фоне #}
+            </div>
+            {% else %}
+            <div class="cta-buttons">
+                <a href="{% url 'posts:post-create' %}" class="btn btn-light btn-lg">Написать пост</a>
+            </div>
             {% endif %}
         </div>
     </div>
-</div>
+</section>
 {% endblock %}
+
+<!-- TODO: Создать файл static/images/hero-illustration.svg -->
+<!-- TODO: При необходимости реализовать и добавить плавающие элементы в hero-section. -->

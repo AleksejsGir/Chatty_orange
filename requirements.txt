@@ -1,8 +1,10 @@
 asgiref==3.8.1
 colorama==0.4.6
 Django==5.1.5
+django-allauth==65.7.0
 django-bootstrap5==24.2
 django-debug-toolbar==4.3.0
+django-jazzmin==3.0.1
 django-storages==1.14.3
 flake8==6.1.0
 iniconfig==2.1.0
@@ -18,5 +20,5 @@ pytest-django==4.8.0
 python-dotenv==1.0.0
 sqlparse==0.5.3
 tzdata==2025.2
-Pillow>=10.0.0
-django-allauth>=65.7.0
+martor==1.6.26 # Добавлен
+django-ckeditor==6.7.0

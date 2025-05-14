@@ -1,24 +1,25 @@
 # posts/forms.py
 from django import forms
-from .models import Post
-
+from .models import Post, Comment
+from ckeditor.widgets import CKEditorWidget
 
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['title', 'text', 'image']
+        fields = ['title', 'text', 'image', 'tags']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Введите заголовок'
             }),
-            'text': forms.Textarea(attrs={
-                'class': 'form-control',
-                'placeholder': 'Введите текст поста',
-                'rows': 5
-            }),
+            # Виджет CKEditor будет подключен автоматически, так как мы используем RichTextField в модели
+            # Если нужно дополнительно настроить, можно добавить:
+            # 'text': CKEditorWidget(config_name='default'),
             'image': forms.ClearableFileInput(attrs={
                 'class': 'form-control-file'
+            }),
+            'tags': forms.CheckboxSelectMultiple(attrs={
+                'class': 'tag-checkbox-list'
             })
         }
 
@@ -32,4 +33,22 @@ class PostForm(forms.ModelForm):
         text = self.cleaned_data['text']
         if len(text) < 10:
             raise forms.ValidationError("Текст поста должен содержать минимум 10 символов")
+        return text
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['text']
+        widgets = {
+            'text': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ваш комментарий...',
+                'rows': 3
+            })
+        }
+
+    def clean_text(self):
+        text = self.cleaned_data['text']
+        if len(text) < 3:
+            raise forms.ValidationError("Комментарий должен содержать минимум 3 символа")
         return text

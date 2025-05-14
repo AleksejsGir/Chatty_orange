@@ -2,8 +2,10 @@
 from django.db import models
 from django.conf import settings
 from django.utils.text import slugify
-from django.urls import reverse # <<< Убедитесь, что reverse импортирован
+from django.urls import reverse
 from django.utils import timezone
+from django.db.models import Count
+from ckeditor.fields import RichTextField  # Импортируем RichTextField
 
 class Post(models.Model):
     author = models.ForeignKey(
@@ -12,7 +14,7 @@ class Post(models.Model):
         verbose_name="Автор"
     )
     title = models.CharField(max_length=200, verbose_name="Заголовок")
-    text = models.TextField(verbose_name="Текст")
+    text = RichTextField(verbose_name="Текст")  # Заменяем TextField на RichTextField
     image = models.ImageField(
         upload_to="posts_images/",
         blank=True,
@@ -29,6 +31,23 @@ class Post(models.Model):
         blank=True, # Разрешим быть пустым, чтобы автогенерация работала
         verbose_name="URL-адрес (slug)"
     )
+    likes = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='liked_posts',
+        blank=True,
+        verbose_name="Лайки"
+    )
+    tags = models.ManyToManyField(
+        'Tag',
+        related_name='posts',
+        blank=True,
+        verbose_name="Теги"
+    )
+
+    def total_likes(self):
+        """Возвращает общее количество лайков для поста."""
+        return self.likes.count()
+
 
     def __str__(self):
         return self.title
@@ -57,3 +76,62 @@ class Post(models.Model):
         verbose_name = "Пост"
         verbose_name_plural = "Посты"
         ordering = ["-pub_date"]
+
+
+class Comment(models.Model):
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name="Пост"
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        verbose_name="Автор"
+    )
+    text = models.TextField(verbose_name="Текст комментария")
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата создания"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Активен"
+    )
+
+    def __str__(self):
+        return f"Комментарий от {self.author} к посту {self.post.title}"
+
+    def get_absolute_url(self):
+        """Возвращает URL для просмотра поста с комментариями."""
+        return reverse('posts:post-detail', kwargs={'pk': self.post.pk}) + '#comments'
+
+    class Meta:
+        verbose_name = "Комментарий"
+        verbose_name_plural = "Комментарии"
+        ordering = ["-created_at"]
+
+
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True, verbose_name="Название")
+    slug = models.SlugField(max_length=50, unique=True, verbose_name="URL-адрес")
+
+    def __str__(self):
+        return self.name
+
+    @staticmethod
+    def get_popular_tags(limit=5):
+        """Возвращает список популярных тегов с количеством постов."""
+        return Tag.objects.annotate(
+            posts_count=Count('posts')
+        ).order_by('-posts_count')[:limit]
+
+    def get_absolute_url(self):
+        """Возвращает URL для просмотра постов с данным тегом."""
+        return reverse('posts:tag-posts', kwargs={'slug': self.slug})
+
+    class Meta:
+        verbose_name = "Тег"
+        verbose_name_plural = "Теги"
+        ordering = ['name']
