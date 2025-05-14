@@ -239,6 +239,38 @@ class PostLikeView(LoginRequiredMixin, View):
                 'message': str(e)
             }, status=500)
 
+@method_decorator(csrf_exempt, name='dispatch')
+class PostDislikeView(View):
+    """Обработка дизлайков через AJAX (только для авторизованных)"""
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Требуется авторизация'
+            }, status=403)
+
+        post_id = kwargs.get('pk')
+        post = get_object_or_404(Post, pk=post_id)
+        user = request.user
+
+        disliked = False
+        if post.dislikes.filter(id=user.id).exists():
+            post.dislikes.remove(user)
+        else:
+            post.dislikes.add(user)
+            disliked = True
+            # Убираем лайк, если он был
+            post.likes.remove(user)
+
+        return JsonResponse({
+            'status': 'ok',
+            'disliked': disliked,
+            'total_dislikes': post.dislikes.count(),
+            'total_likes': post.likes.count()
+        })
+
+
 
 class TagPostListView(ListView):
     model = Post

@@ -1310,6 +1310,21 @@ h1, h2, h3, h4, h5, h6 {
     color: #dc3545;
 }
 
+
+.dislike-button.active i {
+    color: #0d6efd;
+}
+
+.dislike-button:not(.active):hover i {
+    color: #6c757d;
+}
+
+.dislike-button[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
 .like-button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
