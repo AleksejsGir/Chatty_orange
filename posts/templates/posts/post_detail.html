@@ -127,25 +127,6 @@
                             {% endfor %}
                         </div>
 
-                {# Форма добавления комментария #}
-                {% if user.is_authenticated %}
-                <div class="card shadow-sm mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">Оставить комментарий</h5>
-                        <form method="post" action="{% url 'posts:post-comment' pk=post.pk %}">
-                            {% csrf_token %}
-                            {% bootstrap_form comment_form %}
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fa-solid fa-paper-plane me-1"></i> Отправить
-                            </button>
-                        </form>
-                    </div>
-                </div>
-                {% else %}
-                <div class="alert alert-light text-center" role="alert">
-                    <a href="{% url 'account_login' %}?next={{ request.path }}#comments">Войдите</a>, чтобы оставить комментарий.
-                </div>
-                {% endif %}
 
 
                         {# Пагинация комментариев #}
@@ -183,6 +164,25 @@
                     {% endif %}
 
             </div>
+        {# Форма добавления комментария #}
+                {% if user.is_authenticated %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Оставить комментарий</h5>
+                        <form method="post" action="{% url 'posts:post-comment' pk=post.pk %}">
+                            {% csrf_token %}
+                            {% bootstrap_form comment_form %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-paper-plane me-1"></i> Отправить
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% else %}
+                <div class="alert alert-light text-center" role="alert">
+                    <a href="{% url 'account_login' %}?next={{ request.path }}#comments">Войдите</a>, чтобы оставить комментарий.
+                </div>
+                {% endif %}
 
             {# Блок для отображения популярных тегов #}
             {% if popular_tags %}
