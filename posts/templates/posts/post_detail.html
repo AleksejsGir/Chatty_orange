@@ -71,7 +71,7 @@
                                 data-post-id="{{ post.pk }}"
                                 title="Нравится"
                                 {% if not request.user.is_authenticated %}disabled{% endif %}>
-                            <i class="fa-heart {% if request.user in post.likes.all %}fa-solid text-danger{% else %}fa-regular{% endif %}"></i>
+                            <i class="fa-thumbs-up {% if request.user in post.likes.all %}fa-solid text-primary{% else %}fa-regular{% endif %}"></i>
                             <span class="interaction-count">{{ post.total_likes }}</span>
                         </button>
                     <!-- Кнопка дизлайка -->
