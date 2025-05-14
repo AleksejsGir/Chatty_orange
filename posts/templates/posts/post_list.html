@@ -134,9 +134,10 @@
                                 <div class="interaction-buttons">
                                     <button class="btn-interaction like-button {% if request.user in post.likes.all %}active{% endif %}"
                                         data-post-id="{{ post.pk }}"
-                                        title="Нравится">
+                                        title="Нравится"
+                                        {% if not request.user.is_authenticated %}disabled{% endif %}>
                                         <i class="fa-heart {% if request.user in post.likes.all %}fa-solid text-danger{% else %}fa-regular{% endif %}"></i>
-                                        <span class="interaction-count">{{ post.total_likes|default:"0" }}</span>
+                                        <span class="interaction-count">{{ post.num_likes|default:"0" }}</span>
                                     </button>
 
                                     <a href="{% url 'posts:post-detail' pk=post.pk %}#comments" class="btn-interaction comment-button" title="Комментарии">

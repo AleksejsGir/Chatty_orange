@@ -45,10 +45,11 @@ class Post(models.Model):
     )
 
     def total_likes(self):
-        """Возвращает общее количество лайков для поста, включая анонимные."""
-        auth_likes = self.likes.count()
-        anon_likes = self.anonymous_likes.count()
-        return auth_likes + anon_likes
+        # """Возвращает общее количество лайков для поста, включая анонимные."""
+        # auth_likes = self.likes.count()
+        # anon_likes = self.anonymous_likes.count()
+        # return auth_likes + anon_likes
+        return self.likes.count()
 
     def __str__(self):
         return self.title
