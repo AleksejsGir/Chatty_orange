@@ -1,0 +1,53 @@
+# Dockerfile.prod
+
+# --- Сборка ---
+FROM python:3.11-slim as builder
+
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+WORKDIR /app
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libjpeg-dev \
+        zlib1g-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Копируем requirements и устанавливаем зависимости
+COPY ./requirements.txt .
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+ENV DJANGO_SETTINGS_MODULE=Chatty_orange.settings
+RUN python manage.py collectstatic --noinput --clear
+
+
+# --- Финальный образ ---
+FROM python:3.11-slim as final
+
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV DJANGO_SETTINGS_MODULE=Chatty_orange.settings
+ENV GUNICORN_CMD_ARGS="--workers 3 --bind 0.0.0.0:8000"
+
+WORKDIR /app
+
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /app/staticfiles /app/staticfiles
+COPY --from=builder /app/media /app/media # Медиа обычно монтируется как volume на prod
+
+COPY . .
+
+RUN groupadd -r django && useradd -r -g django django
+RUN chown -R django:django /app /opt/venv
+USER django
+
+EXPOSE 8000
+
+# CMD будет в entrypoint.prod.sh
