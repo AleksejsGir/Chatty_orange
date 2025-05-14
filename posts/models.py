@@ -78,6 +78,16 @@ class Post(models.Model):
         verbose_name_plural = "Посты"
         ordering = ["-pub_date"]
 
+    dislikes = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='disliked_posts',
+        blank=True,
+        verbose_name="Дизлайки"
+    )
+
+    def total_dislikes(self):
+        return self.dislikes.count()
+
 
 class Comment(models.Model):
     post = models.ForeignKey(

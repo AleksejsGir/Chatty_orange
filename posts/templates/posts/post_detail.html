@@ -73,6 +73,22 @@
                             <i class="fa-heart {% if request.user in post.likes.all %}fa-solid text-danger{% else %}fa-regular{% endif %}"></i>
                             <span class="interaction-count">{{ post.total_likes }}</span>
                         </button>
+                            <!-- Кнопка дизлайка -->
+    {% if user.is_authenticated %}
+    <button class="btn-interaction dislike-button {% if user in post.dislikes.all %}active{% endif %}"
+            data-post-id="{{ post.pk }}"
+            title="Не нравится">
+        <i class="fa-thumbs-down {% if user in post.dislikes.all %}fa-solid text-primary{% else %}fa-regular{% endif %}"></i>
+        <span class="interaction-count">{{ post.dislikes.count }}</span>
+    </button>
+    {% else %}
+    <button class="btn-interaction"
+            title="Для дизлайков требуется войти"
+            onclick="showLoginAlert()">
+        <i class="fa-regular fa-thumbs-down"></i>
+        <span class="interaction-count">{{ post.dislikes.count }}</span>
+    </button>
+    {% endif %}
                         <span class="btn-interaction comment-button" title="Комментарии">
                             <i class="fa-regular fa-comment"></i>
                             <span class="interaction-count">{{ post.comments.count|default:"0" }}</span>
