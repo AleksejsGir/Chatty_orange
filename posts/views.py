@@ -34,12 +34,14 @@ class PostListView(ListView):
         if user.is_staff:
             queryset = queryset.annotate(
                 num_comments=Count('comments', distinct=True),
-                num_likes=Count('likes', distinct=True)
+                num_likes=Count('likes', distinct=True),
+                num_dislikes = Count('dislikes', distinct=True)
             )
         else:
             queryset = queryset.annotate(
                 num_comments=Count('comments',filter=Q(comments__is_active=True), distinct=True),
-                num_likes=Count('likes', distinct=True)
+                num_likes=Count('likes', distinct=True),
+                num_dislikes = Count('dislikes', distinct=True)
             )
 
         # Предзагружаем автора для эффективности

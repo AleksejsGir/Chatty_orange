@@ -69,49 +69,42 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Обработчик дизлайков
-document.querySelectorAll('.dislike-button').forEach(button => {
-    button.addEventListener('click', async function(e) {
-        e.preventDefault();
+document.querySelectorAll('.like-button, .dislike-button').forEach(button => {
+    button.addEventListener('click', function() {
         const postId = this.dataset.postId;
-        const dislikeUrl = `/posts/${postId}/dislike/`;
-        const icon = this.querySelector('i');
-        const count = this.querySelector('.interaction-count');
+        const isLike = this.classList.contains('like-button');
+        const url = isLike ? `/posts/${postId}/like/` : `/posts/${postId}/dislike/`;
 
-        try {
-            const response = await fetch(dislikeUrl, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCookie('csrftoken'),
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'same-origin'
-            });
-
-            if (response.status === 403) {
-                showLoginAlert();
-                return;
-            }
-
-            const data = await response.json();
-
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
             if (data.status === 'ok') {
-                // Обновляем дизлайк
-                this.classList.toggle('active', data.disliked);
-                icon.classList.toggle('fa-regular', !data.disliked);
-                icon.classList.toggle('fa-solid', data.disliked);
-                count.textContent = data.total_dislikes;
-
-                // Обновляем лайк
+                // Обновляем обе кнопки и счетчики
                 const likeButton = document.querySelector(`.like-button[data-post-id="${postId}"]`);
-                if (likeButton) {
-                    likeButton.querySelector('.interaction-count').textContent = data.total_likes;
-                }
+                const dislikeButton = document.querySelector(`.dislike-button[data-post-id="${postId}"]`);
+
+                // Обновляем состояние кнопок
+                likeButton.classList.toggle('active', data.liked);
+                dislikeButton.classList.toggle('active', data.disliked);
+
+                // Обновляем иконки
+                likeButton.querySelector('i').className =
+                    `fa-thumbs-up ${data.liked ? 'fa-solid text-primary' : 'fa-regular'}`;
+                dislikeButton.querySelector('i').className =
+                    `fa-thumbs-down ${data.disliked ? 'fa-solid text-primary' : 'fa-regular'}`;
+
+                // Обновляем счетчики
+                likeButton.querySelector('.interaction-count').textContent = data.total_likes;
+                dislikeButton.querySelector('.interaction-count').textContent = data.total_dislikes;
             }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Ошибка соединения с сервером');
-        }
+        });
     });
 });
 
