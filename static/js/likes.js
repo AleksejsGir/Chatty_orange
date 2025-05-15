@@ -96,9 +96,10 @@ document.querySelectorAll('.like-button, .dislike-button').forEach(button => {
 
                 // Обновляем иконки
                 likeButton.querySelector('i').className =
-                    `fa-thumbs-up ${data.liked ? 'fa-solid text-primary' : 'fa-regular'}`;
+                    `fa-thumbs-up ${data.liked ? 'fa-solid' : 'fa-regular'}`;
+
                 dislikeButton.querySelector('i').className =
-                    `fa-thumbs-down ${data.disliked ? 'fa-solid text-primary' : 'fa-regular'}`;
+                    `fa-thumbs-down ${data.disliked ? 'fa-solid' : 'fa-regular'}`;
 
                 // Обновляем счетчики
                 likeButton.querySelector('.interaction-count').textContent = data.total_likes;

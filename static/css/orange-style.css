@@ -1493,3 +1493,18 @@ h1, h2, h3, h4, h5, h6 {
 .btn-interaction.active .fa-solid {
     transform: scale(1.2);
 }
+
+/* Добавьте в конец файла */
+.like-button.active i {
+    color: var(--primary) !important; /* Оранжевый цвет из ваших переменных */
+}
+
+.dislike-button.active i {
+    color: #EF4444 !important; /* Красный цвет из вашей палитры */
+}
+
+/* Для анимации при нажатии */
+.btn-interaction.active .fa-solid {
+    transform: scale(1.1);
+    transition: all 0.2s ease;
+}

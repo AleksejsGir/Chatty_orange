@@ -136,7 +136,7 @@
                                         data-post-id="{{ post.pk }}"
                                         title="Нравится"
                                         {% if not request.user.is_authenticated %}disabled{% endif %}>
-                                        <i class="fa-thumbs-up {% if request.user in post.likes.all %}fa-solid text-primary{% else %}fa-regular{% endif %}"></i>
+                                        <i class="fa-thumbs-up {% if request.user in post.likes.all %}fa-solid {% else %}fa-regular{% endif %}"></i>
                                         <span class="interaction-count">{{ post.num_likes|default:"0" }}</span>
                                     </button>
                                 <!-- Кнопка дизлайка -->
@@ -144,7 +144,7 @@
                                         <button class="btn-interaction dislike-button {% if user in post.dislikes.all %}active{% endif %}"
                                                 data-post-id="{{ post.pk }}"
                                                 title="Не нравится">
-                                            <i class="fa-thumbs-down {% if user in post.dislikes.all %}fa-solid text-primary{% else %}fa-regular{% endif %}"></i>
+                                            <i class="fa-thumbs-down {% if user in post.dislikes.all %}fa-solid {% else %}fa-regular{% endif %}"></i>
                                             <span class="interaction-count">{{ post.total_dislikes }}</span>
                                         </button>
                                     {% else %}
