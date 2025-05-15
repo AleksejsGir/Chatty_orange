@@ -288,6 +288,8 @@ CKEDITOR_CONFIGS = {
     },
 }
 
+# SESSION_SAVE_EVERY_REQUEST = True
+
 
 # --- Django Debug Toolbar Settings (если используется) ---
 # INTERNAL_IPS = [

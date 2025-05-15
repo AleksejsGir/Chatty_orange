@@ -1,0 +1,68 @@
+.assistant-container {
+    position: fixed;
+    top: 100px;
+    right: 80px;
+    z-index: 1000;
+    cursor: help;
+}
+
+.assistant-image {
+    width: 100px;
+    height: 100px;
+    transition: all 0.3s;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+    position: relative; /* Добавить позиционирование */
+    left: -30px; /* Смещение влево */
+    pointer-events: auto; /* Разрешить события */
+}
+
+.dialog-box {
+    pointer-events: none; /* Чтобы диалог не перехватывал события мыши */
+    position: absolute;
+    top: 110px;
+    right: -40px; /* Новое позиционирование */
+    width: 220px;
+    padding: 15px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    display: none;
+    opacity: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+.greeting {
+    font-weight: 600;
+    color: #ff6b00;
+    margin-bottom: 5px;
+    font-size: 1.1rem;
+}
+
+.question {
+    font-size: 0.9rem;
+    color: #444;
+    line-height: 1.4;
+}
+
+/* Анимации */
+.assistant-image {
+    pointer-events: auto; /* Разрешаем события только на изображении */
+    transform: rotate(-5deg) scale(1.05);
+    cursor: pointer;
+}
+
+.assistant-image:hover {
+    transform: rotate(-5deg) scale(1.05);
+    cursor: pointer;
+}
+
+/* Анимация появления */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+.assistant-image {
+    animation: float 3s ease-in-out infinite;
+}

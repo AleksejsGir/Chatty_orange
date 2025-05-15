@@ -1,0 +1,18 @@
+<!-- templates/posts/post_detail.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="post-detail">
+  <h1>{{ post.title }}</h1>
+  <p>Автор: {{ post.author.username }} | {{ post.pub_date|date:"d.m.Y H:i" }}</p>
+  {% if post.image %}
+    <img src="{{ post.image.url }}" alt="Изображение поста" class="post-image">
+  {% endif %}
+  <p>{{ post.text }}</p>
+
+  {% if user == post.author %}
+    <a href="{% url 'post_update' post.slug %}" class="btn-edit">Редактировать</a>
+    <a href="{% url 'post_delete' post.slug %}" class="btn-delete">Удалить</a>
+  {% endif %}
+</div>
+{% endblock %}
