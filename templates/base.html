@@ -15,25 +15,39 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" /> {# Обновил версию Font Awesome на более свежую #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <!-- Custom Orange Theme CSS -->
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/orange-style.css' %}">
     <link rel="stylesheet" href="{% static 'css/unified-styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/orange-assistant.css' %}">
 
-    {% block extra_css %}{% endblock %} {# Блок для дополнительных стилей на конкретных страницах #}
+    {% block extra_css %}{% endblock %}
 
     <title>{% block title %}Chatty{% endblock %}</title>
 </head>
 
-<body class="d-flex flex-column h-100"> {# Классы для прижатия футера #}
+<body class="d-flex flex-column h-100">
+    <!-- Ассистент -->
+    <div class="assistant-container"data-username="
+        {% if user.is_authenticated %}{{ user.username }}{% endif %}">
+        <div class="dialog-box" id="dialogBox">
+            <div class="greeting">Привет!</div>
+            <div class="question">Чем могу помочь?</div>
+        </div>
+        <img src="{% static 'images/orange.png' %}?v=2"
+             class="assistant-image"
+             id="orangeAssistant"
+             alt="Помощник">
+    </div>
+
     <!-- Навигационная панель -->
-    <header class="sticky-top"> {# Сделаем навбар прилипающим #}
+    <header class="sticky-top">
         {% include 'includes/navbar.html' %}
     </header>
 
     <!-- Основное содержимое -->
-    <main class="flex-shrink-0 py-4"> {# Добавлен отступ сверху и снизу #}
+    <main class="flex-shrink-0 py-4">
         <div class="container">
             {% block content %}
             <!-- Содержимое конкретной страницы будет здесь -->
@@ -42,20 +56,17 @@
     </main>
 
     <!-- Футер -->
-    <footer class="footer mt-auto"> {# Убрал bg-light, стили будут из CSS #}
+    <footer class="footer mt-auto">
          {% include 'includes/footer.html' %}
     </footer>
 
-    <!-- Bootstrap Bundle JS -->
+    <!-- Скрипты -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
-    <!-- Custom JS (если будет) -->
-    {# <script src="{% static 'js/main.js' %}"></script> #}
-
-    {# --- Блок для дополнительных скриптов --- #}
     {% block extra_js %}
-        {# likes.js нужен глобально для всех страниц с лайками #}
         <script src="{% static 'js/likes.js' %}"></script>
+        <script src="{% static 'js/orange-assistant.js' %}"></script>
     {% endblock %}
 </body>
 </html>
