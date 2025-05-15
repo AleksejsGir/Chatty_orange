@@ -1310,6 +1310,21 @@ h1, h2, h3, h4, h5, h6 {
     color: #dc3545;
 }
 
+
+.dislike-button.active i {
+    color: #0d6efd;
+}
+
+.dislike-button:not(.active):hover i {
+    color: #6c757d;
+}
+
+.dislike-button[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
 .like-button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -1470,4 +1485,11 @@ h1, h2, h3, h4, h5, h6 {
 .orange-background h3,
 .orange-background .page-title {
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+}
+
+.fa-thumbs-up, .fa-thumbs-down {
+    transition: all 0.2s ease;
+}
+.btn-interaction.active .fa-solid {
+    transform: scale(1.2);
 }
