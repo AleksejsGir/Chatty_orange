@@ -115,3 +115,36 @@ ACCOUNT_EMAIL_VERIFICATION = 'optional'
 ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
 ACCOUNT_LOGOUT_ON_GET = False
 ACCOUNT_EMAIL_SUBJECT_PREFIX = '[Chatty] '
+
+     #CKEditor
+CKEDITOR_JQUERY_URL = 'https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js'
+CKEDITOR_UPLOAD_PATH = 'uploads/'
+CKEDITOR_IMAGE_BACKEND = 'pillow'
+CKEDITOR_BASEPATH = "/static/ckeditor/ckeditor/"
+CKEDITOR_RESTRICT_BY_USER = True
+CKEDITOR_FORCE_JPEG_COMPRESSION = True
+CKEDITOR_FILENAME_GENERATOR = 'utils.get_filename'
+
+# Указываем использовать последнюю версию CKEditor
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'Custom',
+        'toolbar_Custom': [
+            ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript'],
+            ['TextColor', 'BGColor'],
+            ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
+            ['Link', 'Unlink'],
+            ['RemoveFormat', 'Source'],
+            ['Styles', 'Format', 'Font', 'FontSize'],
+            ['Image', 'Table'],
+            ['Maximize']
+        ],
+        'width': '100%',
+        'height': 300,
+        'removePlugins': 'stylesheetparser',
+        'allowedContent': True,
+        # Добавляем эту строку для указания версии
+        'customConfig': '/static/ckeditor/ckeditor/config.js?version=4.25.1-lts',
+    },
+}
