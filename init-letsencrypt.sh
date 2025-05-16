@@ -1,19 +1,8 @@
 #!/bin/bash
 
-# Проверка наличия Docker и Docker Compose
-if ! [ -x "$(command -v docker)" ]; then
-  echo 'Error: docker is not installed.' >&2
-  exit 1
-fi
-
-if ! [ -x "$(command -v docker-compose)" ]; then
-  echo 'Error: docker-compose is not installed.' >&2
-  exit 1
-fi
-
 # Domains для сертификата (через пробел)
 domains=(chattyorange.eu www.chattyorange.eu)
-email="chattyorangeeu@gmail.com" # Укажите ваш email
+email="chattyorangeeu@gmail.com"
 staging=0 # Установите 1 для тестирования сертификата
 
 if [ -d "./certbot" ]; then
@@ -24,23 +13,29 @@ if [ -d "./certbot" ]; then
 fi
 
 # Создаем директории для certbot
-mkdir -p ./certbot/conf/live/$domains
+mkdir -p ./certbot/conf/live/${domains[0]}
 mkdir -p ./certbot/www
 
 # Запускаем nginx для проверки домена
-docker-compose -f docker-compose.prod.yml up --force-recreate -d nginx
+docker compose -f docker-compose.prod.yml up --force-recreate -d nginx
 
 # Остановим существующий certbot контейнер
-docker-compose -f docker-compose.prod.yml stop certbot
+docker compose -f docker-compose.prod.yml stop certbot
+
+# Проверка доступности порта 80
+echo "Проверка доступности порта 80..."
+sleep 5
 
 # Получаем новые сертификаты
 echo "### Получение сертификатов Let's Encrypt..."
 
 if [ $staging != "0" ]; then
   staging_arg="--staging"
+else
+  staging_arg=""
 fi
 
-docker-compose -f docker-compose.prod.yml run --rm --entrypoint "\
+docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
   certbot certonly --webroot -w /var/www/certbot \
     $staging_arg \
     --email $email \
@@ -50,4 +45,4 @@ docker-compose -f docker-compose.prod.yml run --rm --entrypoint "\
     -d ${domains[0]} -d ${domains[1]}" certbot
 
 # Перезапускаем nginx для загрузки SSL конфигурации
-docker-compose -f docker-compose.prod.yml exec nginx nginx -s reload
+docker compose -f docker-compose.prod.yml exec nginx nginx -s reload

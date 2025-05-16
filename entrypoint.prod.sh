@@ -19,4 +19,4 @@ python manage.py migrate --noinput
 echo "Entrypoint: Starting Gunicorn..."
 # Запускаем Gunicorn
 # Используем переменную окружения GUNICORN_CMD_ARGS
-exec gunicorn Ch atty_orange.wsgi:application $GUNICORN_CMD_ARGS
+exec gunicorn Chatty_orange.wsgi:application $GUNICORN_CMD_ARGS

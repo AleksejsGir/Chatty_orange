@@ -1,4 +1,4 @@
-version: '3.9'
+version: '3.8'
 
 volumes:
   postgres_data_prod:
@@ -15,9 +15,9 @@ services:
     env_file:
       - .env.prod
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
     networks:
       - chatty_prod_network
     healthcheck:
@@ -28,9 +28,7 @@ services:
     restart: unless-stopped
 
   web_prod:
-    build:
-      context: .
-      dockerfile: Dockerfile.prod
+    image: aleksejsgiruckis/chatty:latest
     container_name: chatty_web_prod
     volumes:
       - static_volume_prod:/app/staticfiles
@@ -39,7 +37,6 @@ services:
       - .env.prod
     environment:
       - DJANGO_SETTINGS_MODULE=Chatty_orange.settings.production
-      - GUNICORN_CMD_ARGS="--workers 3 --bind 0.0.0.0:8000 --timeout 120"
     expose:
       - "8000"
     depends_on:
@@ -58,6 +55,7 @@ services:
       - static_volume_prod:/app/staticfiles:ro
       - media_volume_prod:/app/media:ro
       - certbot_data:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
     ports:
       - "80:80"
       - "443:443"
