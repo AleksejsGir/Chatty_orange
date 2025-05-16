@@ -3,6 +3,9 @@
 # Выход при ошибке
 set -e
 
+# Установка необходимых пакетов
+apt-get update && apt-get install -y netcat-openbsd
+
 # Ожидание готовности базы данных
 echo "Waiting for database..."
 while ! nc -z $DB_HOST $DB_PORT; do
@@ -16,4 +19,4 @@ python manage.py migrate --noinput
 echo "Entrypoint: Starting Gunicorn..."
 # Запускаем Gunicorn
 # Используем переменную окружения GUNICORN_CMD_ARGS
-exec gunicorn Chatty_orange.wsgi:application $GUNICORN_CMD_ARGS
+exec gunicorn Ch atty_orange.wsgi:application $GUNICORN_CMD_ARGS

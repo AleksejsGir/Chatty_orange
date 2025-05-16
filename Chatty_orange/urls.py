@@ -7,9 +7,8 @@ from Chatty_orange import settings
 from users import views as user_views # Импортируем views из приложения users
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('users/', include('users.urls')),
-    path('posts/', include('posts.urls')),
+    # path('users/', include('users.urls')),
+    # path('posts/', include('posts.urls')),
     # Главная страница
     path('', user_views.home_page_view, name='home'), # Добавлен путь для главной страницы
 
