@@ -1,4 +1,5 @@
 # posts/views.py
+from django.db import transaction
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
@@ -33,12 +34,14 @@ class PostListView(ListView):
         if user.is_staff:
             queryset = queryset.annotate(
                 num_comments=Count('comments', distinct=True),
-                num_likes=Count('likes', distinct=True)
+                num_likes=Count('likes', distinct=True),
+                num_dislikes = Count('dislikes', distinct=True)
             )
         else:
             queryset = queryset.annotate(
                 num_comments=Count('comments',filter=Q(comments__is_active=True), distinct=True),
-                num_likes=Count('likes', distinct=True)
+                num_likes=Count('likes', distinct=True),
+                num_dislikes = Count('dislikes', distinct=True)
             )
 
         # Предзагружаем автора для эффективности
@@ -201,44 +204,68 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return self.object.post.get_absolute_url() + '#comments'
 
 
+# posts/views.py (PostLikeView)
 @method_decorator(csrf_exempt, name='dispatch')
 class PostLikeView(LoginRequiredMixin, View):
-    """Обработка лайков через AJAX."""
-
     def post(self, request, *args, **kwargs):
-        print("Like view called")  # Отладочное сообщение
-        post_id = kwargs.get('pk')
-        try:
-            post = Post.objects.get(pk=post_id)
-            user = request.user
+        post = get_object_or_404(Post, pk=kwargs.get('pk'))
+        user = request.user
 
+        with transaction.atomic():
+            # Удаляем дизлайк если есть
+            if post.dislikes.filter(id=user.id).exists():
+                post.dislikes.remove(user)
+                removed_dislike = True
+            else:
+                removed_dislike = False
+
+            # Обрабатываем лайк
             if post.likes.filter(id=user.id).exists():
                 post.likes.remove(user)
                 liked = False
-                print(f"User {user} unliked post {post_id}")
             else:
                 post.likes.add(user)
                 liked = True
-                print(f"User {user} liked post {post_id}")
 
-            return JsonResponse({
-                'status': 'ok',
-                'liked': liked,
-                'total_likes': post.total_likes()
-            })
-        except Post.DoesNotExist:
-            print(f"Post {post_id} not found")
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Post not found'
-            }, status=404)
-        except Exception as e:
-            print(f"Error in like view: {str(e)}")
-            return JsonResponse({
-                'status': 'error',
-                'message': str(e)
-            }, status=500)
+        return JsonResponse({
+            'status': 'ok',
+            'liked': liked,
+            'removed_dislike': removed_dislike,
+            'total_likes': post.likes.count(),
+            'total_dislikes': post.dislikes.count()
+        })
 
+
+# posts/views.py (PostDislikeView)
+@method_decorator(csrf_exempt, name='dispatch')
+class PostDislikeView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        post = get_object_or_404(Post, pk=kwargs.get('pk'))
+        user = request.user
+
+        with transaction.atomic():
+            # Удаляем лайк если есть
+            if post.likes.filter(id=user.id).exists():
+                post.likes.remove(user)
+                removed_like = True
+            else:
+                removed_like = False
+
+            # Обрабатываем дизлайк
+            if post.dislikes.filter(id=user.id).exists():
+                post.dislikes.remove(user)
+                disliked = False
+            else:
+                post.dislikes.add(user)
+                disliked = True
+
+        return JsonResponse({
+            'status': 'ok',
+            'disliked': disliked,
+            'removed_like': removed_like,
+            'total_dislikes': post.dislikes.count(),
+            'total_likes': post.likes.count()
+        })
 
 class TagPostListView(ListView):
     model = Post
