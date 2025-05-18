@@ -23,7 +23,7 @@ urlpatterns = [
     # Просмотр условий использования и политики конфиденциальности
     path('terms/', views.TermsOfUseView.as_view(), name='terms-of-use'),
     path('privacy/', views.PrivacyPolicyView.as_view(), name='privacy-policy'),
-    path('feedback/', include('feedback.urls')),
+    # path('feedback/', include('feedback.urls')),
 ]
 
 if settings.DEBUG:
