@@ -17,8 +17,7 @@
 }
 
 .dialog-box {
-    transition: opacity 0.3s ease;
-    pointer-events: auto; /* Чтобы диалог не перехватывал события мыши */
+    pointer-events: none; /* Чтобы диалог не перехватывал события мыши */
     position: absolute;
     top: 110px;
     right: -40px; /* Новое позиционирование */
@@ -53,7 +52,7 @@
 }
 
 .assistant-image:hover {
-    transform: rotate(-5deg) scale(1.1);
+    transform: rotate(-5deg) scale(1.05);
     cursor: pointer;
 }
 
@@ -66,4 +65,75 @@
 
 .assistant-image {
     animation: float 3s ease-in-out infinite;
+}
+
+/* Обновленный orange-assistant.css */
+.assistant-menu {
+  position: absolute;
+  top: 120px;
+  right: -30px;
+  width: 200px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  padding: 15px;
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 1001;
+}
+
+.assistant-menu.show {
+  display: flex;
+  animation: fadeIn 0.3s ease;
+}
+
+.assistant-menu a {
+  color: #444;
+  text-decoration: none;
+  padding: 8px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.assistant-menu a:hover {
+  background: #fff7ed;
+  color: #f97316;
+}
+
+.close-menu-btn {
+  margin-top: 10px;
+  background: #f97316;
+  color: white !important;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.close-menu-btn:hover {
+  transform: scale(1.05);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.temporary-message {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  padding: 15px 25px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { bottom: -50px; opacity: 0; }
+  to { bottom: 20px; opacity: 1; }
 }

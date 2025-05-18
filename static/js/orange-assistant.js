@@ -1,67 +1,81 @@
-// Функция для приветствия пользователя
-function greetUser(username) {
-    const assistant = document.getElementById('orange-assistant');
-    assistant.innerHTML = `Привет, ${username}!`;
-}
+// Обновленный orange-assistant.js
+document.addEventListener('DOMContentLoaded', function() {
+  const assistant = document.querySelector('.assistant-container');
+  const dialogBox = document.querySelector('.dialog-box');
+  const assistantImage = document.querySelector('.assistant-image');
+  let menuTimeout;
 
-// Функция для прощания с пользователем
-function goodbyeUser() {
-    const assistant = document.getElementById('orange-assistant');
-    assistant.innerHTML = 'Пока, пока!';
-}
+  // Показать/скрыть меню
+  assistant.addEventListener('mouseenter', () => {
+    clearTimeout(menuTimeout);
+    showMenu();
+  });
 
-// Пример обработки регистрации пользователя
-document.getElementById('register-form').addEventListener('submit', function(event) {
-    event.preventDefault();
-    const username = document.getElementById('username').value;
+  assistant.addEventListener('mouseleave', () => {
+    menuTimeout = setTimeout(hideMenu, 300);
+  });
 
-    // Отправка данных на сервер
-    fetch('/register', {
-        method: 'POST',
-        body: JSON.stringify({ username: username }),
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            greetUser(username);
-        }
-    });
+  function showMenu() {
+    const menu = document.createElement('div');
+    menu.className = 'assistant-menu';
+    menu.innerHTML = `
+      <a href="#" onclick="showRules()">Правила сайта.</a>
+      <a href="#" onclick="showGuide()">Инструкция сайта.</a>
+      <a href="#">ИИ помощник.</a>
+      <button class="close-menu-btn" onclick="hideMenu()">Закрыть</button>
+    `;
+    assistant.appendChild(menu);
+    menu.classList.add('show');
+  }
+
+  function hideMenu() {
+    const menu = document.querySelector('.assistant-menu');
+    if(menu) menu.remove();
+  }
+  window.hideMenu = hideMenu;
+
+  
+
+  // Временные сообщения
+  window.showWelcomeMessage = function(username) {
+    const msg = document.createElement('div');
+    msg.className = 'temporary-message';
+    msg.textContent = `Привет, ${username}!`;
+    document.body.appendChild(msg);
+
+    setTimeout(() => {
+      msg.remove();
+    }, 15000);
+  }
+
+  window.showGoodbyeMessage = function() {
+    const msg = document.createElement('div');
+    msg.className = 'temporary-message';
+    msg.textContent = 'Пока! Пока! До встречи!';
+    document.body.appendChild(msg);
+
+    setTimeout(() => {
+      msg.remove();
+    }, 15000);
+  }
+
+  // Модальные окна
+  window.showRules = function() {
+    new bootstrap.Modal('#rulesModal').show();
+    hideMenu();
+  }
+
+  window.showGuide = function() {
+    new bootstrap.Modal('#guideModal').show();
+    hideMenu();
+  }
 });
 
-// Пример обработки входа пользователя
-document.getElementById('login-form').addEventListener('submit', function(event) {
-    event.preventDefault();
-    const username = document.getElementById('username').value;
-
-    // Отправка данных на сервер
-    fetch('/login', {
-        method: 'POST',
-        body: JSON.stringify({ username: username }),
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            greetUser(username);
-        }
-    });
+// Интеграция с системой аутентификации
+document.addEventListener('userLoggedIn', function(e) {
+  showWelcomeMessage(e.detail.username);
 });
 
-// Пример обработки выхода пользователя
-document.getElementById('logout-button').addEventListener('click', function() {
-    // Отправка запроса на выход
-    fetch('/logout', {
-        method: 'POST'
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            goodbyeUser();
-        }
-    });
+document.addEventListener('userLoggedOut', function() {
+  showGoodbyeMessage();
 });
