@@ -2,7 +2,7 @@
 {% load static %}
 <html lang="ru" class="h-100">
 <head>
-    <script src="{% static 'js/orange-assistant.js' %}"></script>
+{#    <script src="{% static 'js/orange-assistant.js' %}"></script>#}
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Chatty - Социальная сеть Team Orange">
@@ -30,7 +30,7 @@
 
 <body class="d-flex flex-column h-100">
     <!-- Ассистент -->
-    <div class="assistant-container"data-username="
+    <div class="assistant-container" data-username="
         {% if user.is_authenticated %}{{ user.username }}{% endif %}">
         <div class="dialog-box" id="dialogBox">
             <div class="greeting">Привет!</div>

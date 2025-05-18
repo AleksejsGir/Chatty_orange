@@ -65,3 +65,45 @@ document.getElementById('logout-button').addEventListener('click', function() {
         }
     });
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Удалите дублирующийся DOMContentLoaded в конце файла
+
+    const assistant = document.getElementById('orangeAssistant');
+    const dialogBox = document.getElementById('dialogBox');
+
+    if (!assistant || !dialogBox) {
+        console.error('Не найдены элементы ассистента!');
+        return;
+    }
+
+    // Показываем/скрываем диалоговое окно при наведении
+    assistant.addEventListener('mouseenter', function() {
+        dialogBox.style.display = 'block';
+        setTimeout(() => {
+            dialogBox.style.opacity = '1';
+        }, 10);
+    });
+
+    assistant.addEventListener('mouseleave', function() {
+        dialogBox.style.opacity = '0';
+        setTimeout(() => {
+            dialogBox.style.display = 'none';
+        }, 300);
+    });
+
+    // Персонализированное приветствие, если пользователь авторизован
+    const container = document.querySelector('.assistant-container');
+    if (container) {
+        const username = container.dataset.username;
+        if (username) {
+            const greeting = dialogBox.querySelector('.greeting');
+            if (greeting) {
+                greeting.textContent = `Привет, ${username}!`;
+            }
+        }
+    }
+});
+
+// Удалите остальной код, если он не используется
+// Или оставьте только то, что действительно нужно

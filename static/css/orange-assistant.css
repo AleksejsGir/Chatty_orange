@@ -17,7 +17,8 @@
 }
 
 .dialog-box {
-    pointer-events: none; /* Чтобы диалог не перехватывал события мыши */
+    transition: opacity 0.3s ease;
+    pointer-events: auto; /* Чтобы диалог не перехватывал события мыши */
     position: absolute;
     top: 110px;
     right: -40px; /* Новое позиционирование */
@@ -52,7 +53,7 @@
 }
 
 .assistant-image:hover {
-    transform: rotate(-5deg) scale(1.05);
+    transform: rotate(-5deg) scale(1.1);
     cursor: pointer;
 }
 
