@@ -2,6 +2,7 @@
 {% load static %}
 <html lang="ru" class="h-100">
 <head>
+    <script src="{% static 'js/orange-assistant.js' %}"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Chatty - Социальная сеть Team Orange">
@@ -66,7 +67,79 @@
 
     {% block extra_js %}
         <script src="{% static 'js/likes.js' %}"></script>
-        <script src="{% static 'js/orange-assistant.js' %}"></script>
+{#        <script src="{% static 'js/orange-assistant.js' %}"></script>#}
     {% endblock %}
+    <div class="modal fade" id="rulesModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Правила сайта</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Вставляем контент из terms_of_use.html -->
+                    <section class="mb-4">
+                        <h4 class="mb-3 text-primary">1. Основные правила</h4>
+                        <div class="ms-3">
+                            <p class="fw-bold">Запрещено:</p>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fa-solid fa-ban me-2 text-danger"></i>
+                                    Использование ненормативной лексики в постах, комментариях и личных сообщениях
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fa-solid fa-ban me-2 text-danger"></i>
+                                    Создание постов или комментариев с тегами «Политика» и «Религия»
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fa-solid fa-ban me-2 text-danger"></i>
+                                    Размещение контента, нарушающего законы РФ
+                                </li>
+                            </ul>
+
+                            <p class="fw-bold mt-4">Администрация вправе:</p>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fa-solid fa-trash me-2 text-warning"></i>
+                                    Удалять нарушающие правила материалы без предупреждения
+                                </li>
+                                <li>
+                                    <i class="fa-solid fa-lock me-2 text-warning"></i>
+                                    Блокировать аккаунты за систематические нарушения
+                                </li>
+                            </ul>
+                        </div>
+                    </section>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="guideModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center py-4">
+                    <h5 class="mb-3">Инструкция сайта</h5>
+                    <p>Изучи визуально, нажимай правильно!</p>
+                    <button class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="aiAssistantModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center py-4">
+                    <h5 class="mb-3">ИИ помощник</h5>
+                    <p>Я виртуальный помощник. Чем могу помочь?</p>
+                    <button class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

@@ -17,6 +17,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'default-insecure-secret-key-for-dev')
 
 # Application definition
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -147,4 +148,63 @@ CKEDITOR_CONFIGS = {
         # Добавляем эту строку для указания версии
         'customConfig': '/static/ckeditor/ckeditor/config.js?version=4.25.1-lts',
     },
+}
+JAZZMIN_SETTINGS = {
+    "site_title": "Chatty orange",  # Заголовок административной панели
+    "site_header": "Chatty orange: Admin",  # Заголовок окна браузера
+    "site_brand": "Chatty orange",  # Бренд сайта
+    "welcome_sign": "Welcome to Chatty orange: Admin",  # Приветственное сообщение
+    "copyright": "Chatty orange GmbH",  # Информация о копирайте
+    "topmenu_links": [
+        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
+        # {"name": "Catalog", "url": "news:catalog", "new_window": True},
+        {"name": "Support", "url": "https://google.com", "new_window": True},
+    ],
+    "usermenu_links": [
+        {"name": "Support", "url": "https://github.com/farridav/django-jazzmin/issues", "new_window": True},
+        {"model": "auth.user"}
+    ],
+    "show_sidebar": True,  # Показать боковую панель
+    "navigation_expanded": True,  # Развернуть навигацию
+    "hide_apps": [],  # Скрыть приложения
+    "hide_models": [],  # Скрыть модели
+    "default_icon_parents": "fas fa-chevron-circle-right",  # Иконка для родительских элементов
+    "default_icon_children": "fas fa-circle",  # Иконка для дочерних элементов
+    "related_modal_active": False,  # Включить модальные окна для связанных объектов
+    "custom_css": None,  # Пользовательский CSS
+    "custom_js": None,  # Пользовательский JS
+    "use_google_fonts_cdn": True,  # Использовать Google Fonts CDN
+    "show_ui_builder": False,  # Показать конструктор интерфейса
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": True,
+    "brand_small_text": False,
+    "brand_colour": "navbar-secondary",
+    "accent": "accent-pink",
+    "navbar": "navbar-danger navbar-dark",
+    "no_navbar_border": False,
+    "navbar_fixed": True,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-light-primary",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": False,
+    "sidebar_nav_compact_style": True,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": True,
+    "theme": "cyborg",
+    "dark_mode_theme": "cyborg",
+    "button_classes": {
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success"
+    }
 }

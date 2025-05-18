@@ -2,7 +2,7 @@
 from django.db import transaction
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.contrib.auth import get_user_model
@@ -16,6 +16,8 @@ from django.views import View
 from .models import Post, Comment, Tag
 from .forms import PostForm, CommentForm
 from subscriptions.models import Subscription  # Добавляем импорт модели подписок
+
+from django.shortcuts import render
 
 User = get_user_model()  # Получаем модель пользователя
 
@@ -136,6 +138,11 @@ class PostCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.author = self.request.user
         return super().form_valid(form)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -306,3 +313,15 @@ class TagPostListView(ListView):
         # Добавляем популярные теги
         context['popular_tags'] = Tag.get_popular_tags()
         return context
+
+def terms_of_use(request):
+    return render(request, 'posts/terms_of_use.html')
+
+def privacy_policy(request):
+    return render(request, 'posts/privacy_policy.html')
+
+class TermsOfUseView(TemplateView):
+    template_name = 'terms_of_use.html'
+
+class PrivacyPolicyView(TemplateView):
+    template_name = 'privacy_policy.html'
