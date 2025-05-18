@@ -226,7 +226,12 @@ AUTH_USER_MODEL = 'users.CustomUser' # Указываем нашу кастом�
 # Используем вывод в консоль для отладки (сброс пароля и т.д.)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # TODO: Настроить реальный email backend для production (e.g., SMTP)
-
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.Chattyorangeeu@gmail.com'  # Например, 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'Chattyorangeeu@gmail.com'
+EMAIL_HOST_PASSWORD = 'pythondjango40'
 
 # --- Authentication Settings ---
 # URL, куда перенаправлять, если пользователь пытается получить доступ к странице,
