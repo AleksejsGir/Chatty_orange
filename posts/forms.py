@@ -4,6 +4,11 @@ from .models import Post, Comment
 from ckeditor.widgets import CKEditorWidget
 
 class PostForm(forms.ModelForm):
+    agree_to_rules = forms.BooleanField(
+        label="Я согласен с правилами публикации контента",
+        required=True,
+        error_messages={'required': 'Вы должны принять правила публикации'}
+    )
     class Meta:
         model = Post
         fields = ['title', 'text', 'image', 'tags']

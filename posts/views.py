@@ -17,6 +17,8 @@ from .models import Post, Comment, Tag
 from .forms import PostForm, CommentForm
 from subscriptions.models import Subscription  # Добавляем импорт модели подписок
 
+from django.shortcuts import render
+
 User = get_user_model()  # Получаем модель пользователя
 
 
@@ -306,3 +308,9 @@ class TagPostListView(ListView):
         # Добавляем популярные теги
         context['popular_tags'] = Tag.get_popular_tags()
         return context
+
+def terms_of_use(request):
+    return render(request, 'posts/terms_of_use.html')
+
+def privacy_policy(request):
+    return render(request, 'posts/privacy_policy.html')

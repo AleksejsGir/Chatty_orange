@@ -3,7 +3,7 @@
 {% load django_bootstrap5 %}
 {% load allauth account %}
 
-{% block title %}{% trans "Регистрация" %} - Chatty{% endblock %} {# Изменил head_title #}
+{% block title %}{% trans "Регистрация" %} - Chatty{% endblock %}
 
 {% block content %}
 <div class="container mt-5 mb-5">
@@ -11,7 +11,7 @@
         <div class="col-lg-6 col-md-8">
              <div class="card profile-card shadow-sm">
                  <div class="card-header profile-card-title">
-                     <i class="fa-solid fa-user-plus fa-fw me-2"></i>{% trans "Создание аккаунта Chatty" %} {# Изменил заголовок #}
+                     <i class="fa-solid fa-user-plus fa-fw me-2"></i>{% trans "Создание аккаунта Chatty" %}
                  </div>
                  <div class="card-body profile-card-content p-4">
 
@@ -38,25 +38,38 @@
                             <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
                         {% endif %}
 
-                        {# Кнопка регистрации #}
-                        <div class="d-grid gap-2 mt-4">
-                            <button class="btn btn-primary btn-lg" type="submit"> {# Основная оранжевая кнопка #}
-                                <i class="fa-solid fa-check-circle me-1"></i> {% trans "Зарегистрироваться" %} {# Изменил текст кнопки #}
-                            </button>
+                        {# Чекбокс согласия #}
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                            <label class="form-check-label small" for="agreeTerms">
+                                {% trans "Я согласен с" %} <a href="#" target="_blank">{% trans "Условиями использования" %}</a> {% trans "и" %}
+                                <a href="#" target="_blank">{% trans "Политикой конфиденциальности" %}</a>
+                            </label>
                         </div>
 
-                        {# Можно добавить ссылку на условия использования, если нужно #}
-
-                        <p class="text-center small text-muted mt-3">
-                            Нажимая "Зарегистрироваться", вы соглашаетесь с нашими <a href="#">Условиями использования</a> и <a href="#">Политикой конфиденциальности</a>.
-                        </p>
-
+                        {# Кнопка регистрации #}
+                        <div class="d-grid gap-2 mt-4">
+                            <button class="btn btn-primary btn-lg" type="submit" id="submitBtn" disabled>
+                                <i class="fa-solid fa-check-circle me-1"></i> {% trans "Зарегистрироваться" %}
+                            </button>
+                        </div>
                     </form>
-                 </div> {# Конец card-body #}
-             </div> {# Конец card #}
+                 </div>
+             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkbox = document.getElementById('agreeTerms');
+    const submitBtn = document.getElementById('submitBtn');
+
+    checkbox.addEventListener('change', function() {
+        submitBtn.disabled = !this.checked;
+    });
+});
+</script>
 {% endblock %}
 
 <!-- TODO: Проверить работу отображения ошибок формы. -->

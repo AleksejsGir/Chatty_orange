@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.urls import path, include
 
 from Chatty_orange import settings
+from posts import views
 from users import views as user_views # Импортируем views из приложения users
 
 urlpatterns = [

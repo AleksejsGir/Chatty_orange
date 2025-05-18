@@ -296,7 +296,9 @@ CKEDITOR_CONFIGS = {
 #     "127.0.0.1",
 # ]
 
-
+ACCOUNT_FORMS = {
+    'signup': 'users.forms.CustomSignupForm',
+}
 
 # <!-- TODO: Настроить STATIC_ROOT для production. -->
 # <!-- TODO: Настроить реальный EMAIL_BACKEND для production. -->
