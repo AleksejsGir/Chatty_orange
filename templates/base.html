@@ -2,6 +2,7 @@
 {% load static %}
 <html lang="ru" class="h-100">
 <head>
+    <script src="{% static 'js/orange-assistant.js' %}"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Chatty - Социальная сеть Team Orange">
@@ -68,5 +69,28 @@
         <script src="{% static 'js/likes.js' %}"></script>
         <script src="{% static 'js/orange-assistant.js' %}"></script>
     {% endblock %}
+    <div class="modal fade" id="rulesModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center py-4">
+                    <h5 class="mb-3">Правила сайта</h5>
+                    <p>Нарушишь, умрешь!</p>
+                    <button class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="guideModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center py-4">
+                    <h5 class="mb-3">Инструкция сайта</h5>
+                    <p>Изучи визуально, нажимай правильно!</p>
+                    <button class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
