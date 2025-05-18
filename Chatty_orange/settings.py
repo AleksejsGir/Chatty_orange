@@ -60,7 +60,6 @@ INSTALLED_APPS = [
     'django_bootstrap5',
     'debug_toolbar',
     'ckeditor',  # Добавляем CKEditor
-    'feedback',
 ]
 
 MIDDLEWARE = [
@@ -143,7 +142,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 # Папка, куда будет собираться вся статика командой collectstatic (для production)
-STATIC_ROOT = BASE_DIR / "staticfiles"
+# STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
 JAZZMIN_SETTINGS = {
@@ -227,12 +226,7 @@ AUTH_USER_MODEL = 'users.CustomUser' # Указываем нашу кастом�
 # Используем вывод в консоль для отладки (сброс пароля и т.д.)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # TODO: Настроить реальный email backend для production (e.g., SMTP)
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.Chattyorangeeu@gmail.com'  # Например, 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'Chattyorangeeu@gmail.com'
-EMAIL_HOST_PASSWORD = 'pythondjango40'
+
 
 # --- Authentication Settings ---
 # URL, куда перенаправлять, если пользователь пытается получить доступ к странице,
@@ -302,37 +296,7 @@ CKEDITOR_CONFIGS = {
 #     "127.0.0.1",
 # ]
 
-ACCOUNT_FORMS = {
-    'signup': 'users.forms.CustomSignupForm',
-}
 
-CKEDITOR_CONFIGS = {
-    'default': {
-        'toolbar': 'Custom',
-        'toolbar_Custom': [
-            ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript'],
-            ['TextColor', 'BGColor'],
-            ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
-            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
-            ['Link', 'Unlink'],
-            ['RemoveFormat', 'Source'],
-            ['Image', 'Table'],
-            ['Maximize']
-        ],
-        'width': '100%',
-        'height': 300,
-        'extraPlugins': ','.join([
-            'div',
-            'autolink',
-            'widget',
-            'lineutils',
-            'clipboard',
-        ]),
-        # Добавьте параметр для явного указания версии
-        'skin': 'moono-lisa',
-        'contentsCss': '/static/ckeditor/ckeditor/contents.css',
-    },
-}
 
 # <!-- TODO: Настроить STATIC_ROOT для production. -->
 # <!-- TODO: Настроить реальный EMAIL_BACKEND для production. -->
