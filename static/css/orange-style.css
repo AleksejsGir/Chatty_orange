@@ -1508,3 +1508,13 @@ h1, h2, h3, h4, h5, h6 {
     transform: scale(1.1);
     transition: all 0.2s ease;
 }
+
+.form-check-label a {
+    white-space: nowrap; /* Запрет переноса ссылок */
+}
+
+@media (max-width: 768px) {
+    .form-check-label span {
+        display: inline!important; /* Инлайн отображение на мобильных */
+    }
+}

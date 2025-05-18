@@ -142,7 +142,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 # Папка, куда будет собираться вся статика командой collectstatic (для production)
-# STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
 JAZZMIN_SETTINGS = {
@@ -298,6 +298,34 @@ CKEDITOR_CONFIGS = {
 
 ACCOUNT_FORMS = {
     'signup': 'users.forms.CustomSignupForm',
+}
+
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'Custom',
+        'toolbar_Custom': [
+            ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript'],
+            ['TextColor', 'BGColor'],
+            ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
+            ['Link', 'Unlink'],
+            ['RemoveFormat', 'Source'],
+            ['Image', 'Table'],
+            ['Maximize']
+        ],
+        'width': '100%',
+        'height': 300,
+        'extraPlugins': ','.join([
+            'div',
+            'autolink',
+            'widget',
+            'lineutils',
+            'clipboard',
+        ]),
+        # Добавьте параметр для явного указания версии
+        'skin': 'moono-lisa',
+        'contentsCss': '/static/ckeditor/ckeditor/contents.css',
+    },
 }
 
 # <!-- TODO: Настроить STATIC_ROOT для production. -->

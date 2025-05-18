@@ -1,7 +1,12 @@
 # posts/forms.py
 from django import forms
+from django.template.defaultfilters import slugify
+
 from .models import Post, Comment
 from ckeditor.widgets import CKEditorWidget
+
+from django.utils.text import slugify
+from django.core.exceptions import ValidationError
 
 class PostForm(forms.ModelForm):
     agree_to_rules = forms.BooleanField(
@@ -28,6 +33,10 @@ class PostForm(forms.ModelForm):
             })
         }
 
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
     def clean_title(self):
         title = self.cleaned_data['title']
         if len(title) < 5:
@@ -36,9 +45,30 @@ class PostForm(forms.ModelForm):
 
     def clean_text(self):
         text = self.cleaned_data['text']
+
+        # Проверка на минимальную длину
         if len(text) < 10:
-            raise forms.ValidationError("Текст поста должен содержать минимум 10 символов")
+            raise ValidationError("Текст поста должен содержать минимум 10 символов")
+
+        # Проверка на запрещенные слова
+        bad_words = ['мат', 'оскорбление', 'запрещенное_слово']  # Замените на реальный список
+        cleaned_text = slugify(text)  # Нормализуем текст для проверки
+
+        for word in bad_words:
+            if word in cleaned_text:
+                raise ValidationError("Обнаружена ненормативная лексика")
+
         return text
+
+    def clean_tags(self):
+        tags = self.cleaned_data['tags']
+        forbidden_tags = ['политика', 'религия']
+        for tag in tags:
+            if tag.name.lower() in forbidden_tags:
+                raise forms.ValidationError(
+                    f"Тег '{tag.name}' запрещен к использованию"
+                )
+        return tags
 
 class CommentForm(forms.ModelForm):
     class Meta:

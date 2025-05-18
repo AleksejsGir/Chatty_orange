@@ -1,5 +1,5 @@
 # posts/urls.py
-from django.urls import path
+from django.urls import include, path
 from . import views # Импортируем views, хотя их пока нет
 
 app_name = 'posts' # Определяем пространство имен URL

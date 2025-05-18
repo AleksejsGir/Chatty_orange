@@ -98,29 +98,32 @@
 
                         <hr class="my-4">
 
-                        <!-- Блок согласия -->
-                        <div class="d-flex justify-content-between align-items-center mt-4">
-                            <div class="form-check">
+                        <!-- Блок согласия и кнопок -->
+                        <div class="d-flex flex-wrap justify-content-between align-items-center mt-4">
+                            <!-- Блок согласия -->
+                            <div class="form-check me-3" style="flex: 1 1 300px; max-width: 100%;">
                                 <input class="form-check-input"
                                        type="checkbox"
                                        id="{{ form.agree_to_rules.id_for_label }}"
                                        name="{{ form.agree_to_rules.html_name }}"
                                        required>
                                 <label class="form-check-label small" for="{{ form.agree_to_rules.id_for_label }}">
-                                    {% trans "Я согласен с" %}
-                                    <a href="{% url 'terms_of_use' %}" target="_blank">{% trans "Условиями использования" %}</a>
-                                    {% trans "и" %}
-                                    <a href="{% url 'privacy_policy' %}" target="_blank">{% trans "Политикой конфиденциальности" %}</a>
+                                    <span class="d-block">{% trans "Я согласен с" %}
+                                        <a href="{% url 'posts:terms_of_use' %}" target="_blank">
+                                            {% trans "Условиями использования" %}
+                                        </a>
+                                    </span>
+                                    <span class="d-block">
+                                        {% trans "и" %}
+                                        <a href="{% url 'posts:privacy_policy' %}" target="_blank">
+                                            {% trans "Политикой конфиденциальности" %}
+                                        </a>
+                                    </span>
                                 </label>
-                                {% if form.agree_to_rules.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {{ form.agree_to_rules.errors }}
-                                    </div>
-                                {% endif %}
                             </div>
 
                             <!-- Кнопки действий -->
-                            <div class="d-flex">
+                            <div class="d-flex flex-shrink-0 mt-2 mt-md-0">
                                 <a href="{% if form.instance.pk %}{{ form.instance.get_absolute_url }}{% else %}{% url 'posts:post-list' %}{% endif %}"
                                    class="btn btn-outline-secondary me-2">
                                     {% trans "Отмена" %}
