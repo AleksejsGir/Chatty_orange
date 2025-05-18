@@ -1,81 +1,106 @@
-// Обновленный orange-assistant.js
 document.addEventListener('DOMContentLoaded', function() {
-  const assistant = document.querySelector('.assistant-container');
-  const dialogBox = document.querySelector('.dialog-box');
-  const assistantImage = document.querySelector('.assistant-image');
-  let menuTimeout;
+    const assistant = document.querySelector('.assistant-container');
+    const assistantImage = document.querySelector('.assistant-image');
+    let menu = null;
+    let hoverTimeout;
+    let isMenuOpen = false;
 
-  // Показать/скрыть меню
-  assistant.addEventListener('mouseenter', () => {
-    clearTimeout(menuTimeout);
-    showMenu();
-  });
+    // Создаем меню один раз при загрузке
+    function createMenu() {
+        if (!menu) {
+            menu = document.createElement('div');
+            menu.className = 'assistant-menu';
+            menu.innerHTML = `
+                <a href="#" onclick="showRules()">Правила сайта</a>
+                <a href="#" onclick="showGuide()">Инструкция сайта</a>
+                <a href="#" onclick="showAIAssistant()">ИИ помощник</a>
+                <button class="close-menu-btn" onclick="hideMenu()">Закрыть</button>
+            `;
+            assistant.appendChild(menu);
+        }
+    }
 
-  assistant.addEventListener('mouseleave', () => {
-    menuTimeout = setTimeout(hideMenu, 300);
-  });
+    window.showAIAssistant = function() {
+        new bootstrap.Modal('#aiAssistantModal').show();
+        hideMenu();
+        return false;
+    }
 
-  function showMenu() {
-    const menu = document.createElement('div');
-    menu.className = 'assistant-menu';
-    menu.innerHTML = `
-      <a href="#" onclick="showRules()">Правила сайта.</a>
-      <a href="#" onclick="showGuide()">Инструкция сайта.</a>
-      <a href="#">ИИ помощник.</a>
-      <button class="close-menu-btn" onclick="hideMenu()">Закрыть</button>
-    `;
-    assistant.appendChild(menu);
-    menu.classList.add('show');
-  }
+    // Создаем меню один раз при загрузке
+    function createMenu() {
+        if (!menu) {
+            menu = document.createElement('div');
+            menu.className = 'assistant-menu';
+            menu.innerHTML = `
+        <a href="#" onclick="showRules()">Правила сайта</a>
+        <a href="#" onclick="showGuide()">Инструкция сайта</a>
+        <a href="#" onclick="showAIAssistant()">ИИ помощник</a>
+        <button class="close-menu-btn" onclick="hideMenu()">Закрыть</button>
+      `;
+            assistant.appendChild(menu);
+        }
+    }
 
-  function hideMenu() {
-    const menu = document.querySelector('.assistant-menu');
-    if(menu) menu.remove();
-  }
-  window.hideMenu = hideMenu;
+    // Показать меню с задержкой
+    function showMenu() {
+        clearTimeout(hoverTimeout);
+        if (!isMenuOpen) {
+            createMenu();
+            hoverTimeout = setTimeout(() => {
+                menu.classList.add('show');
+                isMenuOpen = true;
+            }, 200); // Небольшая задержка для предотвращения случайного открытия
+        }
+    }
 
-  
+    // Скрыть меню с задержкой
+    function hideMenu() {
+        clearTimeout(hoverTimeout);
+        if (menu && isMenuOpen) {
+            hoverTimeout = setTimeout(() => {
+                menu.classList.remove('show');
+                isMenuOpen = false;
+            }, 300); // Даем время увести курсор на меню
+        }
+    }
+    window.hideMenu = hideMenu;
 
-  // Временные сообщения
-  window.showWelcomeMessage = function(username) {
-    const msg = document.createElement('div');
-    msg.className = 'temporary-message';
-    msg.textContent = `Привет, ${username}!`;
-    document.body.appendChild(msg);
+    // Обработчики событий
+    assistantImage.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (isMenuOpen) {
+            hideMenu();
+        } else {
+            showMenu();
+        }
+    });
 
-    setTimeout(() => {
-      msg.remove();
-    }, 15000);
-  }
+    // // Закрытие меню при клике вне его
+    // document.addEventListener('click', function(e) {
+    //     if (isMenuOpen && !assistant.contains(e.target)) {
+    //         hideMenu();
+    //     }
+    // });
 
-  window.showGoodbyeMessage = function() {
-    const msg = document.createElement('div');
-    msg.className = 'temporary-message';
-    msg.textContent = 'Пока! Пока! До встречи!';
-    document.body.appendChild(msg);
+    // Обработчики событий для наведения
+    assistantImage.addEventListener('mouseenter', showMenu);
+    assistantImage.addEventListener('mouseleave', hideMenu);
+    menu?.addEventListener('mouseenter', () => clearTimeout(hoverTimeout));
+    menu?.addEventListener('mouseleave', hideMenu);
 
-    setTimeout(() => {
-      msg.remove();
-    }, 15000);
-  }
+    // Модальные окна
+    window.showRules = function() {
+        new bootstrap.Modal('#rulesModal').show();
+        return false;
+    }
 
-  // Модальные окна
-  window.showRules = function() {
-    new bootstrap.Modal('#rulesModal').show();
-    hideMenu();
-  }
+    window.showGuide = function() {
+        new bootstrap.Modal('#guideModal').show();
+        return false;
+    }
 
-  window.showGuide = function() {
-    new bootstrap.Modal('#guideModal').show();
-    hideMenu();
-  }
-});
-
-// Интеграция с системой аутентификации
-document.addEventListener('userLoggedIn', function(e) {
-  showWelcomeMessage(e.detail.username);
-});
-
-document.addEventListener('userLoggedOut', function() {
-  showGoodbyeMessage();
+    window.showAIAssistant = function() {
+        new bootstrap.Modal('#aiAssistantModal').show();
+        return false;
+    }
 });

@@ -9,11 +9,22 @@
 .assistant-image {
     width: 100px;
     height: 100px;
-    transition: all 0.3s;
+    transition: transform 0.3s ease;
     filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
     position: relative; /* Добавить позиционирование */
     left: -30px; /* Смещение влево */
     pointer-events: auto; /* Разрешить события */
+    animation: float 3s ease-in-out infinite;
+}
+
+.assistant-image:hover {
+    transform: rotate(-5deg) scale(1.1);
+}
+
+.assistant-container:hover .assistant-menu {
+    opacity: 1;
+    transform: translateY(0);
+    display: flex;
 }
 
 .dialog-box {
@@ -81,11 +92,16 @@
   flex-direction: column;
   gap: 10px;
   z-index: 1001;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: auto; /* Разрешаем взаимодействие с меню */
 }
 
 .assistant-menu.show {
   display: flex;
-  animation: fadeIn 0.3s ease;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .assistant-menu a {
