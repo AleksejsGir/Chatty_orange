@@ -2,7 +2,7 @@
 from django.db import transaction
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.contrib.auth import get_user_model
@@ -319,3 +319,9 @@ def terms_of_use(request):
 
 def privacy_policy(request):
     return render(request, 'posts/privacy_policy.html')
+
+class TermsOfUseView(TemplateView):
+    template_name = 'terms_of_use.html'
+
+class PrivacyPolicyView(TemplateView):
+    template_name = 'privacy_policy.html'

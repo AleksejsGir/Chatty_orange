@@ -22,6 +22,8 @@ urlpatterns = [
     path('posts/', include('posts.urls', namespace='posts')),
     path('subscriptions/', include('subscriptions.urls', namespace='subscriptions')),
     path('accounts/', include('allauth.urls')),
+    path('terms/', views.TermsOfUseView.as_view(), name='terms-of-use'),
+    path('privacy/', views.PrivacyPolicyView.as_view(), name='privacy-policy'),
 ]
 
 if settings.DEBUG:
