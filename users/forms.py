@@ -23,11 +23,11 @@ class ProfileUpdateForm(forms.ModelForm):
         return username
 
 class CustomSignupForm(SignupForm):
-    agree_to_terms = forms.BooleanField(
-        label="Я согласен с условиями использования",
-        required=True,
-        error_messages={'required': 'Вы должны принять условия использования'}
-    )
+    # agree_to_terms = forms.BooleanField(
+    #     label="Я согласен с условиями использования",
+    #     required=True,
+    #     error_messages={'required': 'Вы должны принять условия использования'}
+    # )
 
     def save(self, request):
         user = super().save(request)
