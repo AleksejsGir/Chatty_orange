@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'django_bootstrap5',
     'debug_toolbar',
     'ckeditor',  # Добавляем CKEditor
+    'feedback',
 ]
 
 MIDDLEWARE = [
