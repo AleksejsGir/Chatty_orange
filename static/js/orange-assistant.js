@@ -1,67 +1,106 @@
-// Функция для приветствия пользователя
-function greetUser(username) {
-    const assistant = document.getElementById('orange-assistant');
-    assistant.innerHTML = `Привет, ${username}!`;
-}
+document.addEventListener('DOMContentLoaded', function() {
+    const assistant = document.querySelector('.assistant-container');
+    const assistantImage = document.querySelector('.assistant-image');
+    let menu = null;
+    let hoverTimeout;
+    let isMenuOpen = false;
 
-// Функция для прощания с пользователем
-function goodbyeUser() {
-    const assistant = document.getElementById('orange-assistant');
-    assistant.innerHTML = 'Пока, пока!';
-}
-
-// Пример обработки регистрации пользователя
-document.getElementById('register-form').addEventListener('submit', function(event) {
-    event.preventDefault();
-    const username = document.getElementById('username').value;
-
-    // Отправка данных на сервер
-    fetch('/register', {
-        method: 'POST',
-        body: JSON.stringify({ username: username }),
-        headers: {
-            'Content-Type': 'application/json'
+    // Создаем меню один раз при загрузке
+    function createMenu() {
+        if (!menu) {
+            menu = document.createElement('div');
+            menu.className = 'assistant-menu';
+            menu.innerHTML = `
+                <a href="#" onclick="showRules()">Правила сайта</a>
+                <a href="#" onclick="showGuide()">Инструкция сайта</a>
+                <a href="#" onclick="showAIAssistant()">ИИ помощник</a>
+                <button class="close-menu-btn" onclick="hideMenu()">Закрыть</button>
+            `;
+            assistant.appendChild(menu);
         }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            greetUser(username);
+    }
+
+    window.showAIAssistant = function() {
+        new bootstrap.Modal('#aiAssistantModal').show();
+        hideMenu();
+        return false;
+    }
+
+    // Создаем меню один раз при загрузке
+    function createMenu() {
+        if (!menu) {
+            menu = document.createElement('div');
+            menu.className = 'assistant-menu';
+            menu.innerHTML = `
+        <a href="#" onclick="showRules()">Правила сайта</a>
+        <a href="#" onclick="showGuide()">Инструкция сайта</a>
+        <a href="#" onclick="showAIAssistant()">ИИ помощник</a>
+        <button class="close-menu-btn" onclick="hideMenu()">Закрыть</button>
+      `;
+            assistant.appendChild(menu);
+        }
+    }
+
+    // Показать меню с задержкой
+    function showMenu() {
+        clearTimeout(hoverTimeout);
+        if (!isMenuOpen) {
+            createMenu();
+            hoverTimeout = setTimeout(() => {
+                menu.classList.add('show');
+                isMenuOpen = true;
+            }, 200); // Небольшая задержка для предотвращения случайного открытия
+        }
+    }
+
+    // Скрыть меню с задержкой
+    function hideMenu() {
+        clearTimeout(hoverTimeout);
+        if (menu && isMenuOpen) {
+            hoverTimeout = setTimeout(() => {
+                menu.classList.remove('show');
+                isMenuOpen = false;
+            }, 300); // Даем время увести курсор на меню
+        }
+    }
+    window.hideMenu = hideMenu;
+
+    // Обработчики событий
+    assistantImage.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (isMenuOpen) {
+            hideMenu();
+        } else {
+            showMenu();
         }
     });
-});
 
-// Пример обработки входа пользователя
-document.getElementById('login-form').addEventListener('submit', function(event) {
-    event.preventDefault();
-    const username = document.getElementById('username').value;
+    // // Закрытие меню при клике вне его
+    // document.addEventListener('click', function(e) {
+    //     if (isMenuOpen && !assistant.contains(e.target)) {
+    //         hideMenu();
+    //     }
+    // });
 
-    // Отправка данных на сервер
-    fetch('/login', {
-        method: 'POST',
-        body: JSON.stringify({ username: username }),
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            greetUser(username);
-        }
-    });
-});
+    // Обработчики событий для наведения
+    assistantImage.addEventListener('mouseenter', showMenu);
+    assistantImage.addEventListener('mouseleave', hideMenu);
+    menu?.addEventListener('mouseenter', () => clearTimeout(hoverTimeout));
+    menu?.addEventListener('mouseleave', hideMenu);
 
-// Пример обработки выхода пользователя
-document.getElementById('logout-button').addEventListener('click', function() {
-    // Отправка запроса на выход
-    fetch('/logout', {
-        method: 'POST'
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            goodbyeUser();
-        }
-    });
+    // Модальные окна
+    window.showRules = function() {
+        new bootstrap.Modal('#rulesModal').show();
+        return false;
+    }
+
+    window.showGuide = function() {
+        new bootstrap.Modal('#guideModal').show();
+        return false;
+    }
+
+    window.showAIAssistant = function() {
+        new bootstrap.Modal('#aiAssistantModal').show();
+        return false;
+    }
 });

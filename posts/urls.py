@@ -1,5 +1,5 @@
 # posts/urls.py
-from django.urls import path
+from django.urls import include, path
 from . import views # Импортируем views, хотя их пока нет
 
 app_name = 'posts' # Определяем пространство имен URL
@@ -15,5 +15,7 @@ urlpatterns = [
     path('<int:pk>/like/', views.PostLikeView.as_view(), name='post-like'),
     path('tag/<slug:slug>/', views.TagPostListView.as_view(), name='tag-posts'),
     path('<int:pk>/dislike/', views.PostDislikeView.as_view(), name='post-dislike'),
+    path('terms/', views.terms_of_use, name='terms_of_use'),
+    path('privacy/', views.privacy_policy, name='privacy_policy'),
 
 ]
