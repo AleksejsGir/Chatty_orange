@@ -94,8 +94,8 @@
   z-index: 1001;
   opacity: 0;
   transform: translateY(10px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  pointer-events: auto; /* Разрешаем взаимодействие с меню */
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: auto !important; /* Разрешаем взаимодействие с меню */
 }
 
 .assistant-menu.show {

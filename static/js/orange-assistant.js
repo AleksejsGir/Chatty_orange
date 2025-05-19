@@ -26,20 +26,20 @@ document.addEventListener('DOMContentLoaded', function() {
         return false;
     }
 
-    // Создаем меню один раз при загрузке
-    function createMenu() {
-        if (!menu) {
-            menu = document.createElement('div');
-            menu.className = 'assistant-menu';
-            menu.innerHTML = `
-        <a href="#" onclick="showRules()">Правила сайта</a>
-        <a href="#" onclick="showGuide()">Инструкция сайта</a>
-        <a href="#" onclick="showAIAssistant()">ИИ помощник</a>
-        <button class="close-menu-btn" onclick="hideMenu()">Закрыть</button>
-      `;
-            assistant.appendChild(menu);
-        }
-    }
+    // // Создаем меню один раз при загрузке
+    // function createMenu() {
+    //     if (!menu) {
+    //         menu = document.createElement('div');
+    //         menu.className = 'assistant-menu';
+    //         menu.innerHTML = `
+    //     <a href="#" onclick="showRules()">Правила сайта</a>
+    //     <a href="#" onclick="showGuide()">Инструкция сайта</a>
+    //     <a href="#" onclick="showAIAssistant()">ИИ помощник</a>
+    //     <button class="close-menu-btn" onclick="hideMenu()">Закрыть</button>
+    //   `;
+    //         assistant.appendChild(menu);
+    //     }
+    // }
 
     // Показать меню с задержкой
     function showMenu() {
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
             hoverTimeout = setTimeout(() => {
                 menu.classList.remove('show');
                 isMenuOpen = false;
-            }, 300); // Даем время увести курсор на меню
+            }, 200); // Даем время увести курсор на меню
         }
     }
     window.hideMenu = hideMenu;
@@ -75,18 +75,28 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // // Закрытие меню при клике вне его
-    // document.addEventListener('click', function(e) {
-    //     if (isMenuOpen && !assistant.contains(e.target)) {
-    //         hideMenu();
-    //     }
-    // });
+    // Закрытие меню при клике вне его
+    document.addEventListener('click', function(e) {
+        if (isMenuOpen && !assistant.contains(e.target)) {
+            hideMenu();
+        }
+    });
 
     // Обработчики событий для наведения
     assistantImage.addEventListener('mouseenter', showMenu);
-    assistantImage.addEventListener('mouseleave', hideMenu);
-    menu?.addEventListener('mouseenter', () => clearTimeout(hoverTimeout));
-    menu?.addEventListener('mouseleave', hideMenu);
+    assistantImage.addEventListener('mouseleave', () => {
+        if (!isMenuOpen) return;
+        hideMenu();
+    });
+    // menu?.addEventListener('mouseenter', () => clearTimeout(hoverTimeout));
+    // menu?.addEventListener('mouseleave', hideMenu);
+    menu?.addEventListener('mouseenter', () => {
+        clearTimeout(hoverTimeout);
+    });
+
+    menu?.addEventListener('mouseleave', () => {
+        if (isMenuOpen) hideMenu();
+    });
 
     // Модальные окна
     window.showRules = function() {
