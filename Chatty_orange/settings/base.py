@@ -145,8 +145,6 @@ CKEDITOR_CONFIGS = {
         'height': 300,
         'removePlugins': 'stylesheetparser',
         'allowedContent': True,
-        # Добавляем эту строку для указания версии
-        'customConfig': '/static/ckeditor/ckeditor/config.js?version=4.25.1-lts',
     },
 }
 JAZZMIN_SETTINGS = {
