@@ -14,7 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <a href="#" onclick="showRules()">Правила сайта</a>
                 <a href="#" onclick="showGuide()">Инструкция сайта</a>
                 <a href="#" onclick="showAIAssistant()">ИИ помощник</a>
-                <button class="close-menu-btn" onclick="hideMenu()">Закрыть</button>
+<!--                <button class="close-menu-btn" onclick="hideMenu()">Закрыть</button>-->
+                <button class="close-menu-btn" onclick="window.hideMenu()">Закрыть</button>
             `;
             assistant.appendChild(menu);
         }
@@ -49,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
             hoverTimeout = setTimeout(() => {
                 menu.classList.add('show');
                 isMenuOpen = true;
-            }, 200); // Небольшая задержка для предотвращения случайного открытия
+            }, 300); // Небольшая задержка для предотвращения случайного открытия
         }
     }
 
@@ -60,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
             hoverTimeout = setTimeout(() => {
                 menu.classList.remove('show');
                 isMenuOpen = false;
-            }, 200); // Даем время увести курсор на меню
+            }, 300); // Даем время увести курсор на меню
         }
     }
     window.hideMenu = hideMenu;
