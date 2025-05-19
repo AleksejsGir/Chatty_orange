@@ -325,3 +325,10 @@ class TermsOfUseView(TemplateView):
 
 class PrivacyPolicyView(TemplateView):
     template_name = 'privacy_policy.html'
+
+def feed_view(request):
+    posts = Post.objects.annotate(
+        num_likes=Count('likes', distinct=True),
+        total_dislikes=Count('dislikes', distinct=True),
+        num_comments=Count('comments', distinct=True)
+    )
