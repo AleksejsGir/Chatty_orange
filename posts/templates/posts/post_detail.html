@@ -71,9 +71,25 @@
                                 data-post-id="{{ post.pk }}"
                                 title="Нравится"
                                 {% if not request.user.is_authenticated %}disabled{% endif %}>
-                            <i class="fa-heart {% if request.user in post.likes.all %}fa-solid text-danger{% else %}fa-regular{% endif %}"></i>
+                            <i class="fa-thumbs-up {% if request.user in post.likes.all %}fa-solid {% else %}fa-regular{% endif %}"></i>
                             <span class="interaction-count">{{ post.total_likes }}</span>
                         </button>
+                    <!-- Кнопка дизлайка -->
+    {% if user.is_authenticated %}
+    <button class="btn-interaction dislike-button {% if user in post.dislikes.all %}active{% endif %}"
+            data-post-id="{{ post.pk }}"
+            title="Не нравится">
+        <i class="fa-thumbs-down {% if user in post.dislikes.all %}fa-solid {% else %}fa-regular{% endif %}"></i>
+        <span class="interaction-count">{{ post.dislikes.count }}</span>
+    </button>
+    {% else %}
+    <button class="btn-interaction"
+            title="Для дизлайков требуется войти"
+            onclick="showLoginAlert()">
+        <i class="fa-regular fa-thumbs-down"></i>
+        <span class="interaction-count">{{ post.dislikes.count }}</span>
+    </button>
+    {% endif %}
                         <span class="btn-interaction comment-button" title="Комментарии">
                             <i class="fa-regular fa-comment"></i>
                             <span class="interaction-count">{{ post.comments.count|default:"0" }}</span>
@@ -128,25 +144,6 @@
                             {% endfor %}
                         </div>
 
-                {# Форма добавления комментария #}
-                {% if user.is_authenticated %}
-                <div class="card shadow-sm mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">Оставить комментарий</h5>
-                        <form method="post" action="{% url 'posts:post-comment' pk=post.pk %}">
-                            {% csrf_token %}
-                            {% bootstrap_form comment_form %}
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fa-solid fa-paper-plane me-1"></i> Отправить
-                            </button>
-                        </form>
-                    </div>
-                </div>
-                {% else %}
-                <div class="alert alert-light text-center" role="alert">
-                    <a href="{% url 'account_login' %}?next={{ request.path }}#comments">Войдите</a>, чтобы оставить комментарий.
-                </div>
-                {% endif %}
 
 
                         {# Пагинация комментариев #}
@@ -184,6 +181,25 @@
                     {% endif %}
 
             </div>
+        {# Форма добавления комментария #}
+                {% if user.is_authenticated %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Оставить комментарий</h5>
+                        <form method="post" action="{% url 'posts:post-comment' pk=post.pk %}">
+                            {% csrf_token %}
+                            {% bootstrap_form comment_form %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-paper-plane me-1"></i> Отправить
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% else %}
+                <div class="alert alert-light text-center" role="alert">
+                    <a href="{% url 'account_login' %}?next={{ request.path }}#comments">Войдите</a>, чтобы оставить комментарий.
+                </div>
+                {% endif %}
 
             {# Блок для отображения популярных тегов #}
             {% if popular_tags %}
