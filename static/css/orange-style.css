@@ -1518,3 +1518,5 @@ h1, h2, h3, h4, h5, h6 {
         display: inline!important; /* Инлайн отображение на мобильных */
     }
 }
+.fa-thumbs-up:before { content: "\f164"; }
+.fa-thumbs-down:before { content: "\f165"; }

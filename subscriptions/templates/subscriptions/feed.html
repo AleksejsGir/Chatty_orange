@@ -37,17 +37,14 @@
                                     </div>
                                 </div>
 
-                                <!-- Заголовок поста - основной способ перехода -->
                                 <h2 class="post-title">
                                     <a href="{% url 'posts:post-detail' pk=post.pk %}">{{ post.title }}</a>
                                 </h2>
 
-                                <!-- Содержимое поста - без ссылки "Читать далее" -->
                                 <div class="post-content">
                                     <div class="post-text">{{ post.text|safe|truncatewords_html:30 }}</div>
                                 </div>
 
-                                <!-- Изображение поста с кликабельной ссылкой -->
                                 {% if post.image %}
                                     <div class="post-image">
                                         <a href="{% url 'posts:post-detail' pk=post.pk %}" class="d-block">
@@ -56,24 +53,43 @@
                                     </div>
                                 {% endif %}
 
-                                <!-- Футер поста без кнопки "Подробнее" -->
                                 <div class="post-footer">
                                     <div class="interaction-buttons">
-                                        <button class="btn-interaction like-button {% if post.is_liked %}active{% endif %}" data-post-id="{{ post.pk }}">
-                                            <i class="fa-{% if post.is_liked %}solid{% else %}regular{% endif %} fa-heart"></i>
-                                            <span class="interaction-count">{{ post.num_likes }}</span>
+                                        <!-- Кнопка лайка -->
+                                        <button class="btn-interaction like-button {% if post.is_liked %}active{% endif %}"
+                                                data-post-id="{{ post.pk }}"
+                                                title="Нравится"
+                                                {% if not user.is_authenticated %}disabled{% endif %}>
+                                            <i class="fa-thumbs-up {% if post.is_liked %}fa-solid{% else %}fa-regular{% endif %}"></i>
+                                            <span class="interaction-count">{{ post.num_likes|default:"0" }}</span>
                                         </button>
+
+                                        <!-- Кнопка дизлайка -->
+                                        {% if user.is_authenticated %}
+                                            <button class="btn-interaction dislike-button {% if post.is_disliked %}active{% endif %}"
+                                                    data-post-id="{{ post.pk }}"
+                                                    title="Не нравится">
+                                                <i class="fa-thumbs-down {% if post.is_disliked %}fa-solid{% else %}fa-regular{% endif %}"></i>
+                                                <span class="interaction-count">{{ post.total_dislikes|default:"0" }}</span>
+                                            </button>
+                                        {% else %}
+                                            <button class="btn-interaction"
+                                                    title="Для дизлайков требуется войти"
+                                                    onclick="showLoginAlert()">
+                                                <i class="fa-regular fa-thumbs-down"></i>
+                                                <span class="interaction-count">{{ post.total_dislikes|default:"0" }}</span>
+                                            </button>
+                                        {% endif %}
 
                                         <a href="{% url 'posts:post-detail' pk=post.pk %}#comments" class="btn-interaction comment-button">
                                             <i class="fa-regular fa-comment"></i>
-                                            <span class="interaction-count">{{ post.num_comments }}</span>
+                                            <span class="interaction-count">{{ post.num_comments|default:"0" }}</span>
                                         </a>
 
                                         <button class="btn-interaction share-button" title="Поделиться">
                                             <i class="fa-regular fa-share-from-square"></i>
                                         </button>
                                     </div>
-                                    <!-- Удалена кнопка "Подробнее" -->
                                 </div>
                             </article>
                         {% endfor %}
@@ -135,9 +151,7 @@
             </div>
 
             <div class="col-lg-4">
-                <!-- Боковая панель со sticky позиционированием -->
                 <div class="position-sticky" style="top: 96px; max-height: calc(100vh - 96px); overflow-y: auto;">
-                    <!-- Мои подписки -->
                     <div class="sidebar-card content-card-on-oranges">
                         <h5 class="sidebar-card-title">Мои подписки</h5>
                         {% if user.subscriptions.count > 0 %}
@@ -169,11 +183,9 @@
                         {% endif %}
                     </div>
 
-                    <!-- Популярные авторы -->
                     <div class="sidebar-card content-card-on-oranges">
                         <h5 class="sidebar-card-title">Популярные авторы</h5>
                         <div class="who-to-follow-list">
-                            <!-- Здесь будут популярные авторы -->
                             <p class="text-center text-muted py-3">
                                 Функционал в разработке
                             </p>
@@ -188,4 +200,10 @@
 
 {% block scripts %}
 <script src="{% static 'js/likes.js' %}"></script>
+<script>
+// Функция для показа уведомления о необходимости авторизации
+function showLoginAlert() {
+    alert('Для выполнения этого действия необходимо авторизоваться!');
+}
+</script>
 {% endblock %}
