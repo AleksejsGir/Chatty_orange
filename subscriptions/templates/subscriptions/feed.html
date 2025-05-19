@@ -56,39 +56,36 @@
                                 <div class="post-footer">
                                     <div class="interaction-buttons">
                                         <!-- Кнопка лайка -->
-                                        <button class="btn-interaction like-button {% if post.is_liked %}active{% endif %}"
+                                        <button class="btn-interaction like-button {% if request.user in post.likes.all %}active{% endif %}"
                                                 data-post-id="{{ post.pk }}"
                                                 title="Нравится"
                                                 {% if not user.is_authenticated %}disabled{% endif %}>
-                                            <i class="fa-thumbs-up {% if post.is_liked %}fa-solid{% else %}fa-regular{% endif %}"></i>
-                                            <span class="interaction-count">{{ post.num_likes|default:"0" }}</span>
+                                            <i class="fa-thumbs-up {% if request.user in post.likes.all %}fa-solid{% else %}fa-regular{% endif %}"></i>
+                                            <span class="interaction-count">{{ post.likes.count }}</span>
                                         </button>
 
                                         <!-- Кнопка дизлайка -->
                                         {% if user.is_authenticated %}
-                                            <button class="btn-interaction dislike-button {% if post.is_disliked %}active{% endif %}"
+                                            <button class="btn-interaction dislike-button {% if request.user in post.dislikes.all %}active{% endif %}"
                                                     data-post-id="{{ post.pk }}"
                                                     title="Не нравится">
-                                                <i class="fa-thumbs-down {% if post.is_disliked %}fa-solid{% else %}fa-regular{% endif %}"></i>
-                                                <span class="interaction-count">{{ post.total_dislikes|default:"0" }}</span>
+                                                <i class="fa-thumbs-down {% if request.user in post.dislikes.all %}fa-solid{% else %}fa-regular{% endif %}"></i>
+                                                <span class="interaction-count">{{ post.dislikes.count }}</span>
                                             </button>
                                         {% else %}
                                             <button class="btn-interaction"
                                                     title="Для дизлайков требуется войти"
                                                     onclick="showLoginAlert()">
                                                 <i class="fa-regular fa-thumbs-down"></i>
-                                                <span class="interaction-count">{{ post.total_dislikes|default:"0" }}</span>
+                                                <span class="interaction-count">{{ post.dislikes.count }}</span>
                                             </button>
                                         {% endif %}
 
+                                        <!-- Остальные элементы оставить без изменений -->
                                         <a href="{% url 'posts:post-detail' pk=post.pk %}#comments" class="btn-interaction comment-button">
                                             <i class="fa-regular fa-comment"></i>
-                                            <span class="interaction-count">{{ post.num_comments|default:"0" }}</span>
+                                            <span class="interaction-count">{{ post.comments.count }}</span>
                                         </a>
-
-                                        <button class="btn-interaction share-button" title="Поделиться">
-                                            <i class="fa-regular fa-share-from-square"></i>
-                                        </button>
                                     </div>
                                 </div>
                             </article>

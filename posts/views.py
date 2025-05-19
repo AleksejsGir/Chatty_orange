@@ -332,10 +332,3 @@ def feed_view(request):
         total_dislikes=Count('dislikes', distinct=True),
         num_comments=Count('comments', distinct=True)
     )
-
-def profile_view(request, username):
-    posts = Post.objects.filter(author=profile_user).annotate(
-        num_likes=Count('likes'),
-        num_dislikes=Count('dislikes'),
-        num_comments=Count('comments')
-    )
