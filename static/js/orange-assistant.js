@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 <a href="#" onclick="showGuide()">Инструкция сайта</a>
                 <a href="#" onclick="showAIAssistant()">ИИ помощник</a>
 <!--                <button class="close-menu-btn" onclick="hideMenu()">Закрыть</button>-->
-                <button class="close-menu-btn" onclick="window.hideMenu()">Закрыть</button>
             `;
             assistant.appendChild(menu);
         }
@@ -67,13 +66,17 @@ document.addEventListener('DOMContentLoaded', function() {
     window.hideMenu = hideMenu;
 
     // Обработчики событий
+    // assistantImage.addEventListener('click', function(e) {
+    //     e.stopPropagation();
+    //     if (isMenuOpen) {
+    //         hideMenu();
+    //     } else {
+    //         showMenu();
+    //     }
+    // });
     assistantImage.addEventListener('click', function(e) {
         e.stopPropagation();
-        if (isMenuOpen) {
-            hideMenu();
-        } else {
-            showMenu();
-        }
+        isMenuOpen ? hideMenu() : showMenu();
     });
 
     // Закрытие меню при клике вне его
