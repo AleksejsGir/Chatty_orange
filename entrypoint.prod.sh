@@ -12,6 +12,10 @@ echo "Database is ready!"
 echo "Applying migrations..."
 python manage.py migrate --noinput
 
+# Сбор статических файлов (новая секция)
+echo "Collecting static files..."
+python manage.py collectstatic --noinput
+
 # Запуск Gunicorn
 echo "Starting Gunicorn..."
 exec gunicorn Chatty_orange.wsgi:application $GUNICORN_CMD_ARGS
