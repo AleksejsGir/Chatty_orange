@@ -5,88 +5,104 @@
 {% block title %}{{ post.title }} - Chatty{% endblock %}
 
 {% block content %}
-<div class="container mt-4 orange-background">
-    <div class="row justify-content-center">
-        <div class="col-lg-9">
-            <article class="post-card mb-4 p-4 content-card-on-oranges">
-                {# --- Шапка поста --- #}
-                <div class="post-header mb-3 pb-3 border-bottom">
-                    <div class="post-author">
-                        {% if post.author.avatar %}
-                            <img src="{{ post.author.avatar.url }}" alt="{{ post.author.username }}" class="post-avatar" style="width: 50px; height: 50px;">
-                        {% else %}
-                            <div class="avatar-placeholder" style="width: 50px; height: 50px; font-size: 1.25rem;">
-                                <span>{{ post.author.username|first|upper }}</span>
+    <div class="container mt-4 orange-background">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+                <article class="post-card mb-4 p-4 content-card-on-oranges">
+                    {# --- Шапка поста --- #}
+                    <div class="post-header mb-3 pb-3 border-bottom">
+                        <div class="post-author">
+                            {% if post.author.avatar %}
+                                <img src="{{ post.author.avatar.url }}" alt="{{ post.author.username }}" class="post-avatar" style="width: 50px; height: 50px;">
+                            {% else %}
+                                <div class="avatar-placeholder" style="width: 50px; height: 50px; font-size: 1.25rem;">
+                                    <span>{{ post.author.username|first|upper }}</span>
+                                </div>
+                            {% endif %}
+                            <div class="post-meta">
+                                <a href="{% url 'users:profile' post.author.username %}" class="post-author-name">{{ post.author.username }}</a>
+                                <span class="post-time">{{ post.pub_date|date:"d F Y, H:i" }}</span>
+                            </div>
+                        </div>
+                        {# Кнопки редактирования/удаления #}
+                        {% if user.is_authenticated and user == post.author %}
+                            <div class="post-actions dropdown">
+                                <button class="btn-post-menu" type="button" id="postDetailMenu{{ post.id }}" data-bs-toggle="dropdown" aria-expanded="false" title="Действия">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="postDetailMenu{{ post.id }}">
+                                    <li><a class="dropdown-item" href="{% url 'posts:post-update' pk=post.pk %}"><i class="fa-solid fa-pen-to-square fa-fw me-2"></i>Редактировать</a></li>
+                                    <li><a class="dropdown-item text-danger" href="{% url 'posts:post-delete' pk=post.pk %}"><i class="fa-solid fa-trash-can fa-fw me-2"></i>Удалить</a></li>
+                                </ul>
                             </div>
                         {% endif %}
-                        <div class="post-meta">
-                            <a href="{% url 'users:profile' post.author.username %}" class="post-author-name">{{ post.author.username }}</a>
-                            <span class="post-time">{{ post.pub_date|date:"d F Y, H:i" }}</span>
-                        </div>
                     </div>
-                     {# Кнопки редактирования/удаления #}
-                     {% if user.is_authenticated and user == post.author %}
-                        <div class="post-actions dropdown">
-                             <button class="btn-post-menu" type="button" id="postDetailMenu{{ post.id }}" data-bs-toggle="dropdown" aria-expanded="false" title="Действия">
-                                <i class="fa-solid fa-ellipsis-vertical"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="postDetailMenu{{ post.id }}">
-                                <li><a class="dropdown-item" href="{% url 'posts:post-update' pk=post.pk %}"><i class="fa-solid fa-pen-to-square fa-fw me-2"></i>Редактировать</a></li>
-                                <li><a class="dropdown-item text-danger" href="{% url 'posts:post-delete' pk=post.pk %}"><i class="fa-solid fa-trash-can fa-fw me-2"></i>Удалить</a></li>
-                            </ul>
+
+                    {# --- Заголовок поста --- #}
+                    <h1 class="post-title mb-3">{{ post.title }}</h1>
+
+                    {# --- Изображение поста --- #}
+                    {% if post.image %}
+                        <div class="post-image mb-4 text-center">
+                            <img src="{{ post.image.url }}" class="img-fluid rounded shadow-sm" alt="{{ post.title }}" style="max-height: 600px;">
                         </div>
                     {% endif %}
-                </div>
 
-                {# --- Заголовок поста --- #}
-                <h1 class="post-title mb-3">{{ post.title }}</h1>
-
-                 {# --- Изображение поста --- #}
-                {% if post.image %}
-                    <div class="post-image mb-4 text-center">
-                        <img src="{{ post.image.url }}" class="img-fluid rounded shadow-sm" alt="{{ post.title }}" style="max-height: 600px;">
+                    {# --- Текст поста --- #}
+                    <div class="post-content fs-5 mb-4">
+                        {{ post.text|safe }}
                     </div>
-                {% endif %}
 
-                {# --- Текст поста --- #}
-                <div class="post-content fs-5 mb-4">
-                    {{ post.text|safe }}
-                </div>
+                    {# --- Теги поста --- #}
+                    {% if post.tags.all %}
+                        <div class="post-tags mb-3">
+                            {% for tag in post.tags.all %}
+                                <a href="{% url 'posts:tag-posts' slug=tag.slug %}" class="badge rounded-pill bg-light text-primary me-2">
+                                    #{{ tag.name }}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
 
-                {# --- Теги поста --- #}
-                {% if post.tags.all %}
-                <div class="post-tags mb-3">
-                    {% for tag in post.tags.all %}
-                    <a href="{% url 'posts:tag-posts' slug=tag.slug %}" class="badge rounded-pill bg-light text-primary me-2">
-                        #{{ tag.name }}
-                    </a>
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-                {# --- Футер поста с лайками/комментариями --- #}
-                <div class="post-footer mt-4">
-                    <div class="interaction-buttons">
-                        <button class="btn-interaction like-button {% if request.user in post.likes.all %}active{% endif %}"
-                                data-post-id="{{ post.pk }}"
-                                title="Нравится"
-                                {% if not request.user.is_authenticated %}disabled{% endif %}>
-                            <i class="fa-heart {% if request.user in post.likes.all %}fa-solid text-danger{% else %}fa-regular{% endif %}"></i>
-                            <span class="interaction-count">{{ post.total_likes }}</span>
-                        </button>
-                        <span class="btn-interaction comment-button" title="Комментарии">
+                    {# --- Футер поста с лайками/комментариями --- #}
+                    <div class="post-footer mt-4">
+                        <div class="interaction-buttons">
+                            <button class="btn-interaction like-button {% if request.user in post.likes.all %}active{% endif %}"
+                                    data-post-id="{{ post.pk }}"
+                                    title="Нравится"
+                                    {% if not request.user.is_authenticated %}disabled{% endif %}>
+                                <i class="fa-thumbs-up {% if request.user in post.likes.all %}fa-solid {% else %}fa-regular{% endif %}"></i>
+                                <span class="interaction-count">{{ post.total_likes }}</span>
+                            </button>
+                            <!-- Кнопка дизлайка -->
+                            {% if user.is_authenticated %}
+                                <button class="btn-interaction dislike-button {% if user in post.dislikes.all %}active{% endif %}"
+                                        data-post-id="{{ post.pk }}"
+                                        title="Не нравится">
+                                    <i class="fa-thumbs-down {% if user in post.dislikes.all %}fa-solid {% else %}fa-regular{% endif %}"></i>
+                                    <span class="interaction-count">{{ post.dislikes.count }}</span>
+                                </button>
+                            {% else %}
+                                <button class="btn-interaction"
+                                        title="Для дизлайков требуется войти"
+                                        onclick="showLoginAlert()">
+                                    <i class="fa-regular fa-thumbs-down"></i>
+                                    <span class="interaction-count">{{ post.dislikes.count }}</span>
+                                </button>
+                            {% endif %}
+                            <span class="btn-interaction comment-button" title="Комментарии">
                             <i class="fa-regular fa-comment"></i>
                             <span class="interaction-count">{{ post.comments.count|default:"0" }}</span>
                         </span>
+                        </div>
                     </div>
-                </div>
-            </article>
+                </article>
 
-            {# --- Секция комментариев ---  #}
-            <div id="comments" class="mt-5 border-top pt-4">
-                <h3 class="mb-4">Комментарии <span class="badge bg-secondary rounded-pill">{{ post.comments.count|default:"0" }}</span></h3>
+                {# --- Секция комментариев ---  #}
+                <div id="comments" class="mt-5 border-top pt-4">
+                    <h3 class="mb-4">Комментарии <span class="badge bg-secondary rounded-pill">{{ post.comments.count|default:"0" }}</span></h3>
 
-                            {# Список комментариев #}
+                    {# Список комментариев #}
 
                     {% if comments %}
                         <div class="comments-list">
@@ -110,96 +126,96 @@
                                             <div class="alert alert-warning py-2 px-3 mb-2 d-inline-block">
                                                 <i class="fa-solid fa-eye-slash me-1"></i> Комментарий скрыт от обычных пользователей
                                             </div>
-                                                {% endif %}
-                                            <p>{{ comment.text|linebreaksbr }}</p>
+                                        {% endif %}
+                                        <p>{{ comment.text|linebreaksbr }}</p>
 
                                         {% if user == comment.author or user.is_staff %}
-                                        <div class="comment-actions mt-2">
-                                            <form method="post" action="{% url 'posts:comment-delete' pk=comment.pk %}" class="d-inline">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Удалить этот комментарий?')">
-                                                    <i class="fa-solid fa-trash"></i> Удалить
-                                                </button>
-                                            </form>
-                                        </div>
+                                            <div class="comment-actions mt-2">
+                                                <form method="post" action="{% url 'posts:comment-delete' pk=comment.pk %}" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Удалить этот комментарий?')">
+                                                        <i class="fa-solid fa-trash"></i> Удалить
+                                                    </button>
+                                                </form>
+                                            </div>
                                         {% endif %}
                                     </div>
                                 </div>
                             {% endfor %}
                         </div>
 
-                {# Форма добавления комментария #}
-                {% if user.is_authenticated %}
-                <div class="card shadow-sm mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">Оставить комментарий</h5>
-                        <form method="post" action="{% url 'posts:post-comment' pk=post.pk %}">
-                            {% csrf_token %}
-                            {% bootstrap_form comment_form %}
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fa-solid fa-paper-plane me-1"></i> Отправить
-                            </button>
-                        </form>
-                    </div>
-                </div>
-                {% else %}
-                <div class="alert alert-light text-center" role="alert">
-                    <a href="{% url 'account_login' %}?next={{ request.path }}#comments">Войдите</a>, чтобы оставить комментарий.
-                </div>
-                {% endif %}
 
 
                         {# Пагинация комментариев #}
                         {% if comments.paginator.num_pages > 1 %}
-                        <nav aria-label="Comments pagination">
-                            <ul class="pagination justify-content-center">
-                                {% if comments.has_previous %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?comment_page=1#comments">&laquo;</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="?comment_page={{ comments.previous_page_number }}#comments">&lsaquo;</a>
-                                </li>
-                                {% endif %}
+                            <nav aria-label="Comments pagination">
+                                <ul class="pagination justify-content-center">
+                                    {% if comments.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?comment_page=1#comments">&laquo;</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?comment_page={{ comments.previous_page_number }}#comments">&lsaquo;</a>
+                                        </li>
+                                    {% endif %}
 
-                                <li class="page-item active">
+                                    <li class="page-item active">
                                     <span class="page-link">
                                         Страница {{ comments.number }} из {{ comments.paginator.num_pages }}
                                     </span>
-                                </li>
+                                    </li>
 
-                                {% if comments.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?comment_page={{ comments.next_page_number }}#comments">&rsaquo;</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="?comment_page={{ comments.paginator.num_pages }}#comments">&raquo;</a>
-                                </li>
-                                {% endif %}
-                            </ul>
-                        </nav>
+                                    {% if comments.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?comment_page={{ comments.next_page_number }}#comments">&rsaquo;</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?comment_page={{ comments.paginator.num_pages }}#comments">&raquo;</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
                         {% endif %}
                     {% else %}
                         <p class="text-center text-muted">Комментариев пока нет. Станьте первым!</p>
                     {% endif %}
 
-            </div>
+                </div>
+                {# Форма добавления комментария #}
+                {% if user.is_authenticated %}
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">Оставить комментарий</h5>
+                            <form method="post" action="{% url 'posts:post-comment' pk=post.pk %}">
+                                {% csrf_token %}
+                                {% bootstrap_form comment_form %}
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fa-solid fa-paper-plane me-1"></i> Отправить
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-light text-center" role="alert">
+                        <a href="{% url 'account_login' %}?next={{ request.path }}#comments">Войдите</a>, чтобы оставить комментарий.
+                    </div>
+                {% endif %}
 
-            {# Блок для отображения популярных тегов #}
-            {% if popular_tags %}
-            <div class="sidebar-card trending-card mt-4">
-                <h3 class="sidebar-card-title">Популярные темы</h3>
-                <ul class="trending-topics">
-                    {% for tag in popular_tags %}
-                    <li class="trending-topic">
-                        <a href="{% url 'posts:tag-posts' slug=tag.slug %}" class="trending-topic-link">#{{ tag.name }}</a>
-                        <span class="trending-count">{{ tag.posts_count }} пост{{ tag.posts_count|pluralize:"ов" }}</span>
-                    </li>
-                    {% endfor %}
-                </ul>
+                {# Блок для отображения популярных тегов #}
+                {% if popular_tags %}
+                    <div class="sidebar-card trending-card mt-4">
+                        <h3 class="sidebar-card-title">Популярные темы</h3>
+                        <ul class="trending-topics">
+                            {% for tag in popular_tags %}
+                                <li class="trending-topic">
+                                    <a href="{% url 'posts:tag-posts' slug=tag.slug %}" class="trending-topic-link">#{{ tag.name }}</a>
+                                    <span class="trending-count">{{ tag.posts_count }} пост{{ tag.posts_count|pluralize:"ов" }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
             </div>
-            {% endif %}
         </div>
     </div>
-</div>
 {% endblock %}

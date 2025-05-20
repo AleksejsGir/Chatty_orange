@@ -1,0 +1,79 @@
+volumes:
+  postgres_data_prod:
+  static_volume_prod:
+  media_volume_prod:
+  certbot_data:
+
+services:
+  db_prod:
+    image: postgres:15
+    container_name: chatty_db_prod
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data/
+    env_file:
+      - .env.prod
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    networks:
+      - chatty_prod_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  web_prod:
+    image: aleksejsgiruckis/chatty:latest
+    container_name: chatty_web_prod
+    volumes:
+      - static_volume_prod:/app/staticfiles
+      - media_volume_prod:/app/media
+      - ./entrypoint.prod.sh:/app/entrypoint.prod.sh
+    env_file:
+      - .env.prod
+    environment:
+      - DJANGO_SETTINGS_MODULE=Chatty_orange.settings.production
+    expose:
+      - "8000"
+    depends_on:
+      db_prod:
+        condition: service_healthy
+    networks:
+      - chatty_prod_network
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:stable-alpine
+    container_name: chatty_nginx_prod
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d/:/etc/nginx/conf.d/:ro
+      - static_volume_prod:/app/staticfiles:ro
+      - media_volume_prod:/app/media:ro
+      - certbot_data:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - web_prod
+    networks:
+      - chatty_prod_network
+    restart: unless-stopped
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: chatty_certbot
+    volumes:
+      - certbot_data:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    command: renew
+    depends_on:
+      - nginx
+
+networks:
+  chatty_prod_network:
+    driver: bridge

@@ -1,0 +1,60 @@
+
+FROM python:3.11-slim as builder
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libjpeg-dev \
+        zlib1g-dev \
+        gcc \
+        netcat-openbsd \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Копируем requirements и устанавливаем зависимости
+COPY ./requirements.txt .
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+# Установка переменной окружения для production настроек
+ENV DJANGO_SETTINGS_MODULE=Chatty_orange.settings.production
+RUN python manage.py collectstatic --noinput --clear
+
+# --- Финальный образ ---
+FROM python:3.11-slim as final
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV DJANGO_SETTINGS_MODULE=Chatty_orange.settings.production
+
+WORKDIR /app
+
+# Копируем виртуальное окружение и статические файлы
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /app/staticfiles /app/staticfiles
+COPY . .
+
+# Создаем директорию для медиа-файлов
+RUN mkdir -p /app/media
+
+# Создаем пользователя и группу для запуска приложения
+RUN groupadd -r django && useradd -r -g django django
+RUN chown -R django:django /app /opt/venv /app/media /app/staticfiles
+USER django
+
+# Добавляем виртуальное окружение в PATH
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Открываем порт 8000 для Gunicorn
+EXPOSE 8000
+
+# Точка входа определена в entrypoint.prod.sh
+ENTRYPOINT ["/app/entrypoint.prod.sh"]
