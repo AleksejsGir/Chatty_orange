@@ -1518,3 +1518,39 @@ h1, h2, h3, h4, h5, h6 {
         display: inline!important; /* Инлайн отображение на мобильных */
     }
 }
+.fa-thumbs-up:before { content: "\f164"; }
+.fa-thumbs-down:before { content: "\f165"; }
+
+/* Добавьте в orange-style.css */
+/*.post-card {*/
+/*    border: 2px solid #f97316 !important;*/
+/*    border-radius: 8px;*/
+/*    transition: all 0.3s ease;*/
+/*    overflow: hidden; !* Для сохранения скругления углов *!*/
+/*}*/
+
+/*.post-card:hover {*/
+/*    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);*/
+/*    transform: translateY(-2px);*/
+/*}*/
+
+/* В orange-style.css */
+.subscriber-post {
+    border: 2px solid #f97316 !important;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.subscriber-post::after {
+    /*content: "Подписка активна";*/
+    position: absolute;
+    top: 8px;
+    right: -28px;
+    background: #f97316;
+    color: white;
+    padding: 3px 28px;
+    transform: rotate(45deg);
+    font-size: 12px;
+    font-weight: 500;
+}

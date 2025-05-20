@@ -95,7 +95,8 @@
   opacity: 0;
   transform: translateY(10px);
   transition: opacity 0.3s ease, transform 0.3s ease;
-  pointer-events: auto; /* Разрешаем взаимодействие с меню */
+  pointer-events: auto !important; /* Разрешаем взаимодействие с меню */
+  border: 2px solid #f97316 !important; /* Оранжевая рамка */
 }
 
 .assistant-menu.show {
