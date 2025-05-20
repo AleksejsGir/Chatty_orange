@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% load django_bootstrap5 %}
+{% load i18n %}
 
 {% block title %}
     {% if form.instance.pk %}
@@ -18,14 +19,17 @@
         width: 100%;
     }
 
-    /* Исправляем возможные проблемы с высотой */
     .cke_chrome {
         width: 100% !important;
     }
 
-    /* Обеспечиваем корректную обертку для редактора */
     .form-group .cke {
         margin-bottom: 0.5rem;
+    }
+
+    .form-check-input:checked {
+        background-color: #fd7e14;
+        border-color: #fd7e14;
     }
 </style>
 {% endblock %}
@@ -49,7 +53,7 @@
                         <!-- Заголовок поста -->
                         {% bootstrap_field form.title layout='vertical' placeholder="Введите заголовок" %}
 
-                        <!-- Поле с текстом поста - особое отображение для CKEditor -->
+                        <!-- Текст поста -->
                         <div class="form-group mb-4">
                             <label for="{{ form.text.id_for_label }}" class="form-label fw-medium">{{ form.text.label }}</label>
                             {{ form.text }}
@@ -60,16 +64,14 @@
                             {% endif %}
                         </div>
 
-                        <!-- Изображение поста -->
+                        <!-- Изображение -->
                         {% bootstrap_field form.image layout='vertical' %}
 
-                        <!-- Специальное форматирование для тегов -->
+                        <!-- Теги -->
                         <div class="form-group mb-4">
                             <label class="form-label fw-medium">Теги:</label>
                             <div class="tag-selection">
-                                <!-- Скрытое поле для хранения значений тегов -->
                                 {{ form.tags.as_hidden }}
-
                                 <ul class="tag-checkbox-list">
                                     {% for choice in form.tags.field.choices %}
                                         {% with value=choice.0 label=choice.1 %}
@@ -85,7 +87,6 @@
                                         {% endwith %}
                                     {% endfor %}
                                 </ul>
-
                                 {% if form.tags.errors %}
                                     <div class="invalid-feedback d-block">
                                         {{ form.tags.errors }}
@@ -97,19 +98,46 @@
 
                         <hr class="my-4">
 
-                        <div class="d-flex justify-content-end">
-                            <a href="{% if form.instance.pk %}{{ form.instance.get_absolute_url }}{% else %}{% url 'posts:post-list' %}{% endif %}" class="btn btn-outline-secondary me-2">
-                                Отмена
-                            </a>
-                            <button type="submit" class="btn btn-primary">
-                                {% if form.instance.pk %}
-                                    <i class="fa-solid fa-save me-1"></i>
-                                    Сохранить изменения
-                                {% else %}
-                                    <i class="fa-solid fa-paper-plane me-1"></i>
-                                    Опубликовать пост
-                                {% endif %}
-                            </button>
+                        <!-- Блок согласия и кнопок -->
+                        <div class="d-flex flex-wrap justify-content-between align-items-center mt-4">
+                            <!-- Блок согласия -->
+                            <div class="form-check me-3" style="flex: 1 1 300px; max-width: 100%;">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       id="{{ form.agree_to_rules.id_for_label }}"
+                                       name="{{ form.agree_to_rules.html_name }}"
+                                       required>
+                                <label class="form-check-label small" for="{{ form.agree_to_rules.id_for_label }}">
+                                    <span class="d-block">{% trans "Я согласен с" %}
+                                        <a href="{% url 'posts:terms_of_use' %}" target="_blank">
+                                            {% trans "Условиями использования" %}
+                                        </a>
+                                    </span>
+                                    <span class="d-block">
+                                        {% trans "и" %}
+                                        <a href="{% url 'posts:privacy_policy' %}" target="_blank">
+                                            {% trans "Политикой конфиденциальности" %}
+                                        </a>
+                                    </span>
+                                </label>
+                            </div>
+
+                            <!-- Кнопки действий -->
+                            <div class="d-flex flex-shrink-0 mt-2 mt-md-0">
+                                <a href="{% if form.instance.pk %}{{ form.instance.get_absolute_url }}{% else %}{% url 'posts:post-list' %}{% endif %}"
+                                   class="btn btn-outline-secondary me-2">
+                                    {% trans "Отмена" %}
+                                </a>
+                                <button type="submit" class="btn btn-primary" id="submitPost" disabled>
+                                    {% if form.instance.pk %}
+                                        <i class="fa-solid fa-save me-1"></i>
+                                        {% trans "Сохранить изменения" %}
+                                    {% else %}
+                                        <i class="fa-solid fa-paper-plane me-1"></i>
+                                        {% trans "Опубликовать пост" %}
+                                    {% endif %}
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -118,26 +146,21 @@
     </div>
 </div>
 
-<!-- JavaScript для интерактивности тегов -->
+<!-- JavaScript для интерактивности тегов и активации кнопки -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Обработка тегов
         const tagItems = document.querySelectorAll('.tag-checkbox-list li');
-
         tagItems.forEach(item => {
             item.addEventListener('click', function(e) {
-                // Если клик не по чекбоксу или метке
                 if (e.target !== this.querySelector('input[type="checkbox"]') &&
                     e.target !== this.querySelector('label')) {
-                    // Находим чекбокс внутри элемента
                     const checkbox = this.querySelector('input[type="checkbox"]');
-                    // Изменяем состояние чекбокса
                     checkbox.checked = !checkbox.checked;
-                    // Вызываем событие change вручную
                     const event = new Event('change', { bubbles: true });
                     checkbox.dispatchEvent(event);
                 }
 
-                // Обновляем активный класс на основе состояния чекбокса
                 setTimeout(() => {
                     const checkbox = this.querySelector('input[type="checkbox"]');
                     if (checkbox) {
@@ -146,7 +169,6 @@
                 }, 10);
             });
 
-            // Слушаем изменение состояния чекбокса
             const checkbox = item.querySelector('input[type="checkbox"]');
             if (checkbox) {
                 checkbox.addEventListener('change', function() {
@@ -154,6 +176,17 @@
                 });
             }
         });
+
+        // Активация кнопки публикации
+        const agreeCheckbox = document.getElementById('{{ form.agree_to_rules.id_for_label }}');
+        const submitBtn = document.getElementById('submitPost');
+
+        if(agreeCheckbox && submitBtn) {
+            submitBtn.disabled = true;
+            agreeCheckbox.addEventListener('change', function() {
+                submitBtn.disabled = !this.checked;
+            });
+        }
     });
 </script>
 {% endblock %}

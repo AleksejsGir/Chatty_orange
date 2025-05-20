@@ -53,15 +53,21 @@ def profile_view(request, username):
     return render(request, 'users/profile.html', context)
 
 
+# users/views.py
 class ProfileUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = CustomUser
     form_class = ProfileUpdateForm
     template_name = 'users/profile_edit.html'
-    success_url = reverse_lazy('users:profile')
+
+    def form_valid(self, form):
+        # Сохраняем форму и обновляем данные пользователя в запросе
+        response = super().form_valid(form)
+        self.request.user.refresh_from_db()  # Важно: обновляем данные из БД
+        return response
 
     def get_success_url(self):
-        return reverse_lazy('users:profile', kwargs={'username': self.request.user.username})
+        # Теперь используем актуальное имя пользователя
+        return reverse_lazy('users:profile', kwargs={'username': self.object.username})
 
     def test_func(self):
-        user = self.get_object()
-        return self.request.user == user
+        return self.request.user == self.get_object()

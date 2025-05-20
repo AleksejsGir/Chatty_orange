@@ -55,7 +55,7 @@
             </div>
 
             <!-- Кнопки действий -->
-            <div class="profile-actions">
+            <div class="profile-actions" style="margin-top: 40px;">
                 {% if user.is_authenticated %}
                     {% if user == profile_user %}
                         <a href="{% url 'users:profile-edit' pk=user.pk %}" class="btn btn-edit-profile">
@@ -136,10 +136,10 @@
                         <div class="row">
                             {% for post in user_posts %}
                                 <div class="col-md-6 mb-3">
-                                    <div class="post-card h-100">
+                                    <div class="post-card h-100 {% if is_subscribed %}subscriber-post{% endif %}" style="border: 2px solid #f97316; border-radius: 8px;">
                                         {% if post.image %}
                                             <a href="{% url 'posts:post-detail' pk=post.pk %}" class="d-block">
-                                                <img src="{{ post.image.url }}" alt="{{ post.title }}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                                                <img src="{{ post.image.url }}" alt="{{ post.title }}" class="card-img-top" style="height: 200px; object-fit: cover; border-radius: 6px 6px 0 0;">
                                             </a>
                                         {% endif %}
                                         <div class="card-body">
@@ -152,22 +152,37 @@
                                             <!-- Добавляем блок взаимодействий (лайки и комментарии) -->
                                             <div class="post-footer">
                                                 <div class="interaction-buttons">
+                                                    <!-- Кнопка лайка -->
                                                     <button class="btn-interaction like-button {% if request.user in post.likes.all %}active{% endif %}"
-                                                        data-post-id="{{ post.pk }}"
-                                                        title="Нравится"
-                                                        {% if not request.user.is_authenticated %}disabled{% endif %}>
-                                                        <i class="fa-heart {% if request.user in post.likes.all %}fa-solid text-danger{% else %}fa-regular{% endif %}"></i>
+                                                            data-post-id="{{ post.pk }}"
+                                                            title="Нравится"
+                                                            {% if not user.is_authenticated %}disabled{% endif %}>
+                                                        <i class="fa-thumbs-up {% if request.user in post.likes.all %}fa-solid{% else %}fa-regular{% endif %}"></i>
                                                         <span class="interaction-count">{{ post.likes.count }}</span>
                                                     </button>
 
-                                                    <a href="{% url 'posts:post-detail' pk=post.pk %}#comments" class="btn-interaction comment-button" title="Комментарии">
+                                                    <!-- Кнопка дизлайка -->
+                                                    {% if user.is_authenticated %}
+                                                        <button class="btn-interaction dislike-button {% if request.user in post.dislikes.all %}active{% endif %}"
+                                                                data-post-id="{{ post.pk }}"
+                                                                title="Не нравится">
+                                                            <i class="fa-thumbs-down {% if request.user in post.dislikes.all %}fa-solid{% else %}fa-regular{% endif %}"></i>
+                                                            <span class="interaction-count">{{ post.dislikes.count }}</span>
+                                                        </button>
+                                                    {% else %}
+                                                        <button class="btn-interaction"
+                                                                title="Для дизлайков требуется войти"
+                                                                onclick="showLoginAlert()">
+                                                            <i class="fa-regular fa-thumbs-down"></i>
+                                                            <span class="interaction-count">{{ post.dislikes.count }}</span>
+                                                        </button>
+                                                    {% endif %}
+
+                                                    <!-- Остальные элементы оставить без изменений -->
+                                                    <a href="{% url 'posts:post-detail' pk=post.pk %}#comments" class="btn-interaction comment-button">
                                                         <i class="fa-regular fa-comment"></i>
                                                         <span class="interaction-count">{{ post.comments.count }}</span>
                                                     </a>
-
-                                                    <button class="btn-interaction share-button" title="Поделиться">
-                                                        <i class="fa-regular fa-share-from-square"></i>
-                                                    </button>
                                                 </div>
                                             </div>
                                         </div>

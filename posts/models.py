@@ -45,9 +45,11 @@ class Post(models.Model):
     )
 
     def total_likes(self):
-        """Возвращает общее количество лайков для поста."""
+        # """Возвращает общее количество лайков для поста, включая анонимные."""
+        # auth_likes = self.likes.count()
+        # anon_likes = self.anonymous_likes.count()
+        # return auth_likes + anon_likes
         return self.likes.count()
-
 
     def __str__(self):
         return self.title
@@ -76,6 +78,17 @@ class Post(models.Model):
         verbose_name = "Пост"
         verbose_name_plural = "Посты"
         ordering = ["-pub_date"]
+
+
+    dislikes = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='disliked_posts',
+        blank=True,
+        verbose_name="Дизлайки"
+    )
+
+    def total_dislikes(self):
+        return self.dislikes.count()
 
 
 class Comment(models.Model):
@@ -135,3 +148,13 @@ class Tag(models.Model):
         verbose_name = "Тег"
         verbose_name_plural = "Теги"
         ordering = ['name']
+
+class AnonymousLike(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='anonymous_likes')
+    session_key = models.CharField(max_length=40)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('post', 'session_key')
+        verbose_name = "Анонимный лайк"
+        verbose_name_plural = "Анонимные лайки"

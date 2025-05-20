@@ -15,12 +15,15 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
-      <excludeFolder url="file://$MODULE_DIR$/venv" />
     </content>
+<<<<<<< HEAD
     <orderEntry type="jdk" jdkName="Python 3.12" jdkType="Python SDK" />
     <orderEntry type="jdk" jdkName="Python 3.12 (Chatty_orange)" jdkType="Python SDK" />
     <orderEntry type="jdk" jdkName="Python 3.13 (Chatty_orange)" jdkType="Python SDK" />
     <orderEntry type="jdk" jdkName="Python 3.12 (Chatty_orange)" jdkType="Python SDK" />
+=======
+    <orderEntry type="jdk" jdkName="Python 3.12 (pythonProject_270924)" jdkType="Python SDK" />
+>>>>>>> dc427ab0544e423d12594c3dd95f13bbd82b32a4
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TemplatesService">

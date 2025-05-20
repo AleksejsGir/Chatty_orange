@@ -2,38 +2,53 @@
 {% load static %}
 <html lang="ru" class="h-100">
 <head>
+{#    <script src="{% static 'js/orange-assistant.js' %}"></script>#}
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Chatty - Социальная сеть Team Orange">
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-
+    <script src="{% static 'js/orange-assistant.js' %}"></script>
     <!-- Google Fonts - Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" /> {# Обновил версию Font Awesome на более свежую #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <!-- Custom Orange Theme CSS -->
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/orange-style.css' %}">
     <link rel="stylesheet" href="{% static 'css/unified-styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/orange-assistant.css' %}">
 
-    {% block extra_css %}{% endblock %} {# Блок для дополнительных стилей на конкретных страницах #}
+    {% block extra_css %}{% endblock %}
 
     <title>{% block title %}Chatty{% endblock %}</title>
 </head>
 
-<body class="d-flex flex-column h-100"> {# Классы для прижатия футера #}
+<body class="d-flex flex-column h-100">
+    <!-- Ассистент -->
+    <div class="assistant-container"data-username="
+        {% if user.is_authenticated %}{{ user.username }}{% endif %}">
+        <div class="dialog-box" id="dialogBox">
+            <div class="greeting">Привет!</div>
+            <div class="question">Чем могу помочь?</div>
+        </div>
+        <img src="{% static 'images/orange.png' %}?v=2"
+             class="assistant-image"
+             id="orangeAssistant"
+             alt="Помощник">
+    </div>
+
     <!-- Навигационная панель -->
-    <header class="sticky-top"> {# Сделаем навбар прилипающим #}
+    <header class="sticky-top">
         {% include 'includes/navbar.html' %}
     </header>
 
     <!-- Основное содержимое -->
-    <main class="flex-shrink-0 py-4"> {# Добавлен отступ сверху и снизу #}
+    <main class="flex-shrink-0 py-4">
         <div class="container">
             {% block content %}
             <!-- Содержимое конкретной страницы будет здесь -->
@@ -42,20 +57,89 @@
     </main>
 
     <!-- Футер -->
-    <footer class="footer mt-auto"> {# Убрал bg-light, стили будут из CSS #}
+    <footer class="footer mt-auto">
          {% include 'includes/footer.html' %}
     </footer>
 
-    <!-- Bootstrap Bundle JS -->
+    <!-- Скрипты -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
-    <!-- Custom JS (если будет) -->
-    {# <script src="{% static 'js/main.js' %}"></script> #}
-
-    {# --- Блок для дополнительных скриптов --- #}
     {% block extra_js %}
-        {# likes.js нужен глобально для всех страниц с лайками #}
         <script src="{% static 'js/likes.js' %}"></script>
+{#        <script src="{% static 'js/orange-assistant.js' %}"></script>#}
     {% endblock %}
+    <div class="modal fade" id="rulesModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Правила сайта</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Вставляем контент из terms_of_use.html -->
+                    <section class="mb-4">
+                        <h4 class="mb-3 text-primary">1. Основные правила</h4>
+                        <div class="ms-3">
+                            <p class="fw-bold">Запрещено:</p>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fa-solid fa-ban me-2 text-danger"></i>
+                                    Использование ненормативной лексики в постах, комментариях и личных сообщениях
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fa-solid fa-ban me-2 text-danger"></i>
+                                    Создание постов или комментариев с тегами «Политика» и «Религия»
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fa-solid fa-ban me-2 text-danger"></i>
+                                    Размещение контента, нарушающего законы РФ
+                                </li>
+                            </ul>
+
+                            <p class="fw-bold mt-4">Администрация вправе:</p>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fa-solid fa-trash me-2 text-warning"></i>
+                                    Удалять нарушающие правила материалы без предупреждения
+                                </li>
+                                <li>
+                                    <i class="fa-solid fa-lock me-2 text-warning"></i>
+                                    Блокировать аккаунты за систематические нарушения
+                                </li>
+                            </ul>
+                        </div>
+                    </section>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="guideModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center py-4">
+                    <h5 class="mb-3">Инструкция сайта</h5>
+                    <p>Изучи визуально, нажимай правильно!</p>
+                    <button class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="aiAssistantModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center py-4">
+                    <h5 class="mb-3">ИИ помощник</h5>
+                    <p>Я виртуальный помощник. Чем могу помочь?</p>
+                    <button class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
