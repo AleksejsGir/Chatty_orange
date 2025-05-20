@@ -17,7 +17,7 @@ from .models import Post, Comment, Tag
 from .forms import PostForm, CommentForm
 from subscriptions.models import Subscription  # Добавляем импорт модели подписок
 
-<<<<<<< HEAD
+
 
 
 # from django.shortcuts import render, redirect
@@ -26,9 +26,9 @@ from subscriptions.models import Subscription  # Добавляем импорт
 
 
 
-=======
+
 from django.shortcuts import render
->>>>>>> dc427ab0544e423d12594c3dd95f13bbd82b32a4
+
 
 User = get_user_model()  # Получаем модель пользователя
 
@@ -325,7 +325,7 @@ class TagPostListView(ListView):
         context['popular_tags'] = Tag.get_popular_tags()
         return context
 
-<<<<<<< HEAD
+
 
 
 
@@ -345,7 +345,7 @@ class TagPostListView(ListView):
 
 
 
-=======
+
 def terms_of_use(request):
     return render(request, 'posts/terms_of_use.html')
 
@@ -364,4 +364,4 @@ def feed_view(request):
         total_dislikes=Count('dislikes', distinct=True),
         num_comments=Count('comments', distinct=True)
     )
->>>>>>> dc427ab0544e423d12594c3dd95f13bbd82b32a4
+
