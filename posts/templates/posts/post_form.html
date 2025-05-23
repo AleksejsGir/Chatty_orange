@@ -13,6 +13,26 @@
 {% endblock %}
 
 {% block extra_css %}
+    <style>
+    .image-form {
+        background-color: #f8f9fa;
+    }
+    .existing-image img {
+        max-width: 100%;
+        height: auto;
+    }
+    .img-thumbnail {
+        padding: 0.25rem;
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        max-width: 100%;
+        height: auto;
+    }
+    #add-more-images {
+        margin-top: 0.5rem;
+    }
+</style>
 <style>
     /* Дополнительные стили для CKEditor */
     .django-ckeditor-widget {
@@ -64,9 +84,6 @@
                             {% endif %}
                         </div>
 
-                        <!-- Изображение -->
-                        {% bootstrap_field form.image layout='vertical' %}
-
                         <!-- Теги -->
                         <div class="form-group mb-4">
                             <label class="form-label fw-medium">Теги:</label>
@@ -94,6 +111,28 @@
                                 {% endif %}
                                 <small class="form-text text-muted">Выберите одну или несколько тем для вашего поста.</small>
                             </div>
+                        </div>
+
+                    <!-- Блок для загрузки нескольких изображений -->
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-medium">Изображения:</label>
+                            <div id="image-forms-container">
+                                {{ image_formset.management_form }}
+                                {% for form in image_formset %}
+                                    <div class="image-form mb-3 p-3 border rounded">
+                                        {% bootstrap_form form layout='horizontal' %}
+                                        {% if form.instance.image %}
+                                            <div class="existing-image mb-2">
+                                                <img src="{{ form.instance.image.url }}" class="img-thumbnail" style="max-height: 150px;">
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <button type="button" id="add-more-images" class="btn btn-outline-secondary btn-sm mb-3">
+                                <i class="fa-solid fa-plus me-1"></i>Добавить ещё изображение
+                            </button>
+                            <small class="form-text text-muted">Вы можете загрузить до 10 изображений в формате JPG или PNG.</small>
                         </div>
 
                         <hr class="my-4">
@@ -193,4 +232,51 @@
 
 {% block extra_js %}
     {{ form.media }}  <!-- Это загрузит необходимые JS и CSS файлы для CKEditor -->
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Добавление новых форм для изображений
+    const addMoreBtn = document.getElementById('add-more-images');
+    if (addMoreBtn) {
+        addMoreBtn.addEventListener('click', function() {
+            const totalForms = document.getElementById('id_images-TOTAL_FORMS');
+            const formsContainer = document.getElementById('image-forms-container');
+            const formIdx = parseInt(totalForms.value);
+
+            // Проверяем, не превысили ли максимальное количество
+            if (formIdx >= 10) {
+                alert('Максимальное количество изображений - 10');
+                return;
+            }
+
+            const newForm = document.createElement('div');
+            newForm.className = 'image-form mb-3 p-3 border rounded';
+            newForm.innerHTML = `
+                <div class="row">
+                    <div class="col-md-9">
+                        <div class="mb-3">
+                            <label class="form-label" for="id_images-${formIdx}-image">Изображение</label>
+                            <input type="file" name="images-${formIdx}-image" accept="image/jpeg,image/png" class="form-control" id="id_images-${formIdx}-image">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label class="form-label" for="id_images-${formIdx}-order">Порядок</label>
+                            <input type="number" name="images-${formIdx}-order" class="form-control" id="id_images-${formIdx}-order" value="${formIdx}" min="0">
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="images-${formIdx}-id" id="id_images-${formIdx}-id">
+                <input type="hidden" name="images-${formIdx}-post" id="id_images-${formIdx}-post">
+                <div class="form-check mb-3">
+                    <input type="checkbox" name="images-${formIdx}-DELETE" class="form-check-input" id="id_images-${formIdx}-DELETE">
+                    <label class="form-check-label" for="id_images-${formIdx}-DELETE">Удалить</label>
+                </div>
+            `;
+
+            formsContainer.appendChild(newForm);
+            totalForms.value = formIdx + 1;
+        });
+    }
+});
+</script>
 {% endblock %}

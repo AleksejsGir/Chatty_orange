@@ -48,10 +48,16 @@
                     {# --- Заголовок поста --- #}
                     <h1 class="post-title mb-3">{{ post.title }}</h1>
 
-                    {# --- Изображение поста --- #}
-                    {% if post.image %}
-                        <div class="post-image mb-4 text-center">
-                            <img src="{{ post.image.url }}" class="img-fluid rounded shadow-sm" alt="{{ post.title }}" style="max-height: 600px;">
+                    {# --- Изображения поста --- #}
+                    {% if post.images.all %}
+                        <div class="post-images mb-4">
+                            <div class="row">
+                                {% for image in post.images.all|dictsort:"order" %}
+                                    <div class="col-md-6 mb-3">
+                                        <img src="{{ image.image.url }}" class="img-fluid rounded shadow-sm" alt="{{ post.title }}" style="max-height: 400px; width: 100%; object-fit: cover;">
+                                    </div>
+                                {% endfor %}
+                            </div>
                         </div>
                     {% endif %}
 
