@@ -120,13 +120,24 @@
                             </div>
                             {% endif %}
 
-                            <!-- Изображение поста - добавлена ссылка на пост -->
-                            {% if post.image %}
-                            <div class="post-image">
-                                <a href="{% url 'posts:post-detail' pk=post.pk %}" class="d-block">
-                                    <img src="{{ post.image.url }}" alt="{{ post.title }}" class="img-fluid rounded">
-                                </a>
-                            </div>
+                            <!-- Изображения поста -->
+                            {% if post.images.all %}
+                                <div class="post-images">
+                                    <a href="{% url 'posts:post-detail' pk=post.pk %}" class="d-block">
+                                        <div class="row">
+                                            {% for image in post.images.all|dictsort:"order"|slice:":2" %}
+                                                <div class="col-6">
+                                                    <img src="{{ image.image.url }}" alt="{{ post.title }}" class="img-fluid rounded" style="height: 150px; width: 100%; object-fit: cover;">
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% if post.images.count > 2 %}
+                                            <div class="text-center mt-2">
+                                                <span class="badge bg-light text-dark">+{{ post.images.count|add:"-2" }} фото</span>
+                                            </div>
+                                        {% endif %}
+                                    </a>
+                                </div>
                             {% endif %}
 
                             <!-- Футер поста - только кнопки взаимодействия -->
@@ -352,6 +363,27 @@
 </div>
 {% endblock %}
 {% block extra_css %}
+    <style>
+    .post-images {
+        margin-bottom: 1rem;
+    }
+    .image-form {
+        background-color: #f8f9fa;
+    }
+    .existing-image img {
+        max-width: 100%;
+        height: auto;
+    }
+    /* Дополнительные стили для изображений */
+    .img-thumbnail {
+        padding: 0.25rem;
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        max-width: 100%;
+        height: auto;
+    }
+</style>
 <style>
     /* Улучшенный стиль для форматированного текста в списке постов */
     .post-text {
