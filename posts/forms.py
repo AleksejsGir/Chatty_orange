@@ -109,7 +109,7 @@ PostImageFormSet = inlineformset_factory(
     Post,
     PostImage,
     form=PostImageForm,
-    extra=3,  # Количество дополнительных форм для новых изображений
+    extra=0,  # Количество дополнительных форм для новых изображений
     can_delete=True,  # Разрешить удаление изображений
     min_num=0,
     max_num=10  # Максимальное количество изображений
