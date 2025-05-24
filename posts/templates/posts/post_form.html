@@ -14,6 +14,29 @@
 
 {% block extra_css %}
 <style>
+    .image-form {
+        position: relative;
+        padding: 15px;
+        background-color: #f8f9fa;
+    }
+    .remove-image-form {
+        border: none;
+        background: none;
+        font-size: 0.9rem;
+    }
+    .remove-image-form:hover {
+        color: #dc3545 !important;
+    }
+    #add-more-images {
+        margin-top: 10px;
+    }
+    .existing-image img {
+        max-width: 100%;
+        max-height: 150px;
+        margin-bottom: 10px;
+    }
+</style>
+<style>
     /* Дополнительные стили для CKEditor */
     .django-ckeditor-widget {
         width: 100%;
@@ -64,9 +87,6 @@
                             {% endif %}
                         </div>
 
-                        <!-- Изображение -->
-                        {% bootstrap_field form.image layout='vertical' %}
-
                         <!-- Теги -->
                         <div class="form-group mb-4">
                             <label class="form-label fw-medium">Теги:</label>
@@ -95,6 +115,28 @@
                                 <small class="form-text text-muted">Выберите одну или несколько тем для вашего поста.</small>
                             </div>
                         </div>
+
+                    <!-- Блок для загрузки нескольких изображений -->
+                        <div class="form-group mb-4">
+                    <label class="form-label fw-medium">Изображения:</label>
+                    <div id="image-forms-container">
+                        {{ image_formset.management_form }}
+                        {% for form in image_formset %}
+                            <div class="image-form mb-3 p-3 border rounded" {% if form.instance.pk %}data-existing="true"{% endif %}>
+                                {% bootstrap_form form layout='horizontal' %}
+                                {% if form.instance.image %}
+                                    <div class="existing-image">
+                                        <img src="{{ form.instance.image.url }}" class="img-thumbnail">
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" id="add-more-images" class="btn btn-outline-secondary btn-sm">
+                        <i class="fa-solid fa-plus me-1"></i>Добавить изображение
+                    </button>
+                    <small class="form-text text-muted">Вы можете загрузить до 10 изображений в формате JPG или PNG.</small>
+                </div>
 
                         <hr class="my-4">
 
@@ -192,5 +234,82 @@
 {% endblock %}
 
 {% block extra_js %}
-    {{ form.media }}  <!-- Это загрузит необходимые JS и CSS файлы для CKEditor -->
+    {{ form.media }}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Обработка изображений
+        const container = document.getElementById('image-forms-container');
+        const addButton = document.getElementById('add-more-images');
+        const totalForms = document.getElementById('id_images-TOTAL_FORMS');
+        let formCount = container.querySelectorAll('.image-form').length || 0;
+
+        // Функция добавления новой формы
+        function addImageForm() {
+            if (formCount >= 10) {
+                alert('Максимальное количество изображений - 10');
+                return;
+            }
+
+            const newForm = document.createElement('div');
+            newForm.className = 'image-form mb-3 p-3 border rounded';
+            newForm.innerHTML = `
+                <div class="row">
+                    <div class="col-md-9">
+                        <div class="mb-3">
+                            <label class="form-label">Изображение</label>
+                            <input type="file" name="images-${formCount}-image"
+                                   class="form-control" accept="image/jpeg,image/png" required>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label class="form-label">Порядок</label>
+                            <input type="number" name="images-${formCount}-order"
+                                   class="form-control" value="${formCount}" min="0">
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="images-${formCount}-id" id="id_images-${formCount}-id">
+                <input type="hidden" name="images-${formCount}-post">
+                <button type="button" class="btn btn-link text-danger remove-image-form" style="position: absolute; top: 10px; right: 10px; padding: 0.25rem;">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            `;
+
+            container.appendChild(newForm);
+            formCount++;
+            totalForms.value = formCount;
+
+            // Обработчик удаления
+            newForm.querySelector('.remove-image-form').addEventListener('click', function() {
+                container.removeChild(newForm);
+                formCount--;
+                totalForms.value = formCount;
+            });
+        }
+
+        // Обработчик для кнопки добавления
+        if (addButton) {
+            addButton.addEventListener('click', addImageForm);
+        }
+
+        // Обработчики для существующих форм (редактирование)
+        document.querySelectorAll('.image-form').forEach(form => {
+            if (!form.querySelector('.remove-image-form') && !form.dataset.existing) {
+                const deleteBtn = document.createElement('button');
+                deleteBtn.type = 'button';
+                deleteBtn.className = 'btn btn-link text-danger remove-image-form';
+                deleteBtn.style = 'position: absolute; top: 10px; right: 10px; padding: 0.25rem;';
+                deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                form.appendChild(deleteBtn);
+
+                deleteBtn.addEventListener('click', function() {
+                    container.removeChild(form);
+                    formCount--;
+                    totalForms.value = formCount;
+                });
+            }
+        });
+    });
+    </script>
 {% endblock %}

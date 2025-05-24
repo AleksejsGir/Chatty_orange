@@ -1,8 +1,9 @@
 # posts/forms.py
 from django import forms
 from django.template.defaultfilters import slugify
+from django.forms import inlineformset_factory
 
-from .models import Post, Comment
+from .models import Post, Comment, PostImage
 from ckeditor.widgets import CKEditorWidget
 
 from django.utils.text import slugify
@@ -14,9 +15,10 @@ class PostForm(forms.ModelForm):
         required=True,
         error_messages={'required': 'Вы должны принять правила публикации'}
     )
+
     class Meta:
         model = Post
-        fields = ['title', 'text', 'image', 'tags']
+        fields = ['title', 'text', 'tags']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -25,9 +27,6 @@ class PostForm(forms.ModelForm):
             # Виджет CKEditor будет подключен автоматически, так как мы используем RichTextField в модели
             # Если нужно дополнительно настроить, можно добавить:
             # 'text': CKEditorWidget(config_name='default'),
-            'image': forms.ClearableFileInput(attrs={
-                'class': 'form-control-file'
-            }),
             'tags': forms.CheckboxSelectMultiple(attrs={
                 'class': 'tag-checkbox-list'
             })
@@ -87,3 +86,31 @@ class CommentForm(forms.ModelForm):
         if len(text) < 3:
             raise forms.ValidationError("Комментарий должен содержать минимум 3 символа")
         return text
+
+# Добавляем форму для изображений
+class PostImageForm(forms.ModelForm):
+    class Meta:
+        model = PostImage
+        fields = ['image', 'order']
+        widgets = {
+            'image': forms.ClearableFileInput(attrs={
+                'class': 'form-control-file',
+                'accept': 'image/jpeg,image/png'
+            }),
+            'order': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'value': '0'
+            })
+        }
+
+# Создаем формсет для работы с несколькими изображениями
+PostImageFormSet = inlineformset_factory(
+    Post,
+    PostImage,
+    form=PostImageForm,
+    extra=0,  # Количество дополнительных форм для новых изображений
+    can_delete=True,  # Разрешить удаление изображений
+    min_num=0,
+    max_num=10  # Максимальное количество изображений
+)
