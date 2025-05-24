@@ -40,7 +40,10 @@ class TestPostViews:
         data = {
             'title': 'New Test Post',
             'text': 'This is a new test post content with enough characters',
-            'agree_to_rules': True
+            'agree_to_rules': True,
+            'images-TOTAL_FORMS': '0',
+            'images-INITIAL_FORMS': '0',
+            'images-MAX_NUM_FORMS': ''
         }
         response = authenticated_client.post(url, data)
         assert response.status_code == 302  # Редирект после создания

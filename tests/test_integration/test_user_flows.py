@@ -42,7 +42,10 @@ class TestUserFlows:
         post_data = {
             'title': 'My First Post',
             'text': 'This is my first post on Chatty platform! It has enough characters now.',
-            'agree_to_rules': True
+            'agree_to_rules': True,
+            'images-TOTAL_FORMS': '0',
+            'images-INITIAL_FORMS': '0',
+            'images-MAX_NUM_FORMS': ''
         }
         response = client.post(create_post_url, post_data)
 
