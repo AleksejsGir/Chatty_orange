@@ -37,6 +37,11 @@ class Post(models.Model):
         blank=True,
         verbose_name="Теги"
     )
+    image = models.ImageField(
+        upload_to='posts_images/',  # Путь для сохранения изображений
+        blank=True,                 # Разрешить пустое значение
+        null=True                   # Разрешить NULL в базе данных
+    )
 
     def total_likes(self):
         # """Возвращает общее количество лайков для поста, включая анонимные."""
