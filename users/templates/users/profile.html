@@ -144,9 +144,9 @@
                                         {% endif %}
                                         <div class="card-body">
                                             <h2 class="post-title">
-                                                <a href="{% url 'posts:post-detail' pk=post.pk %}">{{ post.title }}</a>
+                                                <a href="{% url 'posts:post-detail' pk=post.pk %}">{{ post.title|highlight:search_terms }}</a>
                                             </h2>
-                                            <div class="post-text">{{ post.text|safe|truncatewords_html:30 }}</div>
+                                            <div class="post-text">{{ post.text|highlight:search_terms|safe|truncatewords_html:30 }}</div>
                                             <p class="post-meta-compact"><small>{{ post.pub_date|date:"d.m.Y H:i" }}</small></p>
 
                                             <!-- Добавляем блок взаимодействий (лайки и комментарии) -->
