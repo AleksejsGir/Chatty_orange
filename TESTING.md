@@ -27,23 +27,23 @@
 
 **Базовый запуск всех тестов:**
 ```bash
-pytest
+docker-compose exec web pytest
 ```
 
-**Запуск тестов с опциями, указанными в `pytest.ini`:**
-(Опции `--strict-markers --reuse-db --tb=short -v` применяются автоматически)
+**Запуск тестов с отчетом о покрытии**
+
 ```bash
-pytest tests/
+docker-compose exec web pytest --cov=. --cov-report=term-missing --cov-report=html
 ```
 
-**Запуск тестов с генерацией отчета о покрытии в формате XML (используется в CI):**
+**Тестировать только модели**
 ```bash
-pytest --cov=. --cov-report=xml
+docker-compose exec web pytest tests/test_models/ -v
 ```
 
-**Запуск тестов с генерацией отчета о покрытии в консоли:**
+**Тестировать только views постов**
 ```bash
-pytest --cov=.
+docker-compose exec web pytest tests/test_views/test_post_views.py -v
 ```
 
 **Запуск тестов для конкретного модуля или файла:**
@@ -51,9 +51,9 @@ pytest --cov=.
 pytest tests/test_models/test_user_models.py
 ```
 
-**Запуск конкретного теста по имени:**
+**Тестировать конкретный класс**
 ```bash
-pytest -k "test_user_registration_and_post_creation_flow"
+docker-compose exec web pytest tests/test_models/test_post_models.py::TestPostModel -v
 ```
 
 ## 5. Используемые инструменты и библиотеки
