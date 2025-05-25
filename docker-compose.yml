@@ -20,7 +20,7 @@ services:
     # --- Проверка состояния контейнера PostgreSQL ---
     healthcheck:
       # Команда для проверки готовности PostgreSQL принимать подключения
-      test: ["CMD-SHELL", "pg_isready -U admin -d orange_db"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d chatty_db"]
       interval: 5s    # Интервал между проверками
       timeout: 5s     # Таймаут ожидания ответа от проверки
       retries: 5      # Количество попыток перед признанием контейнера нездоровым

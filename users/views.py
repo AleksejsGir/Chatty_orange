@@ -48,7 +48,8 @@ def profile_view(request, username):
         'profile_user': profile_user,
         'is_subscribed': is_subscribed,
         'user_posts': user_posts,
-        'user_liked_posts': user_liked_posts
+        'user_liked_posts': user_liked_posts,
+        'search_terms': request.GET.get('q', ''),
     }
     return render(request, 'users/profile.html', context)
 
