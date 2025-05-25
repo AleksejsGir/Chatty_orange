@@ -2,7 +2,6 @@
 {% load static %}
 <html lang="ru" class="h-100">
 <head>
-{#    <script src="{% static 'js/orange-assistant.js' %}"></script>#}
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Chatty - Социальная сеть Team Orange">
@@ -23,8 +22,45 @@
     <link rel="stylesheet" href="{% static 'css/unified-styles.css' %}">
     <link rel="stylesheet" href="{% static 'css/orange-assistant.css' %}">
 
-    {% block extra_css %}{% endblock %}
+    {% block extra_css %}
+         <style>
+            /* Единые стили для кнопки .btn-search */
+            .btn-search {
+                background-color: #FFB74D !important;
+                border-color: #FFB74D !important;
+                color: #333 !important;
+                transition: all 0.3s;
+            }
+            .btn-search:hover {
+                background-color: #F57C00 !important;
+                border-color: #F57C00 !important;
+            }
+            .btn-edit-profile {
+                background-color: #FFB74D !important;
+                border-color: #FFB74D !important;
+                color: #333 !important;
+                transition: all 0.3s;
+            }
+            /* Общие стили для кнопок поиска и редактирования */
+            .btn-edit-profile:hover {
+                background-color: #F57C00 !important;
+                border-color: #F57C00 !important;
+            }
+            /* Стили для строки поиска */
+            .search-input {
+                border: 2px solid #f97316 !important;
+                border-radius: 8px !important;
+                transition: all 0.3s;
+            }
 
+            /* Стиль при фокусе */
+            .search-input:focus {
+                border-color: #f97316 !important;
+                box-shadow: 0 0 8px rgba(249, 115, 22, 0.3) !important;
+            }
+    </style>
+        </style>
+    {% endblock %}
     <title>{% block title %}Chatty{% endblock %}</title>
 </head>
 
