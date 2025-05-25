@@ -2,7 +2,6 @@
 {% load static %}
 <html lang="ru" class="h-100">
 <head>
-{#    <script src="{% static 'js/orange-assistant.js' %}"></script>#}
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Chatty - Социальная сеть Team Orange">
@@ -23,8 +22,21 @@
     <link rel="stylesheet" href="{% static 'css/unified-styles.css' %}">
     <link rel="stylesheet" href="{% static 'css/orange-assistant.css' %}">
 
-    {% block extra_css %}{% endblock %}
-
+    {% block extra_css %}
+         <style>
+            /* Единые стили для кнопки .btn-search */
+            .btn-search {
+                background-color: #FFB74D !important;
+                border-color: #FFB74D !important;
+                color: #333 !important;
+                transition: all 0.3s;
+            }
+            .btn-search:hover {
+                background-color: #F57C00 !important;
+                border-color: #F57C00 !important;
+            }
+        </style>
+    {% endblock %}
     <title>{% block title %}Chatty{% endblock %}</title>
 </head>
 
