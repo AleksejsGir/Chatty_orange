@@ -10,9 +10,9 @@ services:
       - .env # Загружаем переменные окружения из .env файла
     environment:
       # Переменные для инициализации базы данных PostgreSQL
-      POSTGRES_DB: orange_db
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5433:5432" # Маппим порт БД на хост (5433) для возможного внешнего доступа
     networks:
