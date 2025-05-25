@@ -1,5 +1,5 @@
-python manage.py migrate"""
-Production settings for Chatty_orange project.
+"""
+# Production settings for Chatty_orange project.
 """
 
 from .base import *
