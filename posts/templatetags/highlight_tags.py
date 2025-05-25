@@ -5,7 +5,7 @@ import re
 register = template.Library()
 
 
-@register.filter
+@register.filter(name='highlight')
 def highlight(text, query):
     if not query or not text:
         return text
