@@ -10,7 +10,13 @@ def highlight(text, query):
     if not query or not text:
         return text
 
-    words = re.findall(r'\w+', query)
+    # Игнорировать запросы из одной буквы (кроме цифр)
+    if len(query) == 1 and not query.isdigit():
+        return text
+
+    # Разбиваем на слова (игнорируя одиночные буквы)
+    words = [word for word in re.findall(r'\b\w+\b', query) if len(word) > 1 or word.isdigit()]
+
     highlighted = str(text)
     for word in words:
         pattern = re.compile(re.escape(word), re.IGNORECASE)

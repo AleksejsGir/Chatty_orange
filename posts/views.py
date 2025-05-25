@@ -30,47 +30,52 @@ class PostListView(ListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        # self.search_query = self.request.GET.get('q', '').strip()
+        # Инициализация атрибутов по умолчанию
         self.search_query = self.request.GET.get('q', '').strip()
         self.search_terms = self.search_query.split() if self.search_query else []
 
-        # Аннотации (остаются без изменений)
-        user = self.request.user
-        if user.is_staff:
-            queryset = queryset.annotate(
-                num_comments=Count('comments', distinct=True),
-                num_likes=Count('likes', distinct=True),
-                num_dislikes=Count('dislikes', distinct=True)
-            )
-        else:
-            queryset = queryset.annotate(
-                num_comments=Count('comments', filter=Q(comments__is_active=True),
-                distinct=True),
-                num_likes=Count('likes', distinct=True),
-                num_dislikes=Count('dislikes', distinct=True)
-            )
+        # Поиск по ID если введены только цифры
+        if self.search_query.isdigit():
+            return queryset.filter(pk=int(self.search_query))
 
-        # Поиск
+        # Основная логика поиска
         if self.search_query:
             search_terms = self.search_query.split()
-            query = Q()
-            for term in search_terms:
-                query |= Q(title__icontains=term) | Q(text__icontains=term)
-            queryset = queryset.filter(query).distinct()
+            found = False
+            current_terms = search_terms.copy()
+            queryset = Post.objects.none()  # Начинаем с пустого queryset
 
-        # Фильтрация
-        filter_type = self.request.GET.get('filter', 'latest')
-        if filter_type == 'popular':
-            queryset = queryset.order_by('-num_likes', '-pub_date')
-        elif filter_type == 'subscriptions' and self.request.user.is_authenticated:
-            subscribed_to = Subscription.objects.filter(
-                subscriber=self.request.user
-            ).values_list('author_id', flat=True)
-            queryset = queryset.filter(author_id__in=subscribed_to)
-        else:
-            queryset = queryset.order_by('-pub_date')
+            # Поиск фразы с уменьшением слов
+            while len(current_terms) > 0:
+                phrase = ' '.join(current_terms)
+                phrase_query = Q(title__icontains=phrase) | Q(text__icontains=phrase)
+                qs = Post.objects.filter(phrase_query)
 
-        return queryset.select_related('author')
+                if qs.exists():
+                    queryset = qs
+                    found = True
+                    break
+                else:
+                    current_terms.pop()
 
+            # Если фраза не найдена - ищем отдельные слова
+            if not found:
+                query = Q()
+                for term in search_terms:
+                    if len(term) > 1 or term.isdigit():
+                        query |= Q(title__icontains=term) | Q(text__icontains=term)
+                queryset = Post.objects.filter(query).distinct()
+
+        # Аннотации и сортировка
+        user = self.request.user
+        annotation_filter = Q() if user.is_staff else Q(comments__is_active=True)
+
+        return queryset.annotate(
+            num_comments=Count('comments', filter=annotation_filter, distinct=True),
+            num_likes=Count('likes', distinct=True),
+            num_dislikes=Count('dislikes', distinct=True)
+        ).select_related('author').order_by('-pub_date')
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context.update({
