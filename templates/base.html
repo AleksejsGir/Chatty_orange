@@ -46,6 +46,19 @@
                 background-color: #F57C00 !important;
                 border-color: #F57C00 !important;
             }
+            /* Стили для строки поиска */
+            .search-input {
+                border: 2px solid #f97316 !important;
+                border-radius: 8px !important;
+                transition: all 0.3s;
+            }
+
+            /* Стиль при фокусе */
+            .search-input:focus {
+                border-color: #f97316 !important;
+                box-shadow: 0 0 8px rgba(249, 115, 22, 0.3) !important;
+            }
+    </style>
         </style>
     {% endblock %}
     <title>{% block title %}Chatty{% endblock %}</title>
