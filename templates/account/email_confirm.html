@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load allauth account %}
+{% load django_bootstrap5 %}
+
+{% block title %}{% trans "Подтверждение email" %} - Chatty{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="card profile-card shadow-sm">
+                <div class="card-header profile-card-title">
+                    <i class="fa-solid fa-envelope-circle-check fa-fw me-2"></i>{% trans "Подтверждение email адреса" %}
+                </div>
+                <div class="card-body profile-card-content p-4">
+
+                    {% if confirmation %}
+                        {% user_display confirmation.email_address.user as user_display %}
+
+                        <p class="lead mb-4">
+                            {% blocktrans with confirmation.email_address.email as email %}
+                            Пожалуйста, подтвердите, что адрес <strong>{{ email }}</strong>
+                            принадлежит пользователю {{ user_display }}.
+                            {% endblocktrans %}
+                        </p>
+
+                        <form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
+                            {% csrf_token %}
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-primary btn-lg" type="submit">
+                                    <i class="fa-solid fa-check-circle me-1"></i> {% trans "Подтвердить email" %}
+                                </button>
+                            </div>
+                        </form>
+
+                    {% else %}
+                        {% url 'account_email' as email_url %}
+
+                        <div class="alert alert-danger text-center" role="alert">
+                            <h4 class="alert-heading">
+                                <i class="fa-solid fa-circle-exclamation me-2"></i>{% trans "Недействительная ссылка" %}
+                            </h4>
+                            <p>
+                                {% blocktrans %}
+                                Эта ссылка для подтверждения email недействительна или уже была использована.
+                                {% endblocktrans %}
+                            </p>
+                            <hr>
+                            <p class="mb-0">
+                                {% blocktrans %}
+                                Пожалуйста, <a href="{{ email_url }}" class="alert-link">запросите новое подтверждение email</a>.
+                                {% endblocktrans %}
+                            </p>
+                        </div>
+
+                        <div class="text-center mt-3">
+                            <a href="{% url 'home' %}" class="btn btn-secondary">
+                                <i class="fa-solid fa-home me-1"></i> На главную
+                            </a>
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
