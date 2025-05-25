@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load allauth account %}
+
+{% block title %}{% trans "Подтверждение отправлено" %} - Chatty{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="card profile-card shadow-sm text-center">
+                <div class="card-header profile-card-title justify-content-center text-info">
+                    <i class="fa-solid fa-envelope-open-text fa-fw me-2"></i>{% trans "Проверьте вашу почту" %}
+                </div>
+                <div class="card-body profile-card-content p-4">
+
+                    <p class="lead mb-4">
+                        {% blocktrans %}
+                        Мы отправили вам письмо с ссылкой для подтверждения вашего email адреса.
+                        {% endblocktrans %}
+                    </p>
+
+                    <div class="alert alert-info" role="alert">
+                        <i class="fa-solid fa-info-circle me-2"></i>
+                        {% blocktrans %}
+                        Пожалуйста, перейдите по ссылке в письме, чтобы завершить регистрацию.
+                        {% endblocktrans %}
+                    </div>
+
+                    <p class="text-muted small">
+                        {% blocktrans %}
+                        Если письмо не пришло в течение нескольких минут, проверьте папку "Спам".
+                        {% endblocktrans %}
+                    </p>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="{% url 'account_email' %}" class="btn btn-outline-primary">
+                            <i class="fa-solid fa-envelope me-1"></i> {% trans "Управление email адресами" %}
+                        </a>
+                        <a href="{% url 'home' %}" class="btn btn-secondary">
+                            <i class="fa-solid fa-home me-1"></i> {% trans "На главную" %}
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
