@@ -11,7 +11,7 @@ services:
     environment:
       # Переменные для инициализации базы данных PostgreSQL
       POSTGRES_DB: chatty_db
-      POSTGRES_USER: postgres
+      POSTGRES_USER: admin
       POSTGRES_PASSWORD: postgres
     ports:
       - "5433:5432" # Маппим порт БД на хост (5433) для возможного внешнего доступа
@@ -20,7 +20,7 @@ services:
     # --- Проверка состояния контейнера PostgreSQL ---
     healthcheck:
       # Команда для проверки готовности PostgreSQL принимать подключения
-      test: ["CMD-SHELL", "pg_isready -U admin -d orange_db"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d chatty_db"]
       interval: 5s    # Интервал между проверками
       timeout: 5s     # Таймаут ожидания ответа от проверки
       retries: 5      # Количество попыток перед признанием контейнера нездоровым
@@ -30,7 +30,7 @@ services:
   web:
     build: . # Собираем образ из Dockerfile в текущей директории
     container_name: chatty_web # Имя контейнера
-    command: python manage.py runserver 0.0.0.0:8000 # Команда для запуска Django
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000" # Команда для запуска Django
     volumes:
       - .:/app/ # Монтируем текущую директорию для live-reload кода
     ports:

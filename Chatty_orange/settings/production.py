@@ -1,4 +1,4 @@
-"""
+python manage.py migrate"""
 Production settings for Chatty_orange project.
 """
 
