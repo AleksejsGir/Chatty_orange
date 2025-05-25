@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load allauth account %}
+
+{% block title %}{% trans "Email подтвержден" %} - Chatty{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="card profile-card shadow-sm text-center">
+                <div class="card-header profile-card-title justify-content-center text-success">
+                    <i class="fa-solid fa-check-double fa-fw me-2"></i>{% trans "Email успешно подтвержден!" %}
+                </div>
+                <div class="card-body profile-card-content p-4">
+
+                    <p class="lead mb-4">
+                        {% blocktrans %}
+                        Поздравляем! Ваш email адрес был успешно подтвержден.
+                        {% endblocktrans %}
+                    </p>
+
+                    <div class="alert alert-success" role="alert">
+                        <i class="fa-solid fa-check-circle me-2"></i>
+                        {% blocktrans %}
+                        Теперь вы можете использовать все возможности Chatty!
+                        {% endblocktrans %}
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'users:profile' username=user.username %}" class="btn btn-primary btn-lg">
+                                <i class="fa-solid fa-user me-1"></i> {% trans "Перейти в профиль" %}
+                            </a>
+                        {% else %}
+                            <a href="{% url 'account_login' %}" class="btn btn-primary btn-lg">
+                                <i class="fa-solid fa-right-to-bracket me-1"></i> {% trans "Войти в аккаунт" %}
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-home me-1"></i> {% trans "На главную" %}
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
