@@ -47,7 +47,9 @@
                            name="q"
                            value="{{ search_query|default:'' }}"
                            placeholder="Поиск..."
-                           aria-label="Search">
+                           aria-label="Search"
+                           maxlength="200"
+                           style="width: 400px;">
                     <button class="btn btn-search" type="submit">
                         <i class="fa-solid fa-search"></i>
                     </button>

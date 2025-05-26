@@ -187,25 +187,23 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .search-form {
-  max-width: 300px;
+  max-width: 600px;
 }
 
-/*.search-input {*/
-/*  border-radius: var(--radius-full) 0 0 var(--radius-full) !important;*/
-/*  border-right: none;*/
-/*  font-size: 0.875rem;*/
-/*}*/
-
-/*.search-input:focus {*/
-/*  box-shadow: none;*/
-/*  border-color: var(--primary-light);*/
-/*}*/
 .search-input {
-  border: 2px solid #f97316 !important;
-  border-radius: 8px !important;
+  min-width: 300px;     /* Минимальная ширина */
+  max-width: 600px;     /* Максимальное расширение */
+  border: 2px solid #f97316;
+  border-radius: 8px 0 0 8px !important; /* Скорректировано для совместимости с кнопкой */
   transition: all 0.3s;
+  flex-grow: 1; /* Добавлено */
 }
-
+@media (max-width: 768px) {
+    .search-input {
+        width: 100% !important; /* Полная ширина на мобильных */
+        max-width: 100%;
+    }
+}
 /* Стиль при фокусе */
 .search-input:focus {
   border-color: #f97316 !important;
@@ -213,11 +211,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-search {
-  background-color: white;
-  border-radius: 0 var(--radius-full) var(--radius-full) 0 !important;
-  border: 1px solid #ced4da;
-  border-left: none;
-  color: var(--primary);
+  border: 2px solid #f97316;
+  border-left: none !important; /* Убираем двойную границу */
+  border-radius: 0 8px 8px 0 !important;
+  background: orange;
+  padding: 0.5rem 1rem;
 }
 
 .btn-search:hover {
@@ -1254,7 +1252,7 @@ h1, h2, h3, h4, h5, h6 {
   .navbar .search-form {
     margin: 0.5rem 0;
     width: 100%;
-    max-width: none;
+    max-width: 600px;
   }
 
   .profile-avatar-container {
