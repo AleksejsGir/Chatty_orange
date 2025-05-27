@@ -3,6 +3,7 @@ Development settings for Chatty_orange project.
 """
 
 from .base import *
+from django.core.exceptions import ImproperlyConfigured
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -10,25 +11,33 @@ DEBUG = True
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 # Database
+DB_ENGINE = os.getenv('DB_ENGINE')
+DB_NAME = os.getenv('DB_NAME')
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_HOST = os.getenv('DB_HOST')
+DB_PORT = os.getenv('DB_PORT')
+
+if not all([DB_ENGINE, DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT]):
+    raise ImproperlyConfigured(
+        "Не все переменные окружения для подключения к базе данных установлены! "
+        "Проверьте ваш .env файл и убедитесь, что DB_ENGINE, DB_NAME, DB_USER, "
+        "DB_PASSWORD, DB_HOST, DB_PORT определены."
+    )
+
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.sqlite3'),
-        'NAME': os.getenv('DB_NAME', BASE_DIR / 'db.sqlite3'),
-        'USER': os.getenv('DB_USER', ''),
-        'PASSWORD': os.getenv('DB_PASSWORD', ''),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
+        'ENGINE': DB_ENGINE,
+        'NAME': DB_NAME,
+        'USER': DB_USER,
+        'PASSWORD': DB_PASSWORD,
+        'HOST': DB_HOST,
+        'PORT': DB_PORT,
     }
 }
-
-# Доп. проверка на случай, если .env не задан и используется SQLite
-if DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3' and not isinstance(DATABASES['default']['NAME'], Path):
-    DATABASES['default']['NAME'] = BASE_DIR / DATABASES['default']['NAME']
 
 # Email Console Backend
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Debug Toolbar
-INSTALLED_APPS += ['debug_toolbar']
-MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
 INTERNAL_IPS = ['127.0.0.1']

@@ -30,57 +30,60 @@ class PostListView(ListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        # self.search_query = self.request.GET.get('q', '').strip()
+        # Инициализация атрибутов по умолчанию
+        self.search_query = self.request.GET.get('q', '').strip()
+        self.search_terms = self.search_query.split() if self.search_query else []
 
-        # Аннотируем количеством комментариев и лайков
+        # Поиск по ID если введены только цифры
+        if self.search_query.isdigit():
+            return queryset.filter(pk=int(self.search_query))
+
+        # Основная логика поиска
+        if self.search_query:
+            search_terms = self.search_query.split()
+            found = False
+            current_terms = search_terms.copy()
+            queryset = Post.objects.none()  # Начинаем с пустого queryset
+
+            # Поиск фразы с уменьшением слов
+            while len(current_terms) > 0:
+                phrase = ' '.join(current_terms)
+                phrase_query = Q(title__icontains=phrase) | Q(text__icontains=phrase)
+                qs = Post.objects.filter(phrase_query)
+
+                if qs.exists():
+                    queryset = qs
+                    found = True
+                    break
+                else:
+                    current_terms.pop()
+
+            # Если фраза не найдена - ищем отдельные слова
+            if not found:
+                query = Q()
+                for term in search_terms:
+                    if len(term) > 1 or term.isdigit():
+                        query |= Q(title__icontains=term) | Q(text__icontains=term)
+                queryset = Post.objects.filter(query).distinct()
+
+        # Аннотации и сортировка
         user = self.request.user
-        if user.is_staff:
-            queryset = queryset.annotate(
-                num_comments=Count('comments', distinct=True),
-                num_likes=Count('likes', distinct=True),
-                num_dislikes = Count('dislikes', distinct=True)
-            )
-        else:
-            queryset = queryset.annotate(
-                num_comments=Count('comments',filter=Q(comments__is_active=True), distinct=True),
-                num_likes=Count('likes', distinct=True),
-                num_dislikes = Count('dislikes', distinct=True)
-            )
+        annotation_filter = Q() if user.is_staff else Q(comments__is_active=True)
 
-        # Предзагружаем автора для эффективности
-        queryset = queryset.select_related('author')
-
-        # Определяем тип фильтрации
-        filter_type = self.request.GET.get('filter', 'latest')
-
-        if filter_type == 'popular':
-            # Популярные посты - сортировка по количеству лайков
-            queryset = queryset.order_by('-num_likes', '-pub_date')
-        elif filter_type == 'subscriptions' and self.request.user.is_authenticated:
-            # Посты от подписок - только от авторов, на которых подписан пользователь
-            try:
-                subscribed_to = Subscription.objects.filter(
-                    subscriber=self.request.user
-                ).values_list('author_id', flat=True)
-
-                queryset = queryset.filter(author_id__in=subscribed_to).order_by('-pub_date')
-            except Exception as e:
-                # В случае ошибки - показываем обычную ленту
-                print(f"Error filtering by subscriptions: {e}")
-                queryset = queryset.order_by('-pub_date')
-        else:
-            # По умолчанию - последние посты
-            queryset = queryset.order_by('-pub_date')
-
-        return queryset
-
+        return queryset.annotate(
+            num_comments=Count('comments', filter=annotation_filter, distinct=True),
+            num_likes=Count('likes', distinct=True),
+            num_dislikes=Count('dislikes', distinct=True)
+        ).select_related('author').order_by('-pub_date')
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        # Добавляем текущий фильтр в контекст
-        context['current_filter'] = self.request.GET.get('filter', 'latest')
-
-        # Добавляем популярные теги
-        context['popular_tags'] = Tag.get_popular_tags()
+        context.update({
+            'current_filter': self.request.GET.get('filter', 'latest'),
+            'popular_tags': Tag.get_popular_tags(),
+            'search_query': self.search_query,
+            'search_terms': self.search_terms
+        })
 
         if self.request.user.is_authenticated:
             try:

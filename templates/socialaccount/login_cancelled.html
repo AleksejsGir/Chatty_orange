@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load socialaccount %}
+{% load django_bootstrap5 %} {# Included for consistency, though may not be strictly needed #}
+
+{% block title %}{% trans "Вход отменен" %} - Chatty{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card profile-card shadow-sm text-center">
+                <div class="card-header profile-card-title justify-content-center">
+                    <i class="fa-solid fa-ban fa-fw me-2"></i>{% trans "Процесс входа был отменен" %}
+                </div>
+                <div class="card-body profile-card-content p-4">
+
+                    <p class="lead mb-4">
+                        {% trans "Вы отменили процесс входа через социальную сеть." %}
+                    </p>
+
+                    <p class="text-muted">
+                        {% trans "Вы можете попробовать войти снова или вернуться на страницу входа." %}
+                    </p>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="{% url 'account_login' %}" class="btn btn-primary">
+                            <i class="fa-solid fa-right-to-bracket me-1"></i> {% trans "Вернуться на страницу входа" %}
+                        </a>
+                        {# Assuming 'google' is a configured provider. A more generic "try again" might link back to account_login too #}
+                        <a href="{% provider_login_url 'google' process='login' %}" class="btn btn-outline-secondary">
+                            <i class="fa-brands fa-google me-1"></i> {% trans "Попробовать снова войти через Google" %}
+                        </a>
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="{% url 'home' %}" class="btn btn-link">
+                            <i class="fa-solid fa-home me-1"></i> {% trans "На главную" %}
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

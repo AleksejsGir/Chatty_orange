@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load django_bootstrap5 %}
 {% load allauth account %}
+{% load socialaccount %}
 
 {% block title %}{% trans "Регистрация" %} - Chatty{% endblock %}
 
@@ -56,6 +57,21 @@
                             </button>
                         </div>
                     </form>
+
+                    {# Разделитель для социальных кнопок #}
+                    <div class="divider-wrapper mt-4">
+                        <hr class="divider-line">
+                        <span class="divider-text">{% trans "или" %}</span>
+                    </div>
+
+                    {# Кнопка регистрации через Google #}
+                    <div class="social-login mt-3">
+                        <a href="{% provider_login_url 'google' %}" class="btn btn-outline-danger w-100">
+                            <i class="fa-brands fa-google me-2"></i>
+                            {% trans "Зарегистрироваться через Google" %}
+                        </a>
+                    </div>
+
                  </div>
              </div>
         </div>
@@ -73,6 +89,3 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endblock %}
-
-<!-- TODO: Проверить работу отображения ошибок формы. -->
-<!-- TODO: Добавить ссылки на условия использования/политику конфиденциальности, если необходимо. -->
