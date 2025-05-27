@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load django_bootstrap5 %}
+
+{% block title %}{% trans "Завершение регистрации" %} - Chatty{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card profile-card shadow-sm">
+                <div class="card-header profile-card-title">
+                    <i class="fa-solid fa-user-plus fa-fw me-2"></i>{% trans "Завершение регистрации через Google" %}
+                </div>
+                <div class="card-body profile-card-content p-4">
+
+                    <p class="mb-4">
+                        {% blocktrans with provider_name=account.get_provider.name %}
+                        Вы входите через {{ provider_name }}.
+                        Пожалуйста, заполните следующую форму:
+                        {% endblocktrans %}
+                    </p>
+
+                    <form method="post" action="{% url 'socialaccount_signup' %}">
+                        {% csrf_token %}
+                        {% bootstrap_form form layout='vertical' %}
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button class="btn btn-primary btn-lg" type="submit">
+                                <i class="fa-solid fa-check-circle me-1"></i> {% trans "Завершить регистрацию" %}
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

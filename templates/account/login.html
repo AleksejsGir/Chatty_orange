@@ -2,18 +2,19 @@
 {% load i18n %}
 {% load allauth account %}
 {% load django_bootstrap5 %}
+{% load socialaccount %}
 
-{% block title %}{% trans "Вход" %} - Chatty{% endblock %} {# Изменил head_title на русский #}
+{% block title %}{% trans "Вход" %} - Chatty{% endblock %}
 
 {% block content %}
-<div class="container mt-5 mb-5"> {# Добавил отступы сверху и снизу #}
+<div class="container mt-5 mb-5">
     <div class="row justify-content-center">
-        <div class="col-lg-6 col-md-8"> {# Немного увеличил ширину колонки #}
-             <div class="card profile-card shadow-sm"> {# Используем стиль карточки #}
-                 <div class="card-header profile-card-title"> {# Стиль заголовка #}
-                     <i class="fa-solid fa-right-to-bracket fa-fw me-2"></i>{% trans "Вход в Chatty" %} {# Изменил заголовок #}
+        <div class="col-lg-6 col-md-8">
+             <div class="card profile-card shadow-sm">
+                 <div class="card-header profile-card-title">
+                     <i class="fa-solid fa-right-to-bracket fa-fw me-2"></i>{% trans "Вход в Chatty" %}
                  </div>
-                 <div class="card-body profile-card-content p-4"> {# Добавил padding #}
+                 <div class="card-body profile-card-content p-4">
 
                     {# Сообщение о необходимости входа (если пришел со страницы, требующей логина) #}
                     {% if form.errors and not form.non_field_errors %}
@@ -47,8 +48,8 @@
                         {% endif %}
 
                         {# Кнопка входа и ссылка на сброс пароля #}
-                        <div class="d-grid gap-2 mt-4"> {# Кнопка на всю ширину #}
-                             <button class="btn btn-primary btn-lg" type="submit"> {# Основная оранжевая кнопка #}
+                        <div class="d-grid gap-2 mt-4">
+                             <button class="btn btn-primary btn-lg" type="submit">
                                 <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> {% trans "Войти" %}
                              </button>
                         </div>
@@ -56,11 +57,24 @@
                             <a class="link-secondary small" href="{% url 'account_reset_password' %}">{% trans "Забыли пароль?" %}</a>
                          </div>
                     </form>
+
+                    {# Разделитель для социальных кнопок #}
+                    <div class="divider-wrapper mt-4">
+                        <hr class="divider-line">
+                        <span class="divider-text">{% trans "или" %}</span>
+                    </div>
+
+                    {# Кнопка входа через Google #}
+                    <div class="social-login mt-3">
+                        <a href="{% provider_login_url 'google' %}" class="btn btn-outline-danger w-100">
+                            <i class="fa-brands fa-google me-2"></i>
+                            {% trans "Войти через Google" %}
+                        </a>
+                    </div>
+
                  </div> {# Конец card-body #}
              </div> {# Конец card #}
         </div>
     </div>
 </div>
 {% endblock %}
-
-<!-- TODO: Проверить работу отображения ошибок формы. -->
