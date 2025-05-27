@@ -1,8 +1,25 @@
 import pytest
 from django.urls import reverse
 from django.contrib.auth import get_user_model
+from allauth.socialaccount.models import SocialApp
+from django.contrib.sites.models import Site
 
 User = get_user_model()
+
+
+@pytest.fixture
+def google_social_app():
+    """Создает SocialApp для Google в тестах."""
+    app = SocialApp.objects.create(
+        provider='google',
+        name='Google',
+        client_id='fake-client-id-for-tests',
+        secret='fake-secret-for-tests',
+    )
+    # Привязываем к текущему сайту
+    site = Site.objects.get_current()
+    app.sites.add(site)
+    return app
 
 
 @pytest.mark.django_db
@@ -69,20 +86,81 @@ class TestUserViews:
 class TestAuthenticationViews:
     """Тесты для представлений аутентификации."""
 
-    def test_login_view(self, client):
+    def test_login_view(self, client, google_social_app):
         """Тест страницы входа."""
         url = reverse('account_login')
         response = client.get(url)
         assert response.status_code == 200
+        # Проверяем, что в ответе есть форма входа
+        assert 'form' in response.context
+        assert 'Вход' in response.content.decode() or 'Login' in response.content.decode()
 
-    def test_signup_view(self, client):
+    def test_signup_view(self, client, google_social_app):
         """Тест страницы регистрации."""
         url = reverse('account_signup')
         response = client.get(url)
         assert response.status_code == 200
+        # Проверяем, что в ответе есть форма регистрации
+        assert 'form' in response.context
+        assert 'Регистрация' in response.content.decode() or 'Sign Up' in response.content.decode()
 
     def test_logout_view(self, authenticated_client):
         """Тест выхода из системы."""
         url = reverse('account_logout')
         response = authenticated_client.get(url)
         assert response.status_code == 200  # Показывает страницу подтверждения
+
+    def test_login_with_valid_credentials(self, client, user, google_social_app):
+        """Тест входа с правильными данными."""
+        url = reverse('account_login')
+        data = {
+            'login': user.email,
+            'password': 'testpass123'
+        }
+        response = client.post(url, data)
+        # Должен быть редирект после успешного входа
+        assert response.status_code == 302
+
+    def test_signup_with_valid_data(self, client, google_social_app):
+        """Тест регистрации с правильными данными."""
+        url = reverse('account_signup')
+        data = {
+            'username': 'newuser',
+            'email': 'newuser@example.com',
+            'password1': 'complexpassword123',
+            'password2': 'complexpassword123'
+        }
+        response = client.post(url, data)
+        # Должен быть редирект после успешной регистрации
+        assert response.status_code == 302
+
+        # Проверяем, что пользователь создался
+        assert User.objects.filter(username='newuser').exists()
+
+    def test_signup_with_mismatched_passwords(self, client, google_social_app):
+        """Тест регистрации с несовпадающими паролями."""
+        url = reverse('account_signup')
+        data = {
+            'username': 'newuser2',
+            'email': 'newuser2@example.com',
+            'password1': 'complexpassword123',
+            'password2': 'differentpassword123'
+        }
+        response = client.post(url, data)
+        # Форма должна вернуться с ошибками
+        assert response.status_code == 200
+        assert 'form' in response.context
+        assert response.context['form'].errors
+
+    def test_login_with_invalid_credentials(self, client, google_social_app):
+        """Тест входа с неправильными данными."""
+        url = reverse('account_login')
+        data = {
+            'login': 'nonexistent@example.com',
+            'password': 'wrongpassword'
+        }
+        response = client.post(url, data)
+        # Форма должна вернуться с ошибками
+        assert response.status_code == 200
+        assert 'form' in response.context
+        assert response.context['form'].errors
