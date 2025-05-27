@@ -23,6 +23,49 @@
     <link rel="stylesheet" href="{% static 'css/orange-assistant.css' %}">
 
     {% block extra_css %}
+        <style>
+    .image-overlay {
+        position: absolute;
+        bottom: 10px;
+        left: 0;
+        right: 0;
+        z-index: 10;
+    }
+
+    .image-nav-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        cursor: pointer;
+    }
+
+    .prev-btn {
+        left: 15px;
+    }
+
+    .next-btn {
+        right: 15px;
+    }
+
+    .main-image {
+        position: relative;
+    }
+
+    .img-thumbnail.active {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+</style>
          <style>
             /* Единые стили для кнопки .btn-search */
             .btn-search {
@@ -104,6 +147,66 @@
     {% block extra_js %}
         <script src="{% static 'js/likes.js' %}"></script>
 {#        <script src="{% static 'js/orange-assistant.js' %}"></script>#}
+       <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mainImage = document.getElementById('mainImage');
+            const thumbnails = document.querySelectorAll('.image-thumbnails .img-thumbnail');
+            const currentImageCounter = document.getElementById('currentImage');
+            const prevBtn = document.getElementById('prevImage');
+            const nextBtn = document.getElementById('nextImage');
+            const enlargeBtn = document.getElementById('enlargeImage');
+
+            let currentIndex = 0;
+            const images = [
+                {% for image in post.images.all %}
+                    '{{ image.image.url }}',
+                {% endfor %}
+            ];
+
+            // Обработчики для миниатюр
+            thumbnails.forEach(thumb => {
+                thumb.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    updateMainImage(index);
+                });
+            });
+
+            // Кнопки навигации
+            prevBtn.addEventListener('click', prevImage);
+            nextBtn.addEventListener('click', nextImage);
+
+            // Увеличение изображения
+            enlargeBtn.addEventListener('click', function() {
+                window.open(images[currentIndex], '_blank');
+            });
+
+            function updateMainImage(index) {
+                currentIndex = index;
+                mainImage.src = images[index];
+                currentImageCounter.textContent = index + 1;
+
+                // Обновление активной миниатюры
+                thumbnails.forEach(thumb => thumb.classList.remove('active'));
+                thumbnails[index].classList.add('active');
+            }
+
+            function prevImage() {
+                const newIndex = (currentIndex - 1 + images.length) % images.length;
+                updateMainImage(newIndex);
+            }
+
+            function nextImage() {
+                const newIndex = (currentIndex + 1) % images.length;
+                updateMainImage(newIndex);
+            }
+
+            // Обработчики клавиатуры
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowLeft') prevImage();
+                if (e.key === 'ArrowRight') nextImage();
+            });
+        });
+    </script>
     {% endblock %}
     <div class="modal fade" id="rulesModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
