@@ -40,9 +40,14 @@
             </ul>
 
             {# Поиск (статичная заглушка) #}
-            <form class="d-flex mx-auto search-form d-none d-lg-flex" role="search">
+            <form class="d-flex mx-auto search-form d-none d-lg-flex" role="search" action="{% url 'posts:post-list' %}" method="get">
                 <div class="input-group">
-                    <input class="form-control search-input" type="search" placeholder="Поиск..." aria-label="Search">
+                    <input class="form-control search-input"
+                           type="search"
+                           name="q"
+                           value="{{ search_query|default:'' }}"
+                           placeholder="Поиск..."
+                           aria-label="Search">
                     <button class="btn btn-search" type="submit">
                         <i class="fa-solid fa-search"></i>
                     </button>
