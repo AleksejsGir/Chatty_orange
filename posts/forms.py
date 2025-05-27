@@ -99,8 +99,8 @@ class PostImageForm(forms.ModelForm):
             }),
             'order': forms.NumberInput(attrs={
                 'class': 'form-control',
-                'min': '0',
-                'value': '0'
+                'min': '1',
+                'value': '1'
             })
         }
 

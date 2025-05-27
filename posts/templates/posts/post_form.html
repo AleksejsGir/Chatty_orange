@@ -243,6 +243,9 @@
         const totalForms = document.getElementById('id_images-TOTAL_FORMS');
         let formCount = container.querySelectorAll('.image-form').length || 0;
 
+        // Установим начальное значение для нового изображения
+        let nextOrderValue = formCount + 1;
+
         // Функция добавления новой формы
         function addImageForm() {
             if (formCount >= 10) {
@@ -265,7 +268,7 @@
                         <div class="mb-3">
                             <label class="form-label">Порядок</label>
                             <input type="number" name="images-${formCount}-order"
-                                   class="form-control" value="${formCount}" min="0">
+                                   class="form-control" value="${nextOrderValue}" min="1">
                         </div>
                     </div>
                 </div>
