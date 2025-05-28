@@ -52,12 +52,12 @@
                                             {% csrf_token %}
                                             <input type="hidden" name="next" value="{{ request.path }}?{% if request.GET.page %}page={{ request.GET.page }}{% endif %}">
                                             {% if subscription.subscriber.id in subscribed_to %}
-                                                <button type="submit" class="btn btn-outline-secondary btn-sm subscription-toggle"
+                                                <button type="submit" class="btn btn-outline-secondary btn-sm subscription-toggle js-subscription-toggle"
                                                         data-username="{{ subscription.subscriber.username }}">
                                                     <i class="fa-solid fa-user-minus me-1"></i>Отписаться
                                                 </button>
                                             {% else %}
-                                                <button type="submit" class="btn btn-follow subscription-toggle"
+                                                <button type="submit" class="btn btn-follow subscription-toggle js-subscription-toggle"
                                                         data-username="{{ subscription.subscriber.username }}">
                                                     <i class="fa-solid fa-user-plus me-1"></i>Подписаться
                                                 </button>
