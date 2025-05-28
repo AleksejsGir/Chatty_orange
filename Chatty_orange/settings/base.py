@@ -123,10 +123,30 @@ ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
 ACCOUNT_LOGOUT_ON_GET = False
 ACCOUNT_EMAIL_SUBJECT_PREFIX = '[Chatty] '
 
+ACCOUNT_AUTHENTICATION_METHOD = 'email'  # Использовать email для входа
+ACCOUNT_USERNAME_REQUIRED = False  # Не требовать username при регистрации через Google
+ACCOUNT_UNIQUE_EMAIL = True  # Email должен быть уникальным
+# SOCIALACCOUNT_LOGIN_ON_GET = False  # Требовать POST для безопасности
+
+# Для лучшего UX
+ACCOUNT_SESSION_REMEMBER = True  # Опция "Запомнить меня"
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True  # Автологин после подтверждения
+
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
 ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = '/'
 ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = '/'
 
+# Автоматически подтягивать email и имя из Google
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'  # Google уже проверил email
+SOCIALACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_STORE_TOKENS = True
+# Для автоматической связки аккаунтов с одинаковым email:
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+
+# Адаптер для обработки конфликтов email
+SOCIALACCOUNT_ADAPTER = 'users.adapters.MySocialAccountAdapter'
 
 # Google OAuth Settings
 SOCIALACCOUNT_PROVIDERS = {
@@ -139,14 +159,15 @@ SOCIALACCOUNT_PROVIDERS = {
             'access_type': 'online',
         },
         'OAUTH_PKCE_ENABLED': True,
+        # Добавьте маппинг полей:
+        'FIELDS': [
+            'email',
+            'first_name',
+            'last_name',
+        ],
     }
 }
 
-# Автоматически подтягивать email и имя из Google
-SOCIALACCOUNT_AUTO_SIGNUP = True
-SOCIALACCOUNT_EMAIL_VERIFICATION = ACCOUNT_EMAIL_VERIFICATION
-SOCIALACCOUNT_EMAIL_REQUIRED = True
-SOCIALACCOUNT_QUERY_EMAIL = True
 
 
      #CKEditor

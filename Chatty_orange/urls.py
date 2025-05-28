@@ -3,6 +3,7 @@ from django.conf import settings # Импортируем settings здесь, �
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.auth.views import LogoutView
 
 # Для home_page_view
 from users import views as user_views
