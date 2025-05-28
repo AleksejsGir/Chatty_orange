@@ -123,22 +123,62 @@
                                     </div>
                                 {% endif %}
 
+                                {# --- Изображения поста с галереей --- #}
                                 {% if post.images.all %}
-                                    <div class="post-images">
-                                        <a href="{% url 'posts:post-detail' pk=post.pk %}" class="d-block">
-                                            <div class="row">
-                                                {% for image in post.images.all|dictsort:"order"|slice:":2" %}
-                                                    <div class="col-6">
-                                                        <img src="{{ image.image.url }}" alt="{{ post.title }}" class="img-fluid rounded" style="height: 150px; width: 100%; object-fit: cover;">
-                                                    </div>
-                                                {% endfor %}
-                                            </div>
-                                            {% if post.images.count > 2 %}
-                                                <div class="text-center mt-2">
-                                                    <span class="badge bg-light text-dark">+{{ post.images.count|add:"-2" }} фото</span>
+                                    <div class="post-images mb-3" data-post-id="{{ post.pk }}">
+                                        {# Основное изображение с навигацией #}
+                                        <div class="main-image mb-3 position-relative">
+                                            <a href="{% url 'posts:post-detail' pk=post.pk %}" class="d-block">
+                                                <img src="{{ post.images.first.image.url }}"
+                                                     class="img-fluid rounded shadow-sm"
+                                                     alt="{{ post.title }}"
+                                                     id="mainImage-{{ post.pk }}"
+                                                     style="max-height: 400px; width: 100%; object-fit: contain; background-color: #f8f9fa;">
+                                            </a>
+
+                                            {# Навигация и счетчик поверх изображения #}
+                                            {% if post.images.count > 1 %}
+                                            <div class="image-overlay d-flex justify-content-between align-items-center p-3">
+                                                <div class="image-counter bg-dark bg-opacity-50 text-white px-3 py-1 rounded-pill">
+                                                    <span id="currentImage-{{ post.pk }}">1</span>/{{ post.images.count }}
                                                 </div>
+                                            </div>
+
+                                            {# Кнопки навигации #}
+                                            <button class="image-nav-btn prev-btn" onclick="changeImage({{ post.pk }}, 'prev', event)">
+                                                <i class="fa-solid fa-chevron-left"></i>
+                                            </button>
+                                            <button class="image-nav-btn next-btn" onclick="changeImage({{ post.pk }}, 'next', event)">
+                                                <i class="fa-solid fa-chevron-right"></i>
+                                            </button>
                                             {% endif %}
-                                        </a>
+                                        </div>
+
+                                        {# Миниатюры - показываем только если больше одного изображения #}
+                                        {% if post.images.count > 1 %}
+                                        <div class="image-thumbnails row g-2" id="imageThumbnails-{{ post.pk }}">
+                                            {% for image in post.images.all|dictsort:"order" %}
+                                                <div class="col-3 col-md-2">
+                                                    <img src="{{ image.image.url }}"
+                                                         class="img-thumbnail {% if forloop.first %}active{% endif %}"
+                                                         alt="Thumbnail {{ forloop.counter }}"
+                                                         data-index="{{ forloop.counter0 }}"
+                                                         onclick="selectImage({{ post.pk }}, {{ forloop.counter0 }}, event)"
+                                                         style="cursor: pointer; height: 60px; width: 100%; object-fit: contain; background-color: #f8f9fa;">
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+
+                                        {# Скрытое хранилище URL изображений для JavaScript #}
+                                        <script type="text/javascript">
+                                            if (!window.postImages) window.postImages = {};
+                                            window.postImages[{{ post.pk }}] = [
+                                                {% for image in post.images.all|dictsort:"order" %}
+                                                    '{{ image.image.url }}'{% if not forloop.last %},{% endif %}
+                                                {% endfor %}
+                                            ];
+                                        </script>
                                     </div>
                                 {% endif %}
 
@@ -368,6 +408,7 @@
 
 {% block extra_css %}
     <style>
+        /* Стили для кнопок */
         .btn-search {
             background-color: #FFB74D !important;
             border-color: #FFB74D !important;
@@ -379,6 +420,8 @@
             background-color: #F57C00 !important;
             border-color: #F57C00 !important;
         }
+
+        /* Стили для подсветки поиска */
         .highlight {
             background-color: #ffd700;
             color: #000;
@@ -390,18 +433,157 @@
         .highlight mark {
             all: inherit !important;
         }
+
+        /* Стили для галереи изображений */
         .post-images {
             margin-bottom: 1rem;
         }
-        .existing-image img {
-            max-width: 100%;
-            height: auto;
+
+        /* Стили для оверлея с навигацией */
+        .image-overlay {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            pointer-events: none;
         }
+
+        /* Стили для кнопок навигации */
+        .image-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .image-nav-btn:hover {
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .prev-btn {
+            left: 15px;
+        }
+
+        .next-btn {
+            right: 15px;
+        }
+
+        .main-image {
+            position: relative;
+        }
+
+        /* Стили для миниатюр */
         .img-thumbnail {
             padding: 0.25rem;
             background-color: #fff;
-            border: 1px solid #dee2e6;
+            border: 2px solid #dee2e6;
             border-radius: 0.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .img-thumbnail:hover {
+            border-color: #6c757d;
+            transform: scale(1.05);
+        }
+
+        .img-thumbnail.active {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
         }
     </style>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/likes.js' %}"></script>
+    <script>
+        // Функция для показа уведомления о необходимости авторизации
+        function showLoginAlert() {
+            alert('Для выполнения этого действия необходимо авторизоваться!');
+        }
+
+        // Объект для хранения текущих индексов изображений для каждого поста
+        let currentIndexes = {};
+
+        // Функция для изменения изображения при клике на стрелки
+        function changeImage(postId, direction, event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const images = window.postImages[postId];
+            if (!images || images.length <= 1) return;
+
+            // Получаем или инициализируем текущий индекс
+            if (currentIndexes[postId] === undefined) {
+                currentIndexes[postId] = 0;
+            }
+
+            // Изменяем индекс в зависимости от направления
+            if (direction === 'prev') {
+                currentIndexes[postId] = (currentIndexes[postId] - 1 + images.length) % images.length;
+            } else {
+                currentIndexes[postId] = (currentIndexes[postId] + 1) % images.length;
+            }
+
+            updateImage(postId);
+        }
+
+        // Функция для выбора изображения по клику на миниатюру
+        function selectImage(postId, index, event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            currentIndexes[postId] = index;
+            updateImage(postId);
+        }
+
+        // Функция для обновления отображения изображения
+        function updateImage(postId) {
+            const images = window.postImages[postId];
+            const currentIndex = currentIndexes[postId] || 0;
+
+            // Обновляем главное изображение
+            const mainImage = document.getElementById(`mainImage-${postId}`);
+            if (mainImage) {
+                mainImage.src = images[currentIndex];
+            }
+
+            // Обновляем счетчик
+            const counter = document.getElementById(`currentImage-${postId}`);
+            if (counter) {
+                counter.textContent = currentIndex + 1;
+            }
+
+            // Обновляем активную миниатюру
+            const thumbnails = document.querySelectorAll(`#imageThumbnails-${postId} .img-thumbnail`);
+            thumbnails.forEach((thumb, index) => {
+                if (index === currentIndex) {
+                    thumb.classList.add('active');
+                } else {
+                    thumb.classList.remove('active');
+                }
+            });
+        }
+
+        // Инициализация галерей при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            // Инициализируем все галереи
+            if (window.postImages) {
+                Object.keys(window.postImages).forEach(postId => {
+                    currentIndexes[postId] = 0;
+                });
+            }
+        });
+    </script>
 {% endblock %}
