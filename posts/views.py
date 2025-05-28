@@ -29,60 +29,69 @@ class PostListView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        # self.search_query = self.request.GET.get('q', '').strip()
-        # Инициализация атрибутов по умолчанию
+        # Инициализация атрибутов для поиска по умолчанию
         self.search_query = self.request.GET.get('q', '').strip()
-        self.search_terms = self.search_query.split() if self.search_query else []
+        self.search_terms = []
 
-        # Поиск по ID если введены только цифры
-        if self.search_query.isdigit():
-            return queryset.filter(pk=int(self.search_query))
-
-        # Основная логика поиска
-        if self.search_query:
-            search_terms = self.search_query.split()
-            found = False
-            current_terms = search_terms.copy()
-            queryset = Post.objects.none()  # Начинаем с пустого queryset
-
-            # Поиск фразы с уменьшением слов
-            while len(current_terms) > 0:
-                phrase = ' '.join(current_terms)
-                phrase_query = Q(title__icontains=phrase) | Q(text__icontains=phrase)
-                qs = Post.objects.filter(phrase_query)
-
-                if qs.exists():
-                    queryset = qs
-                    found = True
-                    break
-                else:
-                    current_terms.pop()
-
-            # Если фраза не найдена - ищем отдельные слова
-            if not found:
-                query = Q()
-                for term in search_terms:
-                    if len(term) > 1 or term.isdigit():
-                        query |= Q(title__icontains=term) | Q(text__icontains=term)
-                queryset = Post.objects.filter(query).distinct()
-
-        # Аннотации и сортировка
-        user = self.request.user
-        annotation_filter = Q() if user.is_staff else Q(comments__is_active=True)
-
-        return queryset.annotate(
-            num_comments=Count('comments', filter=annotation_filter, distinct=True),
+        # Базовый запрос с предварительной загрузкой автора и аннотациями
+        queryset = Post.objects.select_related('author').annotate(
+            num_comments=Count('comments', filter=Q(comments__is_active=True) | Q(comments__isnull=True),
+                               distinct=True),  # Скорректировано для корректного подсчета
             num_likes=Count('likes', distinct=True),
             num_dislikes=Count('dislikes', distinct=True)
-        ).select_related('author').order_by('-pub_date')
+        )
+
+        # Логика поиска
+        if self.search_query:
+            if self.search_query.isdigit():
+                # Поиск по ID, если введены только цифры
+                # Этот результат является окончательным, остальные фильтры не применяются
+                self.search_terms = []  # ID поиск не использует search_terms в шаблоне
+                return queryset.filter(pk=int(self.search_query))
+            else:
+                # Текстовый поиск
+                self.search_terms = self.search_query.split()
+                search_query_obj = Q()
+                # Поиск по целой фразе
+                search_query_obj |= Q(title__icontains=self.search_query)
+                search_query_obj |= Q(text__icontains=self.search_query)
+
+                # Поиск по отдельным словам (если фраза не дала результатов или для расширения)
+                # Можно добавить более сложную логику, как была ранее, если потребуется
+                # Например, поиск по всем словам, или по части слов.
+                # Текущая реализация ищет фразу целиком ИЛИ отдельные слова.
+                for term in self.search_terms:
+                    if len(term) > 1:  # Игнорируем слишком короткие слова
+                        search_query_obj |= Q(title__icontains=term)
+                        search_query_obj |= Q(text__icontains=term)
+
+                queryset = queryset.filter(search_query_obj).distinct()
+
+        # Логика фильтрации (применяется к результатам поиска или ко всем постам)
+        filter_param = self.request.GET.get('filter', 'latest')
+
+        if filter_param == 'subscriptions':
+            if self.request.user.is_authenticated:
+                subscribed_author_ids = Subscription.objects.filter(
+                    subscriber=self.request.user
+                ).values_list('author_id', flat=True)
+                queryset = queryset.filter(author_id__in=subscribed_author_ids).order_by('-pub_date')
+            else:
+                queryset = Post.objects.none()
+        elif filter_param == 'popular':
+            queryset = queryset.order_by('-num_likes', '-pub_date')
+        else:  # 'latest' или любой другой/не указанный параметр
+            queryset = queryset.order_by('-pub_date')
+
+        return queryset
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context.update({
             'current_filter': self.request.GET.get('filter', 'latest'),
             'popular_tags': Tag.get_popular_tags(),
-            'search_query': self.search_query,
-            'search_terms': self.search_terms
+            'search_query': getattr(self, 'search_query', ''),
+            'search_terms': getattr(self, 'search_terms', [])
         })
 
         if self.request.user.is_authenticated:
@@ -159,6 +168,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
         else:
             return self.form_invalid(form)
 
+
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
     form_class = PostForm
@@ -191,6 +201,7 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def test_func(self):
         post = self.get_object()
         return self.request.user == post.author
+
 
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
@@ -311,6 +322,7 @@ class PostDislikeView(LoginRequiredMixin, View):
             'total_likes': post.likes.count()
         })
 
+
 class TagPostListView(ListView):
     model = Post
     template_name = 'posts/post_list.html'
@@ -351,17 +363,22 @@ class TagPostListView(ListView):
         context['popular_tags'] = Tag.get_popular_tags()
         return context
 
+
 def terms_of_use(request):
     return render(request, 'posts/terms_of_use.html')
+
 
 def privacy_policy(request):
     return render(request, 'posts/privacy_policy.html')
 
+
 class TermsOfUseView(TemplateView):
     template_name = 'terms_of_use.html'
 
+
 class PrivacyPolicyView(TemplateView):
     template_name = 'privacy_policy.html'
+
 
 def feed_view(request):
     posts = Post.objects.annotate(
