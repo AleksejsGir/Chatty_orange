@@ -25,7 +25,7 @@
                         {% csrf_token %}
                         {% bootstrap_form form layout='vertical' %}
 
-                        {# Добавляем чекбокс согласия! #}
+                        {# ВАЖНО: Галочка согласия! #}
                         <div class="form-check mb-4">
                             <input class="form-check-input" type="checkbox" id="agreeTermsSocial" required>
                             <label class="form-check-label small" for="agreeTermsSocial">

@@ -3,15 +3,15 @@
 {% load django_bootstrap5 %}
 {% load allauth account %}
 
-{% block title %}{% trans "Выход из системы" %} - Chatty{% endblock %} {# Изменил head_title #}
+{% block title %}{% trans "Выход из системы" %} - Chatty{% endblock %}
 
 {% block content %}
 <div class="container mt-5 mb-5">
     <div class="row justify-content-center">
         <div class="col-lg-6 col-md-8">
-             <div class="card profile-card shadow-sm text-center"> {# Добавил text-center #}
-                 <div class="card-header profile-card-title justify-content-center"> {# Центрировал заголовок #}
-                     <i class="fa-solid fa-right-from-bracket fa-fw me-2"></i>{% trans "Подтверждение выхода" %} {# Изменил заголовок #}
+             <div class="card profile-card shadow-sm text-center">
+                 <div class="card-header profile-card-title justify-content-center">
+                     <i class="fa-solid fa-right-from-bracket fa-fw me-2"></i>{% trans "Подтверждение выхода" %}
                  </div>
                  <div class="card-body profile-card-content p-4">
 
@@ -23,18 +23,17 @@
                             <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
                         {% endif %}
 
-                        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center"> {# Центрируем кнопки на sm+ #}
-                            {# Используем основной стиль (оранжевый) для кнопки выхода, т.к. это основное действие на этой странице #}
-                            <button class="btn btn-primary btn-lg" type="submit"> {# Изменил стиль на btn-primary #}
-                                <i class="fa-solid fa-check me-1"></i> {% trans "Да, выйти" %} {# Изменил текст #}
+                        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                            <button class="btn btn-primary btn-lg" type="submit">
+                                <i class="fa-solid fa-check me-1"></i> {% trans "Да, выйти" %}
                             </button>
-                            <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-lg ms-sm-2"> {# Увеличил кнопку #}
+                            <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-lg ms-sm-2">
                                 Отмена
                             </a>
                         </div>
                     </form>
-                 </div> {# Конец card-body #}
-             </div> {# Конец card #}
+                 </div>
+             </div>
         </div>
     </div>
 </div>

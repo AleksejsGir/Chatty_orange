@@ -137,7 +137,7 @@ ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = '/'
 ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = '/'
 
 # Автоматически подтягивать email и имя из Google
-SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_AUTO_SIGNUP = False #Это предотвратит автоматическое создание пользователя allauth.
 SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'  # Google уже проверил email
 SOCIALACCOUNT_EMAIL_REQUIRED = True
 SOCIALACCOUNT_QUERY_EMAIL = True
