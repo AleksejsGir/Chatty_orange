@@ -2,9 +2,13 @@
     <div class="d-flex mb-3 pb-3">
         <div class="flex-shrink-0 me-3">
             {% if comment.author.avatar %}
-                <img src="{{ comment.author.avatar.url }}" alt="{{ comment.author.username }}" class="post-avatar" style="width: 40px; height: 40px;">
+                <img src="{{ comment.author.avatar.url }}"
+                     alt="{{ comment.author.username }}"
+                     class="post-avatar"
+                     style="width: 40px; height: 40px;">
             {% else %}
-                <div class="avatar-placeholder" style="width: 40px; height: 40px; font-size: 1rem;">
+                <div class="avatar-placeholder"
+                     style="width: 40px; height: 40px; font-size: 1rem;">
                     <span>{{ comment.author.username|first|upper }}</span>
                 </div>
             {% endif %}
@@ -12,25 +16,10 @@
         <div class="flex-grow-1 position-relative">
             <div class="comment-header mb-2">
                 <h6 class="mt-0 mb-1 d-inline-block">
-                    <a href="{% url 'users:profile' comment.author.username %}" class="post-author-name">{{ comment.author.username }}</a>
+                    <a href="{% url 'users:profile' comment.author.username %}"
+                       class="post-author-name">{{ comment.author.username }}</a>
                     <small class="text-muted ms-2">{{ comment.created_at|date:"d.m.Y H:i" }}</small>
                 </h6>
-                <div class="comment-actions">
-                    <button class="btn-emoji" data-bs-toggle="modal" data-bs-target="#emojiModal">
-                        <i class="fa-regular fa-face-smile"></i>
-                    </button>
-                    {% if user == comment.author or user.is_staff %}
-                        <a href="{% url 'posts:comment-edit' pk=comment.pk %}" class="text-primary">
-                            <i class="fa-regular fa-pen-to-square"></i>
-                        </a>
-                        <form method="post" action="{% url 'posts:comment-delete' pk=comment.pk %}" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-link text-danger p-0" onclick="return confirm('Удалить этот комментарий?')">
-                                <i class="fa-regular fa-trash-can"></i>
-                            </button>
-                        </form>
-                    {% endif %}
-                </div>
             </div>
 
             {% if not comment.is_active and user.is_staff %}
@@ -41,19 +30,65 @@
 
             <div class="comment-content">
                 <p>{{ comment.text|linebreaksbr }}</p>
+
+                <!-- Блок реакций -->
                 <div class="emoji-reactions mt-2">
                     {% for reaction in comment.reactions.all %}
-                        <span class="badge">{{ reaction.emoji }} {{ reaction.count }}</span>
+                        <span class="badge reaction-badge"
+                              data-emoji="{{ reaction.emoji }}"
+                              data-comment-id="{{ comment.id }}">
+                            {{ reaction.emoji }} {{ reaction.count }}
+                        </span>
                     {% endfor %}
                 </div>
             </div>
 
-            <button class="btn-reply btn btn-link p-0 mt-2 text-muted">
-                <i class="fa-regular fa-comment-dots me-1"></i>Ответить
-            </button>
+            <!-- Панель действий -->
+            <div class="comment-actions mt-2 d-flex align-items-center gap-2">
+                <!-- Реакции -->
+                <button class="btn-action text-muted"
+                        data-bs-toggle="modal"
+                        data-bs-target="#emojiModal"
+                        title="Добавить реакцию">
+                    <i class="fa-regular fa-face-smile"></i>
+                </button>
 
-            <div class="reply-form mt-3">
-                <form method="post" action="{% url 'posts:comment-reply' parent_id=comment.id %}" class="mt-2">
+                <!-- Ответ -->
+                <button class="btn-action text-muted btn-reply"
+                        title="Ответить">
+                    <i class="fa-regular fa-comment-dots"></i>
+                </button>
+
+                <!-- Редактирование -->
+                {% if user == comment.author or user.is_staff %}
+                    <a href="{% url 'posts:comment-edit' pk=comment.pk %}"
+                       class="btn-action text-primary"
+                       title="Редактировать">
+                        <i class="fa-regular fa-pen-to-square"></i>
+                    </a>
+                {% endif %}
+
+                <!-- Удаление -->
+                {% if user == comment.author or user.is_staff %}
+                    <form method="post"
+                          action="{% url 'posts:comment-delete' pk=comment.pk %}"
+                          class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="btn-action text-danger"
+                                title="Удалить"
+                                onclick="return confirm('Удалить этот комментарий?')">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+
+            <!-- Форма ответа -->
+            <div class="reply-form mt-3 d-none">
+                <form method="post"
+                      action="{% url 'posts:comment-reply' parent_id=comment.id %}"
+                      class="mt-2">
                     {% csrf_token %}
                     {% bootstrap_form comment_form %}
                     <div class="mt-2">
@@ -63,6 +98,7 @@
                 </form>
             </div>
 
+            <!-- Вложенные комментарии -->
             {% if comment.replies.all %}
                 <div class="replies mt-3">
                     {% for reply in comment.replies.all %}
