@@ -148,10 +148,17 @@ class FeedView(LoginRequiredMixin, ListView):
             subscriber=self.request.user
         ).values_list('author_id', flat=True)
 
-        # Возвращаем посты от этих пользователей с аннотациями для количества лайков и комментариев
+        # Возвращаем посты от этих пользователей с аннотациями и предзагрузкой связанных данных
         return Post.objects.filter(
             author_id__in=following_users
-        ).select_related('author').annotate(
+        ).select_related(
+            'author'  # Загружаем информацию об авторе одним запросом
+        ).prefetch_related(
+            'images',     # ВАЖНО! Загружаем все изображения для постов
+            'likes',      # Загружаем лайки для проверки, лайкнул ли текущий пользователь
+            'tags',       # Загружаем теги, если они отображаются в ленте
+            'comments'    # Загружаем комментарии для подсчета
+        ).annotate(
             num_comments=Count('comments', distinct=True),
             num_likes=Count('likes', distinct=True)
         ).order_by('-pub_date')
