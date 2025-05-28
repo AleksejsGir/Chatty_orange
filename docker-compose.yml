@@ -1,36 +1,36 @@
-
+# docker-compose.yml
 services:
-  # Сервис базы данных PostgreSQL
   db:
-    image: postgres:15 # Используем официальный образ PostgreSQL версии 15
-    container_name: chatty_db # Имя контейнера для удобства
+    image: postgres:15
+    container_name: chatty_db
     volumes:
-      - postgres_data:/var/lib/postgresql/data # Сохраняем данные БД в именованный том
+      - postgres_data:/var/lib/postgresql/data # Убедитесь, что здесь нет опечатки (было /data/)
     env_file:
-      - .env # Загружаем переменные окружения из .env файла
+      - .env
     environment:
       # Переменные для инициализации базы данных PostgreSQL
-      POSTGRES_DB: chatty_db
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: postgres
+      # Используем двоеточие, а не дефис для YAML словаря
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "5433:5432" # Маппим порт БД на хост (5433) для возможного внешнего доступа
+      - "5433:5432"
     networks:
-      - chatty_network # Подключаем к общей сети
-    # --- Проверка состояния контейнера PostgreSQL ---
+      - chatty_network
     healthcheck:
-      # Команда для проверки готовности PostgreSQL принимать подключения
-      test: ["CMD-SHELL", "pg_isready -U admin -d chatty_db"]
-      interval: 5s    # Интервал между проверками
-      timeout: 5s     # Таймаут ожидания ответа от проверки
-      retries: 5      # Количество попыток перед признанием контейнера нездоровым
+      # Используем переменные окружения, которые PostgreSQL сам подхватит при инициализации
+      # и которые доступны внутри контейнера через env_file
+      test: ["CMD", "pg_isready", "-U", "${DB_USER}", "-d", "${DB_NAME}", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     # --- Конец блока healthcheck ---
 
   # Сервис веб-приложения Django
   web:
     build: . # Собираем образ из Dockerfile в текущей директории
     container_name: chatty_web # Имя контейнера
-    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000" # Команда для запуска Django
+    command: python manage.py runserver 0.0.0.0:8000 # Команда для запуска Django
     volumes:
       - .:/app/ # Монтируем текущую директорию для live-reload кода
     ports:
@@ -54,5 +54,3 @@ networks:
 volumes:
   postgres_data: # Именованный том для персистентного хранения данных PostgreSQL
 
-# <!-- TODO: Для production рассмотреть использование отдельного сервиса для статики (Nginx). -->
-# <!-- TODO: Добавить другие сервисы при необходимости (Redis, Celery). -->

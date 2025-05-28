@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load highlight %}
+{% load highlight_tags %}
 
 {% block title %}
     {% if current_filter == 'tag' and current_tag %}
@@ -11,384 +13,395 @@
 {% endblock %}
 
 {% block content %}
-<!-- Применяем класс orange-background к основному контейнеру -->
-<div class="orange-background">
-    <div class="container">
-        <div class="row">
-            <!-- Основная колонка с постами -->
-            <div class="col-lg-8">
-                <!-- Заголовок страницы и кнопка создания поста -->
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="page-title">
-                        {% if current_filter == 'tag' and current_tag %}
-                            Посты по теме <span class="text-accent">#{{ current_tag.name }}</span>
-                        {% else %}
-                            Лента постов
-                        {% endif %}
-                    </h1>
-                    {% if user.is_authenticated %}
-                    <a href="{% url 'posts:post-create' %}" class="btn btn-create">
-                        <i class="fa-solid fa-plus-circle me-2"></i>Создать пост
-                    </a>
-                    {% endif %}
-                </div>
-
-                <!-- Фильтры постов -->
-                <div class="post-filters mb-4">
-                    <div class="btn-group" role="group" aria-label="Фильтры постов">
-                        <a href="{% url 'posts:post-list' %}{% if request.GET.page %}?page={{ request.GET.page }}{% endif %}"
-                        class="btn btn-filter {% if not current_filter or current_filter == 'latest' %}active{% endif %}">
-                            Последние
-                        </a>
-                        <a href="{% url 'posts:post-list' %}?filter=popular{% if request.GET.page %}&page={{ request.GET.page }}{% endif %}"
-                        class="btn btn-filter {% if current_filter == 'popular' %}active{% endif %}">
-                            Популярные
-                        </a>
+    <div class="orange-background">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h1 class="page-title">
+                            {% if current_filter == 'tag' and current_tag %}
+                                Посты по теме <span class="text-accent">#{{ current_tag.name }}</span>
+                            {% else %}
+                                Лента постов
+                            {% endif %}
+                        </h1>
                         {% if user.is_authenticated %}
-                        <a href="{% url 'posts:post-list' %}?filter=subscriptions{% if request.GET.page %}&page={{ request.GET.page }}{% endif %}"
-                        class="btn btn-filter {% if current_filter == 'subscriptions' %}active{% endif %}">
-                            Подписки
-                        </a>
-                        {% endif %}
-                        {% if current_filter == 'tag' and current_tag %}
-                        <a href="{% url 'posts:tag-posts' slug=current_tag.slug %}" class="btn btn-filter active">
-                            #{{ current_tag.name }}
-                        </a>
+                            <a href="{% url 'posts:post-create' %}" class="btn btn-create">
+                                <i class="fa-solid fa-plus-circle me-2"></i>Создать пост
+                            </a>
                         {% endif %}
                     </div>
-                </div>
 
-                <!-- Список постов -->
-                {% if posts %}
+                    <div class="post-filters mb-4">
+                        <div class="btn-group" role="group" aria-label="Фильтры постов">
+                            <a href="{% url 'posts:post-list' %}{% if request.GET.page %}?page={{ request.GET.page }}{% endif %}"
+                               class="btn btn-filter {% if not current_filter or current_filter == 'latest' %}active{% endif %}">
+                                Последние
+                            </a>
+                            <a href="{% url 'posts:post-list' %}?filter=popular{% if request.GET.page %}&page={{ request.GET.page }}{% endif %}"
+                               class="btn btn-filter {% if current_filter == 'popular' %}active{% endif %}">
+                                Популярные
+                            </a>
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'posts:post-list' %}?filter=subscriptions{% if request.GET.page %}&page={{ request.GET.page }}{% endif %}"
+                                   class="btn btn-filter {% if current_filter == 'subscriptions' %}active{% endif %}">
+                                    Подписки
+                                </a>
+                            {% endif %}
+                            {% if current_filter == 'tag' and current_tag %}
+                                <a href="{% url 'posts:tag-posts' slug=current_tag.slug %}" class="btn btn-filter active">
+                                    #{{ current_tag.name }}
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if posts %}
                     <div class="posts-container">
                         {% for post in posts %}
-                        <article class="post-card">
-                            <!-- Шапка поста с информацией об авторе -->
-                            <div class="post-header">
-                                <div class="post-author">
-                                    {% if post.author.avatar %}
-                                    <img src="{{ post.author.avatar.url }}" alt="{{ post.author.username }}" class="post-avatar">
-                                    {% else %}
-                                    <div class="avatar-placeholder">
-                                        <span>{{ post.author.username|first|upper }}</span>
-                                    </div>
-                                    {% endif %}
-                                    <div class="post-meta">
-                                        <a href="{% url 'users:profile' post.author.username %}" class="post-author-name">{{ post.author.username }}</a>
-                                        <span class="post-time">{{ post.pub_date|date:"d.m.Y в H:i" }}</span>
-                                    </div>
-                                </div>
-                                {% if user.is_authenticated and user == post.author %}
-                                <div class="post-actions dropdown">
-                                    <button class="btn-post-menu" type="button" id="postMenu{{ post.id }}" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="fa-solid fa-ellipsis"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="postMenu{{ post.id }}">
-                                        <li>
-                                            <a class="dropdown-item" href="{% url 'posts:post-update' pk=post.pk %}">
-                                                <i class="fa-solid fa-pen-to-square me-2"></i>Редактировать
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item text-danger" href="{% url 'posts:post-delete' pk=post.pk %}">
-                                                <i class="fa-solid fa-trash-can me-2"></i>Удалить
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                                {% endif %}
-                            </div>
-
-                            <!-- Заголовок поста - основной способ перехода к посту -->
-                            <h2 class="post-title">
-                                <a href="{% url 'posts:post-detail' pk=post.pk %}">{{ post.title }}</a>
-                            </h2>
-
-                            <!-- Содержимое поста - убрана ссылка "Читать дальше" -->
-                            <div class="post-content">
-                                <div class="post-text">{{ post.text|safe|truncatewords_html:30 }}</div>
-                            </div>
-
-                            <!-- Теги поста, если есть -->
-                            {% if post.tags.all %}
-                            <div class="post-tags mb-2">
-                                {% for tag in post.tags.all %}
-                                <a href="{% url 'posts:tag-posts' slug=tag.slug %}" class="badge rounded-pill bg-light text-primary me-1">
-                                    #{{ tag.name }}
-                                </a>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-
-                            <!-- Изображения поста -->
-                            {% if post.images.all %}
-                                <div class="post-images">
-                                    <a href="{% url 'posts:post-detail' pk=post.pk %}" class="d-block">
-                                        <div class="row">
-                                            {% for image in post.images.all|dictsort:"order"|slice:":2" %}
-                                                <div class="col-6">
-                                                    <img src="{{ image.image.url }}" alt="{{ post.title }}" class="img-fluid rounded" style="height: 150px; width: 100%; object-fit: cover;">
-                                                </div>
-                                            {% endfor %}
-                                        </div>
-                                        {% if post.images.count > 2 %}
-                                            <div class="text-center mt-2">
-                                                <span class="badge bg-light text-dark">+{{ post.images.count|add:"-2" }} фото</span>
+                            <article class="post-card">
+                                <div class="post-header">
+                                    <div class="post-author">
+                                        {% if post.author.avatar %}
+                                            <img src="{{ post.author.avatar.url }}" alt="{{ post.author.username }}" class="post-avatar">
+                                        {% else %}
+                                            <div class="avatar-placeholder">
+                                                <span>{{ post.author.username|first|upper }}</span>
                                             </div>
                                         {% endif %}
-                                    </a>
-                                </div>
-                            {% endif %}
-
-                            <!-- Футер поста - только кнопки взаимодействия -->
-                            <div class="post-footer">
-                                <div class="interaction-buttons">
-                                    <!-- Кнопка лайка -->
-                                    <button class="btn-interaction like-button {% if request.user in post.likes.all %}active{% endif %}"
-                                            data-post-id="{{ post.pk }}"
-                                            title="Нравится"
-                                            {% if not user.is_authenticated %}disabled{% endif %}>
-                                        <i class="fa-thumbs-up {% if request.user in post.likes.all %}fa-solid{% else %}fa-regular{% endif %}"></i>
-                                        <span class="interaction-count">{{ post.likes.count }}</span>
-                                    </button>
-
-                                    <!-- Кнопка дизлайка -->
-                                    {% if user.is_authenticated %}
-                                        <button class="btn-interaction dislike-button {% if request.user in post.dislikes.all %}active{% endif %}"
-                                                data-post-id="{{ post.pk }}"
-                                                title="Не нравится">
-                                            <i class="fa-thumbs-down {% if request.user in post.dislikes.all %}fa-solid{% else %}fa-regular{% endif %}"></i>
-                                            <span class="interaction-count">{{ post.dislikes.count }}</span>
-                                        </button>
-                                    {% else %}
-                                        <button class="btn-interaction"
-                                                title="Для дизлайков требуется войти"
-                                                onclick="showLoginAlert()">
-                                            <i class="fa-regular fa-thumbs-down"></i>
-                                            <span class="interaction-count">{{ post.dislikes.count }}</span>
-                                        </button>
+                                        <div class="post-meta">
+                                            <a href="{% url 'users:profile' post.author.username %}" class="post-author-name">{{ post.author.username }}</a>
+                                            <span class="post-time">{{ post.pub_date|date:"d.m.Y в H:i" }}</span>
+                                        </div>
+                                    </div>
+                                    {% if user.is_authenticated and user == post.author %}
+                                        <div class="post-actions dropdown">
+                                            <button class="btn-post-menu" type="button" id="postMenu{{ post.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="fa-solid fa-ellipsis"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="postMenu{{ post.id }}">
+                                                <li>
+                                                    <a class="dropdown-item" href="{% url 'posts:post-update' pk=post.pk %}">
+                                                        <i class="fa-solid fa-pen-to-square me-2"></i>Редактировать
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item text-danger" href="{% url 'posts:post-delete' pk=post.pk %}">
+                                                        <i class="fa-solid fa-trash-can me-2"></i>Удалить
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
                                     {% endif %}
-
-                                    <!-- Остальные элементы оставить без изменений -->
-                                    <a href="{% url 'posts:post-detail' pk=post.pk %}#comments" class="btn-interaction comment-button">
-                                        <i class="fa-regular fa-comment"></i>
-                                        <span class="interaction-count">{{ post.comments.count }}</span>
-                                    </a>
                                 </div>
-                                <!-- Удалена кнопка "Перейти к посту" -->
-                            </div>
-                        </article>
+
+                                <h2 class="post-title">
+                                    <a href="{% url 'posts:post-detail' pk=post.pk %}">
+                                        {% if search_query %}
+                                            {{ post.title|safe|highlight:search_query }}
+                                        {% else %}
+                                            {{ post.title|safe }}
+                                        {% endif %}
+                                    </a>
+                                </h2>
+
+                                <div class="post-content">
+                                    {% if search_query %}
+                                        {{ post.text|safe|truncatewords_html:30|highlight:search_query }}
+                                    {% else %}
+                                        {{ post.text|safe|truncatewords_html:30 }}
+                                    {% endif %}
+                                </div>
+
+                                {% if post.tags.all %}
+                                    <div class="post-tags mb-2">
+                                        {% for tag in post.tags.all %}
+                                            <a href="{% url 'posts:tag-posts' slug=tag.slug %}" class="badge rounded-pill bg-light text-primary me-1">
+                                                #{{ tag.name }}
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+
+                                {% if post.images.all %}
+                                    <div class="post-images">
+                                        <a href="{% url 'posts:post-detail' pk=post.pk %}" class="d-block">
+                                            <div class="row">
+                                                {% for image in post.images.all|dictsort:"order"|slice:":2" %}
+                                                    <div class="col-6">
+                                                        <img src="{{ image.image.url }}" alt="{{ post.title }}" class="img-fluid rounded" style="height: 150px; width: 100%; object-fit: cover;">
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                            {% if post.images.count > 2 %}
+                                                <div class="text-center mt-2">
+                                                    <span class="badge bg-light text-dark">+{{ post.images.count|add:"-2" }} фото</span>
+                                                </div>
+                                            {% endif %}
+                                        </a>
+                                    </div>
+                                {% endif %}
+
+                                <div class="post-footer">
+                                    <div class="interaction-buttons">
+                                        <button class="btn-interaction like-button {% if request.user in post.likes.all %}active{% endif %}"
+                                                data-post-id="{{ post.pk }}"
+                                                title="Нравится"
+                                                {% if not user.is_authenticated %}disabled{% endif %}>
+                                            <i class="fa-thumbs-up {% if request.user in post.likes.all %}fa-solid{% else %}fa-regular{% endif %}"></i>
+                                            <span class="interaction-count">{{ post.likes.count }}</span>
+                                        </button>
+
+                                        {% if user.is_authenticated %}
+                                            <button class="btn-interaction dislike-button {% if request.user in post.dislikes.all %}active{% endif %}"
+                                                    data-post-id="{{ post.pk }}"
+                                                    title="Не нравится">
+                                                <i class="fa-thumbs-down {% if request.user in post.dislikes.all %}fa-solid{% else %}fa-regular{% endif %}"></i>
+                                                <span class="interaction-count">{{ post.dislikes.count }}</span>
+                                            </button>
+                                        {% else %}
+                                            <button class="btn-interaction"
+                                                    title="Для дизлайков требуется войти"
+                                                    onclick="showLoginAlert()">
+                                                <i class="fa-regular fa-thumbs-down"></i>
+                                                <span class="interaction-count">{{ post.dislikes.count }}</span>
+                                            </button>
+                                        {% endif %}
+
+                                        <a href="{% url 'posts:post-detail' pk=post.pk %}#comments" class="btn-interaction comment-button">
+                                            <i class="fa-regular fa-comment"></i>
+                                            <span class="interaction-count">{{ post.num_comments }}</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </article>
                         {% endfor %}
                     </div>
 
-                    <!-- Пагинация -->
                     {% if is_paginated %}
                     <nav aria-label="Навигация по страницам" class="my-4">
                         <ul class="pagination justify-content-center">
                             {% if page_obj.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link" href="?{% if current_filter != 'latest' %}filter={{ current_filter }}&{% endif %}page={{ page_obj.previous_page_number }}">
-                                    <i class="fa-solid fa-chevron-left"></i>
-                                </a>
-                            </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?{% if current_filter != 'latest' %}filter={{ current_filter }}&{% if search_query %}q={{ search_query|urlencode }}&{% endif %}{% endif %}page={{ page_obj.previous_page_number }}">
+                                        <i class="fa-solid fa-chevron-left"></i>
+                                    </a>
+                                </li>
                             {% else %}
-                            <li class="page-item disabled">
-                                <span class="page-link"><i class="fa-solid fa-chevron-left"></i></span>
-                            </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="fa-solid fa-chevron-left"></i></span>
+                                </li>
                             {% endif %}
 
                             {% for num in page_obj.paginator.page_range %}
                                 {% if page_obj.number == num %}
-                                <li class="page-item active">
-                                    <span class="page-link">{{ num }}</span>
-                                </li>
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
                                 {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?{% if current_filter != 'latest' %}filter={{ current_filter }}&{% endif %}page={{ num }}">{{ num }}</a>
-                                </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?{% if current_filter != 'latest' %}filter={{ current_filter }}&{% if search_query %}q={{ search_query|urlencode }}&{% endif %}{% endif %}page={{ num }}">{{ num }}</a>
+                                    </li>
                                 {% endif %}
                             {% endfor %}
 
                             {% if page_obj.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="?{% if current_filter != 'latest' %}filter={{ current_filter }}&{% endif %}page={{ page_obj.next_page_number }}">
-                                    <i class="fa-solid fa-chevron-right"></i>
-                                </a>
-                            </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?{% if current_filter != 'latest' %}filter={{ current_filter }}&{% if search_query %}q={{ search_query|urlencode }}&{% endif %}{% endif %}page={{ page_obj.next_page_number }}">
+                                        <i class="fa-solid fa-chevron-right"></i>
+                                    </a>
+                                </li>
                             {% else %}
-                            <li class="page-item disabled">
-                                <span class="page-link"><i class="fa-solid fa-chevron-right"></i></span>
-                            </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="fa-solid fa-chevron-right"></i></span>
+                                </li>
                             {% endif %}
                         </ul>
                     </nav>
                     {% endif %}
 
-                {% else %}
-                    <div class="empty-state">
-                        <div class="empty-state-icon">
-                            <i class="fa-regular fa-comment-dots"></i>
-                        </div>
-                        <h3 class="empty-state-title">Здесь пока нет постов</h3>
-                        {% if user.is_authenticated %}
-                        <p class="empty-state-description">Будьте первым, кто поделится мыслями!</p>
-                        <a href="{% url 'posts:post-create' %}" class="btn btn-primary btn-lg">
-                            <i class="fa-solid fa-plus-circle me-2"></i>Создать пост
-                        </a>
-                        {% else %}
-                        <p class="empty-state-description">Авторизуйтесь, чтобы создать первый пост.</p>
-                        <a href="{% url 'account_login' %}" class="btn btn-primary btn-lg">
-                            <i class="fa-solid fa-right-to-bracket me-2"></i>Войти
-                        </a>
-                        {% endif %}
-                    </div>
-                {% endif %}
-            </div>
-
-            <!-- Боковая панель -->
-            <div class="col-lg-4 d-none d-lg-block">
-                <div class="position-sticky" style="top: 96px; max-height: calc(100vh - 96px); overflow-y: auto;">
-                    <!-- Профиль пользователя (если авторизован) -->
-                    {% if user.is_authenticated %}
-                    <div class="sidebar-card user-profile-card">
-                        <div class="user-profile-header">
-                            {% if user.avatar %}
-                            <img src="{{ user.avatar.url }}" alt="{{ user.username }}" class="sidebar-avatar">
-                            {% else %}
-                            <div class="sidebar-avatar-placeholder">
-                                <span>{{ user.username|first|upper }}</span>
-                            </div>
-                            {% endif %}
-                            <div class="user-profile-info">
-                                <h3 class="user-profile-name">{{ user.username }}</h3>
-                                <a href="{% url 'users:profile' user.username %}" class="user-profile-link">Просмотреть профиль😎</a>
-                            </div>
-                        </div>
-                        <div class="user-profile-stats">
-                            <a href="{% url 'users:profile' user.username %}" class="stat-item">
-                                <span class="stat-value">{{ user.post_set.count }}</span>
-                                <span class="stat-label">Постов</span>
-                            </a>
-                            <a href="{% url 'subscriptions:followers' user.username %}" class="stat-item">
-                                <span class="stat-value">{{ user.subscribers.count }}</span>
-                                <span class="stat-label">Подписчиков</span>
-                            </a>
-                            <a href="{% url 'subscriptions:following' user.username %}" class="stat-item">
-                                <span class="stat-value">{{ user.subscriptions.count }}</span>
-                                <span class="stat-label">Подписок</span>
-                            </a>
-                        </div>
-                        <div class="user-profile-actions">
-                            <a href="{% url 'posts:post-create' %}" class="btn btn-primary btn-sm w-100">
-                                <i class="fa-solid fa-pen-to-square me-2"></i>Новый пост
-                            </a>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    <!-- Популярные темы -->
-                    <div class="sidebar-card trending-card">
-                        <h3 class="sidebar-card-title">Популярные темы🍊</h3>
-                        <ul class="trending-topics">
-                            {% if popular_tags %}
-                                {% for tag in popular_tags %}
-                                <li class="trending-topic">
-                                    <a href="{% url 'posts:tag-posts' slug=tag.slug %}" class="trending-topic-link">#{{ tag.name }}</a>
-                                    <span class="trending-count">{{ tag.posts_count }} пост{{ tag.posts_count|pluralize:"ов" }}</span>
-                                </li>
-                                {% endfor %}
-                            {% else %}
-                                <li class="trending-topic">
-                                    <a href="#" class="trending-topic-link">#технологии</a>
-                                    <span class="trending-count">42 поста</span>
-                                </li>
-                                <li class="trending-topic">
-                                    <a href="#" class="trending-topic-link">#спорт</a>
-                                    <span class="trending-count">38 постов</span>
-                                </li>
-                                <li class="trending-topic">
-                                    <a href="#" class="trending-topic-link">#путешествия</a>
-                                    <span class="trending-count">24 поста</span>
-                                </li>
-                                <li class="trending-topic">
-                                    <a href="#" class="trending-topic-link">#музыка</a>
-                                    <span class="trending-count">19 постов</span>
-                                </li>
-                                <li class="trending-topic">
-                                    <a href="#" class="trending-topic-link">#кулинария</a>
-                                    <span class="trending-count">15 постов</span>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </div>
-
-                    <!-- Кого подписаться -->
-                    <div class="sidebar-card who-to-follow-card">
-                        <h3 class="sidebar-card-title">На кого подписаться🧐</h3>
-                        <ul class="who-to-follow-list">
-                            {% for suggested_user in suggested_users %}
-                            <li class="suggested-user">
-                                {% if suggested_user.avatar %}
-                                <img src="{{ suggested_user.avatar.url }}" alt="{{ suggested_user.username }}" class="post-avatar" style="width: 40px; height: 40px;">
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                {% if search_query %}
+                                    <i class="fa-solid fa-magnifying-glass"></i>
                                 {% else %}
-                                <div class="suggested-user-avatar-placeholder">
-                                    <span>{{ suggested_user.username|first|upper }}</span>
-                                </div>
+                                    <i class="fa-regular fa-comment-dots"></i>
                                 {% endif %}
-                                <div class="suggested-user-info">
-                                    <span class="suggested-user-name">{{ suggested_user.username }}</span>
-                                    <span class="suggested-user-handle">@{{ suggested_user.username }}</span>
-                                </div>
-                                <form action="{% url 'subscriptions:toggle' username=suggested_user.username %}" method="post" class="subscription-form">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-follow subscription-toggle" data-username="{{ suggested_user.username }}">
-                                        Подписаться
-                                    </button>
-                                </form>
-                            </li>
-                            {% empty %}
-                            <p class="text-center text-muted py-3">
-                                Нет рекомендаций для подписки
+                            </div>
+                            <h3 class="empty-state-title">
+                                {% if search_query %}
+                                    Ничего не найдено!
+                                {% else %}
+                                    Здесь пока нет постов
+                                {% endif %}
+                            </h3>
+                            <p class="empty-state-description">
+                                {% if search_query %}
+                                    Попробуйте другие критерии поиска
+                                {% else %}
+                                    {% if user.is_authenticated %}
+                                        Будьте первым, кто поделится мыслями!
+                                    {% else %}
+                                        Авторизуйтесь, чтобы создать первый пост
+                                    {% endif %}
+                                {% endif %}
                             </p>
-                            {% endfor %}
-                        </ul>
-                        {% if suggested_users.count > 3 %}
-                        <a href="#" class="sidebar-card-footer-link">Показать больше</a>
+                            <div class="empty-state-actions">
+                                {% if search_query %}
+                                    <a href="{% url 'posts:post-list' %}" class="btn btn-primary">
+                                        <i class="fa-solid fa-rotate-left me-2"></i>Показать все посты
+                                    </a>
+                                {% else %}
+                                    {% if user.is_authenticated %}
+                                        <a href="{% url 'posts:post-create' %}" class="btn btn-primary btn-lg">
+                                            <i class="fa-solid fa-plus-circle me-2"></i>Создать пост
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'account_login' %}" class="btn btn-primary btn-lg">
+                                            <i class="fa-solid fa-right-to-bracket me-2"></i>Войти
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="col-lg-4 d-none d-lg-block">
+                    <div class="position-sticky" style="top: 96px; max-height: calc(100vh - 96px); overflow-y: auto;">
+                        {% if user.is_authenticated %}
+                            <div class="sidebar-card user-profile-card">
+                                <div class="user-profile-header">
+                                    {% if user.avatar %}
+                                        <img src="{{ user.avatar.url }}" alt="{{ user.username }}" class="sidebar-avatar">
+                                    {% else %}
+                                        <div class="sidebar-avatar-placeholder">
+                                            <span>{{ user.username|first|upper }}</span>
+                                        </div>
+                                    {% endif %}
+                                    <div class="user-profile-info">
+                                        <h3 class="user-profile-name">{{ user.username }}</h3>
+                                        <a href="{% url 'users:profile' user.username %}" class="user-profile-link">Просмотреть профиль😎</a>
+                                    </div>
+                                </div>
+                                <div class="user-profile-stats">
+                                    <a href="{% url 'users:profile' user.username %}" class="stat-item">
+                                        <span class="stat-value">{{ user.post_set.count }}</span>
+                                        <span class="stat-label">Постов</span>
+                                    </a>
+                                    <a href="{% url 'subscriptions:followers' user.username %}" class="stat-item">
+                                        <span class="stat-value">{{ user.subscribers.count }}</span>
+                                        <span class="stat-label">Подписчиков</span>
+                                    </a>
+                                    <a href="{% url 'subscriptions:following' user.username %}" class="stat-item">
+                                        <span class="stat-value">{{ user.subscriptions.count }}</span>
+                                        <span class="stat-label">Подписок</span>
+                                    </a>
+                                </div>
+                                <div class="user-profile-actions">
+                                    <a href="{% url 'posts:post-create' %}" class="btn btn-primary btn-sm w-100">
+                                        <i class="fa-solid fa-pen-to-square me-2"></i>Новый пост
+                                    </a>
+                                </div>
+                            </div>
                         {% endif %}
+
+                        <div class="sidebar-card trending-card">
+                            <h3 class="sidebar-card-title">Популярные темы🍊</h3>
+                            <ul class="trending-topics">
+                                {% if popular_tags %}
+                                    {% for tag in popular_tags %}
+                                        <li class="trending-topic">
+                                            <a href="{% url 'posts:tag-posts' slug=tag.slug %}" class="trending-topic-link">#{{ tag.name }}</a>
+                                            <span class="trending-count">{{ tag.posts_count }} пост{{ tag.posts_count|pluralize:"ов" }}</span>
+                                        </li>
+                                    {% endfor %}
+                                {% else %}
+                                    <li class="trending-topic">
+                                        <a href="#" class="trending-topic-link">#технологии</a>
+                                        <span class="trending-count">42 поста</span>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+
+                        <div class="sidebar-card who-to-follow-card">
+                            <h3 class="sidebar-card-title">На кого подписаться🧐</h3>
+                            <ul class="who-to-follow-list">
+                                {% for suggested_user in suggested_users %}
+                                    <li class="suggested-user">
+                                        {% if suggested_user.avatar %}
+                                            <img src="{{ suggested_user.avatar.url }}" alt="{{ suggested_user.username }}" class="post-avatar" style="width: 40px; height: 40px;">
+                                        {% else %}
+                                            <div class="suggested-user-avatar-placeholder">
+                                                <span>{{ suggested_user.username|first|upper }}</span>
+                                            </div>
+                                        {% endif %}
+                                        <div class="suggested-user-info">
+                                            <span class="suggested-user-name">{{ suggested_user.username }}</span>
+                                            <span class="suggested-user-handle">@{{ suggested_user.username }}</span>
+                                        </div>
+                                        <form action="{% url 'subscriptions:toggle' username=suggested_user.username %}" method="post" class="subscription-form">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-follow subscription-toggle" data-username="{{ suggested_user.username }}">
+                                                Подписаться
+                                            </button>
+                                        </form>
+                                    </li>
+                                {% empty %}
+                                    <p class="text-center text-muted py-3">
+                                        Нет рекомендаций для подписки
+                                    </p>
+                                {% endfor %}
+                            </ul>
+                            {% if suggested_users.count > 3 %}
+                                <a href="#" class="sidebar-card-footer-link">Показать больше</a>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock %}
+
 {% block extra_css %}
     <style>
-    .post-images {
-        margin-bottom: 1rem;
-    }
-    .image-form {
-        background-color: #f8f9fa;
-    }
-    .existing-image img {
-        max-width: 100%;
-        height: auto;
-    }
-    /* Дополнительные стили для изображений */
-    .img-thumbnail {
-        padding: 0.25rem;
-        background-color: #fff;
-        border: 1px solid #dee2e6;
-        border-radius: 0.25rem;
-        max-width: 100%;
-        height: auto;
-    }
-</style>
-<style>
-    /* Улучшенный стиль для форматированного текста в списке постов */
-    .post-text {
-        /* ... */
-    }
-    /* ... остальные стили ... */
-</style>
+        .btn-search {
+            background-color: #FFB74D !important;
+            border-color: #FFB74D !important;
+            color: #333 !important;
+            transition: all 0.3s;
+        }
+
+        .btn-search:hover {
+            background-color: #F57C00 !important;
+            border-color: #F57C00 !important;
+        }
+        .highlight {
+            background-color: #ffd700;
+            color: #000;
+            padding: 0.1em 0.3em;
+            border-radius: 3px;
+            font-weight: 500;
+            box-shadow: 0 0 2px rgba(0,0,0,0.2);
+        }
+        .highlight mark {
+            all: inherit !important;
+        }
+        .post-images {
+            margin-bottom: 1rem;
+        }
+        .existing-image img {
+            max-width: 100%;
+            height: auto;
+        }
+        .img-thumbnail {
+            padding: 0.25rem;
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+        }
+    </style>
 {% endblock %}

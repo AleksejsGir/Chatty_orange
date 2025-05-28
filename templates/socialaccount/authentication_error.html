@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Ошибка аутентификации" %} - Chatty{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="card profile-card shadow-sm text-center">
+                <div class="card-header profile-card-title justify-content-center text-danger">
+                    <i class="fa-solid fa-circle-exclamation fa-fw me-2"></i>{% trans "Ошибка аутентификации" %}
+                </div>
+                <div class="card-body profile-card-content p-4">
+
+                    <p class="lead mb-4">
+                        {% trans "Произошла ошибка при попытке входа через социальную сеть." %}
+                    </p>
+
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                        <strong>{% trans "Код ошибки:" %}</strong> {{ auth_error.code }}
+                        <br>
+                        <strong>{% trans "Описание:" %}</strong> {{ auth_error.message }}
+                    </div>
+
+                    <p class="text-muted">
+                        {% blocktrans %}
+                        Пожалуйста, попробуйте еще раз или используйте другой способ входа.
+                        {% endblocktrans %}
+                    </p>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="{% url 'account_login' %}" class="btn btn-primary">
+                            <i class="fa-solid fa-right-to-bracket me-1"></i> {% trans "Перейти ко входу" %}
+                        </a>
+                        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-home me-1"></i> {% trans "На главную" %}
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

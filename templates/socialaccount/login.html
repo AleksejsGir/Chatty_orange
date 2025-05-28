@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load socialaccount %}
+{% load django_bootstrap5 %}
+
+{% block title %}{% trans "Вход через" %} {{ provider.name }} - Chatty{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card profile-card shadow-sm">
+                <div class="card-header profile-card-title">
+                    <i class="fa-solid fa-right-to-bracket fa-fw me-2"></i>
+                    {% trans "Вход через" %} {{ provider.name }}
+                </div>
+                <div class="card-body profile-card-content p-4">
+                    <p class="text-center mb-4">
+                        {% blocktrans trimmed with provider_name=provider.name %}
+                        Сейчас вы будете перенаправлены на сайт <strong>{{ provider_name }}</strong> для завершения входа.
+                        Нажмите кнопку ниже, если это не произошло автоматически.
+                        {% endblocktrans %}
+                    </p>
+
+                    <form method="post" action="{% provider_login_url provider.id %}">
+                        {% csrf_token %}
+                        {% if form %}
+                            {% bootstrap_form form layout='vertical' %}
+                        {% endif %}
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button class="btn btn-primary btn-lg" type="submit">
+                                <i class="fa-solid fa-arrow-right-to-bracket me-1"></i>
+                                {% trans "Продолжить с" %} {{ provider.name }}
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <a href="{% url 'account_login' %}" class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-times me-1"></i> {% trans "Отменить и вернуться на страницу входа" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

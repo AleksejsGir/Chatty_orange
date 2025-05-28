@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load highlight_tags %}
 
 {% block title %}Профиль {{ profile_user.username }}{% endblock %}
 
@@ -66,11 +67,11 @@
                         <form action="{% url 'subscriptions:toggle' username=profile_user.username %}" method="post">
                             {% csrf_token %}
                             {% if is_subscribed %}
-                                <button type="submit" class="btn btn-outline-secondary subscription-toggle" data-username="{{ profile_user.username }}">
+                                <button type="submit" class="btn btn-outline-secondary subscription-toggle js-subscription-toggle" data-username="{{ profile_user.username }}">
                                     <i class="fa-solid fa-user-minus me-1"></i>Отписаться
                                 </button>
                             {% else %}
-                                <button type="submit" class="btn btn-follow-profile subscription-toggle" data-username="{{ profile_user.username }}">
+                                <button type="submit" class="btn btn-follow-profile subscription-toggle js-subscription-toggle" data-username="{{ profile_user.username }}">
                                     <i class="fa-solid fa-user-plus me-1"></i>Подписаться
                                 </button>
                             {% endif %}
@@ -144,9 +145,9 @@
                                         {% endif %}
                                         <div class="card-body">
                                             <h2 class="post-title">
-                                                <a href="{% url 'posts:post-detail' pk=post.pk %}">{{ post.title }}</a>
+                                                <a href="{% url 'posts:post-detail' pk=post.pk %}">{{ post.title|highlight:search_terms }}</a>
                                             </h2>
-                                            <div class="post-text">{{ post.text|safe|truncatewords_html:30 }}</div>
+                                            <div class="post-text">{{ post.text|highlight:search_terms|safe|truncatewords_html:30 }}</div>
                                             <p class="post-meta-compact"><small>{{ post.pub_date|date:"d.m.Y H:i" }}</small></p>
 
                                             <!-- Добавляем блок взаимодействий (лайки и комментарии) -->
