@@ -186,44 +186,6 @@ h1, h2, h3, h4, h5, h6 {
   background-color: var(--primary-ultra-light);
 }
 
-.search-form {
-  max-width: 300px;
-}
-
-/*.search-input {*/
-/*  border-radius: var(--radius-full) 0 0 var(--radius-full) !important;*/
-/*  border-right: none;*/
-/*  font-size: 0.875rem;*/
-/*}*/
-
-/*.search-input:focus {*/
-/*  box-shadow: none;*/
-/*  border-color: var(--primary-light);*/
-/*}*/
-.search-input {
-  border: 2px solid #f97316 !important;
-  border-radius: 8px !important;
-  transition: all 0.3s;
-}
-
-/* Стиль при фокусе */
-.search-input:focus {
-  border-color: #f97316 !important;
-  box-shadow: 0 0 8px rgba(249, 115, 22, 0.3) !important;
-}
-
-.btn-search {
-  background-color: white;
-  border-radius: 0 var(--radius-full) var(--radius-full) 0 !important;
-  border: 1px solid #ced4da;
-  border-left: none;
-  color: var(--primary);
-}
-
-.btn-search:hover {
-  color: var(--primary-dark);
-}
-
 .create-post-btn {
   color: var(--primary) !important;
   font-weight: 600 !important;
@@ -1251,11 +1213,11 @@ h1, h2, h3, h4, h5, h6 {
     padding: 2rem;
   }
 
-  .navbar .search-form {
-    margin: 0.5rem 0;
-    width: 100%;
-    max-width: none;
-  }
+  /*.navbar .search-form {*/
+  /*  margin: 0.5rem 0;*/
+  /*  width: 100%;*/
+  /*  max-width: none;*/
+  /*}*/
 
   .profile-avatar-container {
     margin-left: auto;

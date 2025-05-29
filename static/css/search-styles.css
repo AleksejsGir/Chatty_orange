@@ -1,0 +1,138 @@
+/* ===== СТИЛИ ДЛЯ БЛОКА ПОИСКА ===== */
+
+/* Контейнер формы поиска */
+.search-form {
+    min-width: 500px; /* Увеличенная ширина */
+    max-width: 600px; /* Максимальная ширина для больших экранов */
+}
+
+/* Группа поля ввода и кнопки */
+.search-form .input-group {
+    position: relative; /* Необходимо для некоторых техник с псевдоэлементами, если понадобятся */
+    display: flex;
+    border-radius: var(--radius-sm) var(--radius-full) var(--radius-full) var(--radius-sm) !important; /* Ваше закругление */
+    overflow: hidden !important;
+    box-shadow: var(--shadow-sm); /* Тень в обычном состоянии */
+    transition: box-shadow var(--transition-normal), transform var(--transition-normal); /* Разделил transition */
+}
+
+.search-form .input-group:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.search-form .input-group:focus-within {
+    /* Тень при фокусе. Она тоже должна следовать border-radius. */
+    /*box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 249, 115, 22), 0.3), var(--shadow-md); !* Используем RGB для rgba *!*/
+}
+
+/* Поле ввода поиска */
+.search-input {
+    border: 2px solid var(--primary-light) !important;
+    border-right: none !important;
+    border-radius: var(--radius-md);
+    padding: 0.625rem 1.25rem !important;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    background-color: var(--bg-white);
+    transition: all var(--transition-fast);
+    flex-grow: 1;
+    outline: none;
+}
+
+.search-input:focus {
+    border-color: var(--primary) !important; /* Можно оставить или убрать, если focus-within на группе достаточно */
+    box-shadow: none; /* Убираем собственную тень при фокусе */
+    background-color: var(--primary-ultra-light);
+}
+
+.search-input::placeholder {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+/* Кнопка поиска */
+.btn-search {
+    background-color: var(--primary) !important;
+    border: 2px solid var(--primary) !important;
+    border-radius: 0 !important;
+    color: var(--text-white) !important;
+    padding: 0.625rem 1.5rem !important;
+    font-size: 1rem;
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+    border-left: none !important; /* Чтобы не было двойной рамки с инпутом */
+}
+
+.btn-search:hover {
+    background-color: var(--primary-dark) !important;
+    border-color: var(--primary-dark) !important;
+    transform: translateX(2px);
+}
+
+.btn-search:active {
+    transform: translateX(0);
+}
+        /* Стили для подсветки поиска */
+.highlight {
+    background-color: #ffd700;
+    color: #000;
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+    font-weight: 500;
+    box-shadow: 0 0 2px rgba(0,0,0,0.2);
+}
+.highlight mark {
+    all: inherit !important;
+}
+
+/* Иконка в кнопке поиска */
+.btn-search i {
+    font-size: 1.1rem;
+    transition: transform var(--transition-fast);
+}
+
+.btn-search:hover i {
+    transform: scale(1.15);
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .search-form {
+        min-width: 100%;
+        max-width: 100%;
+    }
+
+    .search-form .input-group {
+        flex-wrap: nowrap;
+    }
+
+    .search-input {
+        padding: 0.5rem 1rem !important;
+        font-size: 0.9rem;
+    }
+
+    .btn-search {
+        padding: 0.5rem 1rem !important;
+    }
+}
+
+/* Дополнительные стили для лучшей интеграции */
+@media (min-width: 992px) {
+    .navbar .search-form {
+        margin: 0 2rem;
+    }
+}
+
+/* Анимация появления результатов поиска (на будущее) */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
