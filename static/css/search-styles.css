@@ -8,38 +8,41 @@
 
 /* Группа поля ввода и кнопки */
 .search-form .input-group {
-    position: relative;
-    box-shadow: var(--shadow-sm);
-    border-radius: var(--radius-full);
-    overflow: hidden;
-    transition: all var(--transition-normal);
+    position: relative; /* Необходимо для некоторых техник с псевдоэлементами, если понадобятся */
+    display: flex;
+    border-radius: var(--radius-sm) var(--radius-full) var(--radius-full) var(--radius-sm) !important; /* Ваше закругление */
+    overflow: hidden !important;
+    box-shadow: var(--shadow-sm); /* Тень в обычном состоянии */
+    transition: box-shadow var(--transition-normal), transform var(--transition-normal); /* Разделил transition */
 }
 
 .search-form .input-group:hover {
     box-shadow: var(--shadow-md);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
 }
 
 .search-form .input-group:focus-within {
-    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2), var(--shadow-md);
+    /* Тень при фокусе. Она тоже должна следовать border-radius. */
+    /*box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 249, 115, 22), 0.3), var(--shadow-md); !* Используем RGB для rgba *!*/
 }
 
 /* Поле ввода поиска */
 .search-input {
     border: 2px solid var(--primary-light) !important;
     border-right: none !important;
-    border-radius: var(--radius-full) 0 0 var(--radius-full) !important;
+    border-radius: var(--radius-md);
     padding: 0.625rem 1.25rem !important;
     font-size: 0.95rem;
     color: var(--text-dark);
     background-color: var(--bg-white);
     transition: all var(--transition-fast);
+    flex-grow: 1;
+    outline: none;
 }
 
 .search-input:focus {
-    border-color: var(--primary) !important;
-    box-shadow: none !important;
-    outline: none;
+    border-color: var(--primary) !important; /* Можно оставить или убрать, если focus-within на группе достаточно */
+    box-shadow: none; /* Убираем собственную тень при фокусе */
     background-color: var(--primary-ultra-light);
 }
 
@@ -52,13 +55,14 @@
 .btn-search {
     background-color: var(--primary) !important;
     border: 2px solid var(--primary) !important;
-    border-radius: 0 var(--radius-full) var(--radius-full) 0 !important;
+    border-radius: 0 !important;
     color: var(--text-white) !important;
     padding: 0.625rem 1.5rem !important;
     font-size: 1rem;
     transition: all var(--transition-fast);
     position: relative;
     overflow: hidden;
+    border-left: none !important; /* Чтобы не было двойной рамки с инпутом */
 }
 
 .btn-search:hover {
