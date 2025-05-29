@@ -1,0 +1,340 @@
+/* ===== СТИЛИ ДЛЯ ГАЛЕРЕИ ИЗОБРАЖЕНИЙ ===== */
+
+/* Основной контейнер галереи */
+.post-images {
+    margin-bottom: 1.5rem;
+}
+
+/* Главное изображение */
+.main-image {
+    position: relative;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--transition-normal);
+}
+
+.main-image:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.main-image img {
+    transition: transform var(--transition-slow);
+}
+
+.main-image:hover img {
+    transform: scale(1.02);
+}
+
+/* Оверлей с информацией */
+.image-overlay {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* Счетчик изображений */
+.image-counter {
+    background-color: rgba(0, 0, 0, 0.75) !important;
+    backdrop-filter: blur(10px);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Кнопки навигации */
+.image-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    color: white;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    opacity: 0;
+}
+
+.main-image:hover .image-nav-btn {
+    opacity: 1;
+}
+
+.image-nav-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.image-nav-btn:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.prev-btn {
+    left: 15px;
+}
+
+.next-btn {
+    right: 15px;
+}
+
+/* Миниатюры */
+.image-thumbnails {
+    margin-top: 0.75rem;
+}
+
+.img-thumbnail {
+    padding: 0.25rem;
+    background-color: var(--bg-white);
+    border: 2px solid var(--bg-gray);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+    cursor: pointer;
+}
+
+.img-thumbnail:hover {
+    border-color: var(--primary-light);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.img-thumbnail.active {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+}
+/* Стили для лайтбокса */
+.lightbox-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.95);
+    animation: fadeIn 0.3s ease;
+}
+
+.lightbox-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Кнопка закрытия */
+.lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 35px;
+    color: #fff;
+    font-size: 40px;
+    font-weight: 300;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    z-index: 10001;
+}
+
+.lightbox-close:hover {
+    color: #ff6b6b;
+}
+
+/* Контейнер содержимого */
+.lightbox-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Изображение в лайтбоксе */
+.lightbox-image {
+    max-width: 100%;
+    max-height: calc(80vh - 100px);
+    object-fit: contain;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    animation: zoomIn 0.3s ease;
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Информация под изображением */
+.lightbox-info {
+    text-align: center;
+    color: #fff;
+    margin-top: 20px;
+    width: 100%;
+}
+
+.lightbox-counter {
+    font-size: 14px;
+    opacity: 0.8;
+    margin-bottom: 5px;
+}
+
+.lightbox-caption {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* Кнопки навигации */
+.lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #fff;
+    font-size: 30px;
+    padding: 20px 25px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 10000;
+}
+
+.lightbox-nav:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.lightbox-prev {
+    left: 20px;
+}
+
+.lightbox-next {
+    right: 20px;
+}
+
+/* Миниатюры внизу */
+.lightbox-thumbnails {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    max-width: 90%;
+    overflow-x: auto;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+}
+
+.lightbox-thumb {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+    border-radius: 4px;
+}
+
+.lightbox-thumb:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.lightbox-thumb.active {
+    opacity: 1;
+    border-color: #fff;
+}
+
+/* Адаптация для мобильных устройств */
+@media (max-width: 768px) {
+    .lightbox-close {
+        top: 10px;
+        right: 20px;
+        font-size: 30px;
+    }
+
+    .lightbox-nav {
+        padding: 15px 20px;
+        font-size: 24px;
+    }
+
+    .lightbox-prev {
+        left: 10px;
+    }
+
+    .lightbox-next {
+        right: 10px;
+    }
+
+    .lightbox-thumbnails {
+        bottom: 10px;
+        padding: 5px;
+    }
+
+    .lightbox-thumb {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* Для предотвращения прокрутки страницы когда лайтбокс открыт */
+body.lightbox-open {
+    overflow: hidden;
+}
+
+.image-overlay {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    z-index: 10;
+}
+
+.image-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    cursor: pointer;
+}
+
+.prev-btn {
+    left: 15px;
+}
+
+.next-btn {
+    right: 15px;
+}
+
+.main-image {
+    position: relative;
+}
