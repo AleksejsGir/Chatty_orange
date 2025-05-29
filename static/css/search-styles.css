@@ -1,0 +1,134 @@
+/* ===== СТИЛИ ДЛЯ БЛОКА ПОИСКА ===== */
+
+/* Контейнер формы поиска */
+.search-form {
+    min-width: 400px; /* Увеличенная ширина */
+    max-width: 500px; /* Максимальная ширина для больших экранов */
+}
+
+/* Группа поля ввода и кнопки */
+.search-form .input-group {
+    position: relative;
+    box-shadow: var(--shadow-sm);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    transition: all var(--transition-normal);
+}
+
+.search-form .input-group:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+.search-form .input-group:focus-within {
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2), var(--shadow-md);
+}
+
+/* Поле ввода поиска */
+.search-input {
+    border: 2px solid var(--primary-light) !important;
+    border-right: none !important;
+    border-radius: var(--radius-full) 0 0 var(--radius-full) !important;
+    padding: 0.625rem 1.25rem !important;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    background-color: var(--bg-white);
+    transition: all var(--transition-fast);
+}
+
+.search-input:focus {
+    border-color: var(--primary) !important;
+    box-shadow: none !important;
+    outline: none;
+    background-color: var(--primary-ultra-light);
+}
+
+.search-input::placeholder {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+/* Кнопка поиска */
+.btn-search {
+    background-color: var(--primary) !important;
+    border: 2px solid var(--primary) !important;
+    border-radius: 0 var(--radius-full) var(--radius-full) 0 !important;
+    color: var(--text-white) !important;
+    padding: 0.625rem 1.5rem !important;
+    font-size: 1rem;
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-search:hover {
+    background-color: var(--primary-dark) !important;
+    border-color: var(--primary-dark) !important;
+    transform: translateX(2px);
+}
+
+.btn-search:active {
+    transform: translateX(0);
+}
+        /* Стили для подсветки поиска */
+.highlight {
+    background-color: #ffd700;
+    color: #000;
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+    font-weight: 500;
+    box-shadow: 0 0 2px rgba(0,0,0,0.2);
+}
+.highlight mark {
+    all: inherit !important;
+}
+
+/* Иконка в кнопке поиска */
+.btn-search i {
+    font-size: 1.1rem;
+    transition: transform var(--transition-fast);
+}
+
+.btn-search:hover i {
+    transform: scale(1.15);
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .search-form {
+        min-width: 100%;
+        max-width: 100%;
+    }
+
+    .search-form .input-group {
+        flex-wrap: nowrap;
+    }
+
+    .search-input {
+        padding: 0.5rem 1rem !important;
+        font-size: 0.9rem;
+    }
+
+    .btn-search {
+        padding: 0.5rem 1rem !important;
+    }
+}
+
+/* Дополнительные стили для лучшей интеграции */
+@media (min-width: 992px) {
+    .navbar .search-form {
+        margin: 0 2rem;
+    }
+}
+
+/* Анимация появления результатов поиска (на будущее) */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
