@@ -31,8 +31,10 @@
                                     <i class="fa-solid fa-ellipsis-vertical"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="postDetailMenu{{ post.id }}">
-                                    <li><a class="dropdown-item" href="{% url 'posts:post-update' pk=post.pk %}"><i class="fa-solid fa-pen-to-square fa-fw me-2"></i>Редактировать</a></li>
-                                    <li><a class="dropdown-item text-danger" href="{% url 'posts:post-delete' pk=post.pk %}"><i class="fa-solid fa-trash-can fa-fw me-2"></i>Удалить</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'posts:post-update' pk=post.pk %}?from={{ request.GET.from|default:'latest' }}">
+                                        <i class="fa-solid fa-pen-to-square fa-fw me-2"></i>Редактировать</a></li>
+                                    <li><a class="dropdown-item text-danger" href="{% url 'posts:post-delete' pk=post.pk %}?from={{ request.GET.from|default:'latest' }}">
+                                        <i class="fa-solid fa-trash-can fa-fw me-2"></i>Удалить</a></li>
                                 </ul>
                             </div>
                         {% endif %}

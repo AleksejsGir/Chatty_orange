@@ -71,6 +71,8 @@
                  </div>
                  <div class="card-body profile-card-content">
                     <form method="post" enctype="multipart/form-data" class="post-form">
+                    <input type="hidden" name="from" value="{{ request.GET.from }}">
+
                         {% csrf_token %}
 
                         <!-- Заголовок поста -->
