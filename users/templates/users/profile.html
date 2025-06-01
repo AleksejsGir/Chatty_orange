@@ -59,7 +59,7 @@
             <div class="profile-actions" style="margin-top: 40px;">
                 {% if user.is_authenticated %}
                     {% if user == profile_user %}
-                        <a href="{% url 'users:profile-edit' pk=user.pk %}" class="btn btn-edit-profile">
+                        <a href="{% url 'users:profile-edit' pk=user.pk %}?from=profile" class="btn btn-edit-profile">
                             <i class="fa-solid fa-user-edit me-1"></i>Редактировать профиль
                         </a>
                     {% else %}
@@ -139,13 +139,13 @@
                                 <div class="col-md-6 mb-3">
                                     <div class="post-card h-100 {% if is_subscribed %}subscriber-post{% endif %}" style="border: 2px solid #f97316; border-radius: 8px;">
                                         {% if post.image %}
-                                            <a href="{% url 'posts:post-detail' pk=post.pk %}" class="d-block">
-                                                <img src="{{ post.image.url }}" alt="{{ post.title }}" class="card-img-top" style="height: 200px; object-fit: cover; border-radius: 6px 6px 0 0;">
+                                            <a href="{% url 'posts:post-detail' pk=post.pk %}?from=profile" class="d-block">
+                                                <img src="{{ post.image.url }}" alt="{{ post.title }}?from=profile" class="card-img-top" style="height: 200px; object-fit: cover; border-radius: 6px 6px 0 0;">
                                             </a>
                                         {% endif %}
                                         <div class="card-body">
                                             <h2 class="post-title">
-                                                <a href="{% url 'posts:post-detail' pk=post.pk %}">{{ post.title|highlight:search_terms }}</a>
+                                                <a href="{% url 'posts:post-detail' pk=post.pk %}?from=profile">{{ post.title|highlight:search_terms }}</a>
                                             </h2>
                                             <div class="post-text">{{ post.text|highlight:search_terms|safe|truncatewords_html:30 }}</div>
                                             <p class="post-meta-compact"><small>{{ post.pub_date|date:"d.m.Y H:i" }}</small></p>
@@ -180,7 +180,7 @@
                                                     {% endif %}
 
                                                     <!-- Остальные элементы оставить без изменений -->
-                                                    <a href="{% url 'posts:post-detail' pk=post.pk %}#comments" class="btn-interaction comment-button">
+                                                    <a href="{% url 'posts:post-detail' pk=post.pk %}#comments?from=profile" class="btn-interaction comment-button">
                                                         <i class="fa-regular fa-comment"></i>
                                                         <span class="interaction-count">{{ post.comments.count }}</span>
                                                     </a>
@@ -193,7 +193,7 @@
                         </div>
                         {% if user_posts.count > 4 %}
                             <div class="text-center mt-3">
-                                <a href="{% url 'posts:user-posts' username=profile_user.username %}" class="btn btn-outline-primary">
+                                <a href="{% url 'posts:user-posts' username=profile_user.username %}?from={{ 'profile' }}" class="btn btn-outline-primary">
                                     Все посты пользователя
                                 </a>
                             </div>

@@ -38,7 +38,7 @@
                                 </div>
 
                                 <h2 class="post-title">
-                                    <a href="{% url 'posts:post-detail' pk=post.pk %}">{{ post.title }}</a>
+                                    <a href="{% url 'posts:post-detail' pk=post.pk %}?from={{ current_filter|default:'feed' }}">{{ post.title }}</a>
                                 </h2>
 
                                 <div class="post-content">
@@ -50,7 +50,7 @@
                                     <div class="post-images mb-3" data-post-id="{{ post.pk }}">
                                         {# Основное изображение с навигацией #}
                                         <div class="main-image mb-3 position-relative">
-                                            <a href="{% url 'posts:post-detail' pk=post.pk %}" class="d-block">
+                                            <a href="{% url 'posts:post-detail' pk=post.pk %}?from={{ current_filter|default:'feed' }}" class="d-block">
                                                 <img src="{{ post.images.first.image.url }}"
                                                      class="img-fluid rounded shadow-sm"
                                                      alt="{{ post.title }}"
@@ -133,7 +133,7 @@
                                         {% endif %}
 
                                         <!-- Кнопка комментариев -->
-                                        <a href="{% url 'posts:post-detail' pk=post.pk %}#comments" class="btn-interaction comment-button">
+                                        <a href="{% url 'posts:post-detail' pk=post.pk %}#comments?from={{ current_filter|default:'feed' }}" class="btn-interaction comment-button">
                                             <i class="fa-regular fa-comment"></i>
                                             <span class="interaction-count">{{ post.comments.count }}</span>
                                         </a>

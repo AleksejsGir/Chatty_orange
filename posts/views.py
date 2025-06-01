@@ -216,12 +216,39 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return self.request.user == post.author
 
 
+# class PostCommentView(LoginRequiredMixin, SingleObjectMixin, View):
+#     model = Post
+#     form_class = CommentForm
+#
+#     def post(self, request, *args, **kwargs):
+#         self.object = self.get_object()
+#         form = self.form_class(request.POST)
+#
+#         if form.is_valid():
+#             comment = form.save(commit=False)
+#             comment.post = self.object
+#             comment.author = request.user
+#             comment.save()
+#
+#             # Сначала пытаемся взять параметр из POST (hidden input)
+#             from_param = request.POST.get('from') or request.GET.get('from')
+#             if from_param:
+#                 return redirect(f"{self.object.get_absolute_url()}?from={from_param}#comments")
+#
+#             # Иначе просто возвращаем на пост с якорем #comments
+#             return redirect(self.object.get_absolute_url() + '#comments')
+#
+#             # Если форма невалидна, возвращаем обратно с ошибками
+#         return self.render_to_response(
+#             self.get_context_data(post=self.object, comment_form=form)
+#         )
+
 class PostCommentView(LoginRequiredMixin, SingleObjectMixin, View):
     model = Post
     form_class = CommentForm
 
     def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
+        self.object = self.get_object()            # пост, к которому добавляем комментарий
         form = self.form_class(request.POST)
 
         if form.is_valid():
@@ -229,14 +256,18 @@ class PostCommentView(LoginRequiredMixin, SingleObjectMixin, View):
             comment.post = self.object
             comment.author = request.user
             comment.save()
+
+            # Сначала смотрим в POST, потом в GET
+            from_param = request.POST.get('from') or request.GET.get('from')
+            if from_param:
+                return redirect(f"{self.object.get_absolute_url()}?from={from_param}#comments")
+
+            # Если from не передан, просто возвращаем на якорь #comments
             return redirect(self.object.get_absolute_url() + '#comments')
 
-        # Если форма невалидна, вернемся к детальному просмотру с ошибками
+        # Если форма невалидна, показываем страницу с ошибками
         return self.render_to_response(
-            self.get_context_data(
-                post=self.object,
-                comment_form=form
-            )
+            self.get_context_data(post=self.object, comment_form=form)
         )
 
 
@@ -250,6 +281,31 @@ class PostDetailWithComments(View):
         return view(request, *args, **kwargs)
 
 
+# class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+#     model = Comment
+#     template_name = 'posts/comment_confirm_delete.html'
+#
+#     def test_func(self):
+#         comment = self.get_object()
+#         return self.request.user == comment.author or self.request.user.is_staff
+#
+#     # def get_success_url(self):
+#     #     from_param = self.request.POST.get('from') or self.request.GET.get('from')
+#     #     if from_param:
+#     #         return f"{self.object.post.get_absolute_url()}?from={from_param}#comments"
+#     #     return self.object.post.get_absolute_url() + '#comments'
+#
+#     def post(self, request, *args, **kwargs):
+#         # чтобы гарантированно получить из POST скрытое поле 'from'
+#         self.object = self.get_object()
+#         post_url = self.object.post.get_absolute_url()
+#         from_param = request.POST.get('from') or request.GET.get('from')
+#         self.object.delete()
+#         if from_param:
+#             return redirect(f"{post_url}?from={from_param}#comments")
+#         return redirect(f"{post_url}#comments")
+
+
 class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Comment
     template_name = 'posts/comment_confirm_delete.html'
@@ -258,8 +314,15 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         comment = self.get_object()
         return self.request.user == comment.author or self.request.user.is_staff
 
-    def get_success_url(self):
-        return self.object.post.get_absolute_url() + '#comments'
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        post_url = self.object.post.get_absolute_url()
+        from_param = request.POST.get('from') or request.GET.get('from')
+        self.object.delete()
+
+        if from_param:
+            return redirect(f"{post_url}?from={from_param}#comments")
+        return redirect(f"{post_url}#comments")
 
 
 # posts/views.py (PostLikeView)
