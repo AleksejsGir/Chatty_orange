@@ -20,7 +20,7 @@
                         <i class="fa-regular fa-face-smile"></i>
                     </button>
                     {% if user == comment.author or user.is_staff %}
-                        <a href="{% url 'posts:comment-edit' pk=comment.pk %}" class="text-primary">
+                        <a href="{% url 'posts:comment-edit' pk=comment.pk %}?from={{ current_filter|default:'feed' }}" class="text-primary">
                             <i class="fa-regular fa-pen-to-square"></i>
                         </a>
                         <form method="post" action="{% url 'posts:comment-delete' pk=comment.pk %}?from={{ request.GET.from }}" class="d-inline">
@@ -55,7 +55,7 @@
             </button>
 
             <div class="reply-form mt-3">
-                <form method="post" action="{% url 'posts:comment-reply' parent_id=comment.id %}" class="mt-2">
+                <form method="post" action="{% url 'posts:comment-reply' parent_id=comment.id %}?from={{ request.GET.from }}" class="mt-2">
                     {% csrf_token %}
                     {% bootstrap_form comment_form %}
                     <div class="mt-2">

@@ -81,7 +81,7 @@
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="postMenu{{ post.id }}">
                                                 <li>
-                                                    <a class="dropdown-item" href="{% url 'posts:post-update' pk=post.pk %}">
+                                                    <a class="dropdown-item" href="{% url 'posts:post-update' pk=post.pk %}?from={{ request.GET.from|default:'latest' }}">
                                                         <i class="fa-solid fa-pen-to-square me-2"></i>Редактировать
                                                     </a>
                                                 </li>
@@ -208,7 +208,7 @@
                                             </button>
                                         {% endif %}
 
-                                        <a href="{% url 'posts:post-detail' pk=post.pk %}#comments?from={{ current_filter|default:'feed' }}" class="btn-interaction comment-button">
+                                        <a href="{% url 'posts:post-detail' pk=post.pk %}?from={{ current_filter|default:'feed' }}#comments" class="btn-interaction comment-button">
                                             <i class="fa-regular fa-comment"></i>
                                             <span class="interaction-count">{{ post.num_comments }}</span>
                                         </a>
