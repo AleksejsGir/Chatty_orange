@@ -164,6 +164,9 @@ class PostCreateView(LoginRequiredMixin, CreateView):
             self.object = form.save()
             image_formset.instance = self.object
             image_formset.save()
+
+            self.success_url = f"{self.object.get_absolute_url()}?from=created"
+
             return super().form_valid(form)
         else:
             return self.form_invalid(form)

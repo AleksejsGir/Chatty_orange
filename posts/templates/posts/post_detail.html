@@ -1,21 +1,16 @@
 {% extends "base.html" %}
+{% load back_button %}
+{% load back_button %}
+{% load back_button %}
+{% load back_button %}
 {% load static %}
 {% load django_bootstrap5 %}
-
 {% block title %}{{ post.title }} - Chatty{% endblock %}
 
 {% block content %}
     <div class="container mt-4 orange-background">
     {# Кнопка Назад #}
-    <div class="mb-3">
-    <a href="{{ request.META.HTTP_REFERER|default:'/' }}" class="btn btn-outline-secondary w-auto d-inline-flex align-items-center">
-        <i class="fa-solid fa-arrow-left me-2"></i>
-        <span class="d-none d-sm-inline">Назад</span>
-    </a>
-</div>
-        <div class="row justify-content-center">
-            <div class="col-lg-9">
-                <article class="post-card mb-4 p-4 content-card-on-oranges">
+    {% back_button post %}
                     {# --- Шапка поста --- #}
                     <div class="post-header mb-3 pb-3 border-bottom">
                         <div class="post-author">
