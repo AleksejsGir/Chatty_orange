@@ -9,6 +9,9 @@
     <div class="container mt-4 orange-background">
     {# Кнопка Назад #}
     {% back_button post %}
+    <div class="floating-back-button" id="floatingBackButton">
+    {% back_button post extra_class="btn-sm" %}
+</div>
                     {# --- Шапка поста --- #}
                     <div class="post-header mb-3 pb-3 border-bottom">
                         <div class="post-author">
@@ -311,9 +314,8 @@
         </div>
         {% endif %}
     </div>
-    <div class="floating-back-button">
-    {% back_button post extra_class="btn btn-outline-secondary btn-lg rounded-circle shadow" %}
-</div>
+
+
 
 
 {% endblock %}
@@ -333,24 +335,45 @@
         background-color: rgba(0, 0, 0, 0.95);
         animation: fadeIn 0.3s ease;
     }
+
+
     /* Стрелка "Назад" */
-
-
     .floating-back-button {
         position: fixed;
-        bottom: 20px;
         right: 20px;
-        z-index: 999;
+        bottom: 80px;
+        z-index: 1000;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.4s ease-in-out;
+        pointer-events: none;
     }
+
+    .floating-back-button.show {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
     .floating-back-button a {
         width: 50px;
         height: 50px;
+        border-radius: 50%;
+        background-color: #ffffff;
+        border: 1px solid #ced4da;
+        color: #495057;
         display: flex;
         align-items: center;
         justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: background-color 0.3s ease, transform 0.3s ease;
     }
 
-
+    .floating-back-button a:hover {
+        background-color: #f8f9fa;
+        transform: scale(1.05);
+        color: #212529;
+    }
 
 
     .lightbox-modal.active {
@@ -537,6 +560,21 @@
 {% block extra_js %}
 {{ block.super }}
 <script>
+
+
+    //Стрелка "Назад"
+    document.addEventListener('DOMContentLoaded', function () {
+        const btn = document.getElementById('floatingBackButton');
+        window.addEventListener('scroll', function () {
+            if (window.scrollY > 300) {
+                btn.classList.add('show');
+            } else {
+                btn.classList.remove('show');
+            }
+        });
+    });
+
+
     // Массив URL изображений
     const postImages = [
         {% for image in post.images.all|dictsort:"order" %}
