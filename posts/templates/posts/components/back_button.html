@@ -1,4 +1,6 @@
-<a href="{{ url }}" class="{{ btn_class }} w-auto d-inline-flex align-items-center mb-3">
-    <i class="fa-solid fa-arrow-left me-2"></i>
-    <span class="d-none d-sm-inline">{{ label }}</span>
+<a href="{{ url }}" class="{{ btn_class }} {{ extra_class }}" title="{{ label }}">
+    <i class="fa-solid fa-arrow-left"></i>
+    {% if not extra_class %}
+        <span class="d-none d-sm-inline ms-1">{{ label }}</span>
+    {% endif %}
 </a>

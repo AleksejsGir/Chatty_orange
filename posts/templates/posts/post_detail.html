@@ -311,6 +311,11 @@
         </div>
         {% endif %}
     </div>
+    <div class="floating-back-button">
+    {% back_button post extra_class="btn btn-outline-secondary btn-lg rounded-circle shadow" %}
+</div>
+
+
 {% endblock %}
 
 {% block extra_css %}
@@ -328,6 +333,25 @@
         background-color: rgba(0, 0, 0, 0.95);
         animation: fadeIn 0.3s ease;
     }
+    /* Стрелка "Назад" */
+
+
+    .floating-back-button {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 999;
+    }
+    .floating-back-button a {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+
+
 
     .lightbox-modal.active {
         display: flex;
