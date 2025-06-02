@@ -179,7 +179,7 @@
 
                                         {% if user == comment.author or user.is_staff %}
                                             <div class="comment-actions mt-2">
-                                                <form method="post" action="{% url 'posts:comment-delete' pk=comment.pk %}" class="d-inline">
+                                                <form method="post" action="{% url 'posts:comment-delete' pk=comment.pk %}?from={{ request.GET.from }}">
                                                     {% csrf_token %}
                                                     <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Удалить этот комментарий?')">
                                                         <i class="fa-solid fa-trash"></i> Удалить

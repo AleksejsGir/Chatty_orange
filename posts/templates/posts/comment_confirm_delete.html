@@ -17,16 +17,16 @@
                     </blockquote>
                     
                     <<form method="post" action="?from={{ request.GET.from }}">
-    {% csrf_token %}
-    <input type="hidden" name="from" value="{{ request.GET.from }}">
-    <button type="submit" class="btn btn-danger me-2">
-        <i class="fa-solid fa-trash me-1"></i> Удалить
-    </button>
-    <a href="{{ comment.post.get_absolute_url }}?from={{ request.GET.from }}#comments"
-       class="btn btn-outline-secondary">
-        <i class="fa-solid fa-xmark me-1"></i> Отмена
-    </a>
-</form>
+                        {% csrf_token %}
+                        <input type="hidden" name="from" value="{{ request.GET.from }}">
+                        <button type="submit" class="btn btn-danger me-2">
+                            <i class="fa-solid fa-trash me-1"></i> Удалить
+                        </button>
+                        <a href="{{ comment.post.get_absolute_url }}?from={{ request.GET.from }}#comments"
+                            class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-xmark me-1"></i> Отмена
+                        </a>
+                    </form>
 
 
 
