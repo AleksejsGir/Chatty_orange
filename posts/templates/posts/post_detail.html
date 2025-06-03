@@ -57,39 +57,47 @@
                                  class="img-fluid rounded shadow-sm"
                                  alt="{{ post.title }}"
                                  id="mainImage"
-                                 style="max-height: 500px; width: 100%; object-fit: cover; cursor: pointer;">
+                                 style="max-height: 400px; width: 100%; object-fit: contain; background-color: #f8f9fa;"
+                                 onclick="openLightbox(0)">
 
                             {# Навигация и счетчик поверх изображения #}
                             <div class="image-overlay d-flex justify-content-between align-items-center p-3">
                                 <div class="image-counter bg-dark bg-opacity-50 text-white px-3 py-1 rounded-pill">
                                     <span id="currentImage">1</span>/{{ post.images.count }}
                                 </div>
-                                <button class="btn btn-sm btn-light enlarge-button" id="enlargeImage">
-                                    <i class="fa-solid fa-expand me-1"></i> Увеличить
-                                </button>
+{#                                <button class="btn btn-sm btn-light enlarge-button" id="enlargeImage" onclick="openLightbox(currentIndex)">#}
+{#                                    <i class="fa-solid fa-expand me-1"></i> Увеличить#}
+{#                                </button>#}
                             </div>
 
                             {# Кнопки навигации #}
+                            {% if post.images.count > 1 %}
                             <button class="image-nav-btn prev-btn" id="prevImage">
                                 <i class="fa-solid fa-chevron-left"></i>
                             </button>
                             <button class="image-nav-btn next-btn" id="nextImage">
                                 <i class="fa-solid fa-chevron-right"></i>
                             </button>
+                            {% endif %}
                         </div>
 
                         {# Миниатюры #}
-                        <div class="image-thumbnails row g-2" id="imageThumbnails">
-                            {% for image in post.images.all|dictsort:"order" %}
+                        {% if post.images.count > 1 %}
+                        <div class="image-thumbnails row g-2" id="imageThumbnails-{{ post.pk }}"> {# ID с PK для уникальности #}
+                            {% for image_obj in post.images.all|dictsort:"order" %}
                                 <div class="col-3 col-md-2">
-                                    <img src="{{ image.image.url }}"
-                                         class="img-thumbnail {% if forloop.first %}active{% endif %}"
+                                    <img src="{{ image_obj.image.url }}"
+                                         class="img-thumbnail lightbox-trigger {% if forloop.first %}active{% endif %}" {# Добавлен lightbox-trigger #}
                                          alt="Thumbnail {{ forloop.counter }}"
-                                         data-index="{{ forloop.counter0 }}"
-                                         style="cursor: pointer; height: 80px; width: 100%; object-fit: cover;">
+                                         data-index="{{ forloop.counter0 }}" {# Для JS галереи на странице #}
+                                         data-image-index="{{ forloop.counter0 }}" {# Для JS лайтбокса #}
+                                         data-bs-toggle="modal" data-bs-target="#imageLightboxModal" {# Для открытия модального окна Bootstrap #}
+                                         onclick="selectImage({{ post.pk }}, {{ forloop.counter0 }}, event)" {# Для смены изображения в галерее на странице #}
+                                         style="cursor: pointer; height: 60px; width: 100%; object-fit: contain; background-color: #f8f9fa;">
                                 </div>
                             {% endfor %}
                         </div>
+                        {% endif %}
                     </div>
                 {% endif %}
 
@@ -263,4 +271,215 @@
             </div>
         </div>
     </div>
+
+    {# --- Лайтбокс для изображений --- #}
+    <div id="imageLightbox" class="lightbox-modal" onclick="closeLightboxOnBackground(event)">
+        <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+
+        {# Кнопки навигации #}
+        {% if post.images.count > 1 %}
+        <button class="lightbox-nav lightbox-prev" onclick="navigateLightbox('prev', event)">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <button class="lightbox-nav lightbox-next" onclick="navigateLightbox('next', event)">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+        {% endif %}
+
+        {# Контейнер для изображения #}
+        <div class="lightbox-content">
+            <img id="lightboxImage" class="lightbox-image" src="" alt="">
+
+            {# Счетчик и описание #}
+            <div class="lightbox-info">
+                <div class="lightbox-counter">
+                    <span id="lightboxCurrent">1</span> / {{ post.images.count }}
+                </div>
+                <div class="lightbox-caption">{{ post.title }}</div>
+            </div>
+        </div>
+
+        {# Миниатюры в лайтбоксе #}
+        {% if post.images.count > 1 %}
+        <div class="lightbox-thumbnails">
+            {% for image in post.images.all|dictsort:"order" %}
+                <img src="{{ image.image.url }}"
+                     class="lightbox-thumb {% if forloop.first %}active{% endif %}"
+                     alt="Thumbnail {{ forloop.counter }}"
+                     onclick="selectLightboxImage({{ forloop.counter0 }}, event)">
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    // Массив URL изображений
+    const postImages = [
+        {% for image in post.images.all|dictsort:"order" %}
+            '{{ image.image.url }}'{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    let currentIndex = 0;
+    let lightboxIndex = 0;
+
+    // Функция открытия лайтбокса
+    function openLightbox(index) {
+        lightboxIndex = index;
+        const lightbox = document.getElementById('imageLightbox');
+        const lightboxImage = document.getElementById('lightboxImage');
+
+        lightbox.classList.add('active');
+        document.body.classList.add('lightbox-open');
+
+        updateLightboxImage();
+
+        // Добавляем обработчики клавиатуры
+        document.addEventListener('keydown', handleLightboxKeyboard);
+    }
+
+    // Функция закрытия лайтбокса
+    function closeLightbox() {
+        const lightbox = document.getElementById('imageLightbox');
+        lightbox.classList.remove('active');
+        document.body.classList.remove('lightbox-open');
+
+        // Удаляем обработчики клавиатуры
+        document.removeEventListener('keydown', handleLightboxKeyboard);
+    }
+
+    // Закрытие при клике на фон
+    function closeLightboxOnBackground(event) {
+        if (event.target === event.currentTarget) {
+            closeLightbox();
+        }
+    }
+
+    // Навигация в лайтбоксе
+    function navigateLightbox(direction, event) {
+        event.stopPropagation();
+
+        if (direction === 'prev') {
+            lightboxIndex = (lightboxIndex - 1 + postImages.length) % postImages.length;
+        } else {
+            lightboxIndex = (lightboxIndex + 1) % postImages.length;
+        }
+
+        updateLightboxImage();
+    }
+
+    // Выбор изображения в лайтбоксе
+    function selectLightboxImage(index, event) {
+        event.stopPropagation();
+        lightboxIndex = index;
+        updateLightboxImage();
+    }
+
+    // Обновление изображения в лайтбоксе
+    function updateLightboxImage() {
+        const lightboxImage = document.getElementById('lightboxImage');
+        const lightboxCurrent = document.getElementById('lightboxCurrent');
+        const thumbnails = document.querySelectorAll('.lightbox-thumb');
+
+        // Обновляем изображение с анимацией
+        lightboxImage.style.opacity = '0';
+        setTimeout(() => {
+            lightboxImage.src = postImages[lightboxIndex];
+            lightboxImage.style.opacity = '1';
+        }, 150);
+
+        // Обновляем счетчик
+        lightboxCurrent.textContent = lightboxIndex + 1;
+
+        // Обновляем активную миниатюру
+        thumbnails.forEach((thumb, index) => {
+            if (index === lightboxIndex) {
+                thumb.classList.add('active');
+                // Прокручиваем к активной миниатюре
+                thumb.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+            } else {
+                thumb.classList.remove('active');
+            }
+        });
+    }
+
+    // Обработка клавиатуры для лайтбокса
+    function handleLightboxKeyboard(event) {
+        switch(event.key) {
+            case 'ArrowLeft':
+                navigateLightbox('prev', event);
+                break;
+            case 'ArrowRight':
+                navigateLightbox('next', event);
+                break;
+            case 'Escape':
+                closeLightbox();
+                break;
+        }
+    }
+
+    // Функция для выбора изображения и открытия лайтбокса
+    function selectImageAndOpen(index) {
+        currentIndex = index;
+        updateMainImage(index);
+        openLightbox(index);
+    }
+
+    // Существующий код для галереи
+    document.addEventListener('DOMContentLoaded', function() {
+        const mainImage = document.getElementById('mainImage');
+        const thumbnails = document.querySelectorAll('.image-thumbnails .img-thumbnail');
+        const currentImageCounter = document.getElementById('currentImage');
+        const prevBtn = document.getElementById('prevImage');
+        const nextBtn = document.getElementById('nextImage');
+
+        // Обработчики для миниатюр
+        thumbnails.forEach(thumb => {
+            thumb.addEventListener('click', function() {
+                const index = parseInt(this.getAttribute('data-index'));
+                currentIndex = index;
+                updateMainImage(index);
+            });
+        });
+
+        // Кнопки навигации
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => changeMainImage('prev'));
+        }
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => changeMainImage('next'));
+        }
+
+        function updateMainImage(index) {
+            mainImage.src = postImages[index];
+            currentImageCounter.textContent = index + 1;
+
+            // Обновление активной миниатюры
+            thumbnails.forEach(thumb => thumb.classList.remove('active'));
+            if (thumbnails[index]) {
+                thumbnails[index].classList.add('active');
+            }
+        }
+
+        function changeMainImage(direction) {
+            if (direction === 'prev') {
+                currentIndex = (currentIndex - 1 + postImages.length) % postImages.length;
+            } else {
+                currentIndex = (currentIndex + 1) % postImages.length;
+            }
+            updateMainImage(currentIndex);
+        }
+
+        // Обработчики клавиатуры для основной галереи
+        document.addEventListener('keydown', function(e) {
+            if (!document.getElementById('imageLightbox').classList.contains('active')) {
+                if (e.key === 'ArrowLeft' && prevBtn) changeMainImage('prev');
+                if (e.key === 'ArrowRight' && nextBtn) changeMainImage('next');
+            }
+        });
+    });
+</script>
 {% endblock %}
