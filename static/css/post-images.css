@@ -338,3 +338,40 @@ body.lightbox-open {
 .main-image {
     position: relative;
 }
+/* Стрелка "Назад" */
+.floating-back-button {
+    position: fixed;
+    left: 220px;
+    top: 90px;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.4s ease-in-out;
+    pointer-events: none;
+}
+
+.floating-back-button.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.floating-back-button a {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    background-color: #ffffff;
+    border: 1px solid #ced4da;
+    color: #495057;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.floating-back-button a:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.05);
+    color: #212529;
+}
