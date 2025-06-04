@@ -48,7 +48,7 @@
                         {% endif %}
 
                         {# Кнопка входа и ссылка на сброс пароля #}
-                        <div class="d-grid gap-2 mt-4">
+                        <div class="text-center gap-2 mt-4">
                              <button class="btn btn-primary btn-lg" type="submit">
                                 <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> {% trans "Войти" %}
                              </button>
@@ -62,8 +62,8 @@
                     </div>
 
                     {# Кнопка входа через Google #}
-                    <div class="social-login mt-3">
-                        <a href="{% provider_login_url 'google' %}" class="btn btn-outline-danger w-100">
+                    <div class="social-login mt-3 d-flex justify-content-center">
+                        <a href="{% provider_login_url 'google' %}" class="btn btn-outline-danger">
                             <i class="fa-brands fa-google me-2"></i>
                             {% trans "Войти через Google" %}
                         </a>

@@ -61,7 +61,7 @@
                 {% if user.is_authenticated %}
                     {% if user == profile_user %}
                         <a href="{% url 'users:profile-edit' pk=user.pk %}?from=profile"
-                           class="btn-profile-base btn-edit-profile">
+                           class="btn btn-edit-profile">
                             <i class="fa-solid fa-pen-to-square"></i>
                             Редактировать профиль
                         </a>
@@ -71,14 +71,14 @@
                             {% csrf_token %}
                             {% if is_subscribed %}
                                 <button type="submit"
-                                        class="btn-profile-base btn-unfollow-profile subscription-toggle js-subscription-toggle"
+                                        class="btn btn-unfollow-profile subscription-toggle js-subscription-toggle"
                                         data-username="{{ profile_user.username }}">
                                     <i class="fa-solid fa-user-minus"></i>
                                     Отписаться
                                 </button>
                             {% else %}
                                 <button type="submit"
-                                        class="btn-profile-base btn-follow-profile subscription-toggle js-subscription-toggle"
+                                        class="btn btn-follow-profile subscription-toggle js-subscription-toggle"
                                         data-username="{{ profile_user.username }}">
                                     <i class="fa-solid fa-user-plus"></i>
                                     Подписаться
