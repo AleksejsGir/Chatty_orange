@@ -5,79 +5,107 @@
 
 {% block title %}Редактирование профиля - {{ user.username }}{% endblock %}
 
-{% block extra_css %}
-{# Дополнительные стили специфичные для этой страницы, если нужны #}
-<style>
-    /* Стили для превью аватара */
-    .avatar-preview {
-        max-width: 100px;
-        max-height: 100px;
-        border-radius: 50%;
-        object-fit: cover;
-        margin-top: 0.5rem;
-        border: 3px solid var(--bg-gray);
-    }
-    .form-label {
-        font-weight: 500; /* Делаем метки полей полужирными */
-    }
-    /* Единые стили для кнопки .btn-search */
-    .btn-search {
-        background-color: #FFB74D !important;
-        border-color: #FFB74D !important;
-        color: #333 !important;
-        transition: all 0.3s;
-    }
-    .btn-search:hover {
-        background-color: #F57C00 !important;
-        border-color: #F57C00 !important;
-    }
-</style>
-{% endblock %}
 
 {% block content %}
-<div class="container mt-4 mb-5 orange-background">{# Добавил отступ снизу #}
+<div class="container mt-4 mb-5 orange-background">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card profile-card shadow-sm"> {# Используем стиль карточки #}
-                 <div class="card-header profile-card-title"> {# Добавил card-header #}
+            <div class="card profile-card shadow-sm">
+                <div class="card-header profile-card-title">
                     <i class="fa-solid fa-user-pen fa-fw me-2"></i>Редактирование профиля: {{ user.username }}
                 </div>
-                <div class="card-body profile-card-content"> {# Используем стили контента карточки #}
+                <div class="card-body profile-card-content">
                     <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
 
-                        {# Отображение текущего аватара для превью #}
+                        <style>
+                            .avatar-preview-container {
+                                width: 150px;
+                                height: 150px;
+                                border-radius: 50%;
+                                background-size: cover;
+                                background-position: center;
+                                background-repeat: no-repeat;
+                                margin: 0 auto;
+                                border: 4px solid #FFF7ED;
+                                box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+                            }
+                        </style>
+
                         {% if form.instance.avatar %}
-                            <div class="mb-3 text-center text-md-start">
-                                <label class="form-label">Текущий аватар:</label><br>
-                                <img src="{{ form.instance.avatar.url }}" alt="Текущий аватар" class="avatar-preview">
+                            <div class="current-avatar-section text-center">
+                                <label class="form-label d-block mb-3">Текущий аватар</label>
+                                <div class="avatar-preview-container"
+                                     style="background-image: url('{{ form.instance.avatar.url }}');">
+                                </div>
                             </div>
                         {% endif %}
 
                         {# Рендеринг формы с помощью django-bootstrap5 #}
-                        {% bootstrap_form form layout='vertical' %} {# Изменил layout на vertical для стандартного вида #}
+                        {% bootstrap_form form layout='vertical' %}
 
-                        <div class="d-flex justify-content-end mt-4"> {# Кнопки справа #}
+                        <div class="d-flex justify-content-end mt-4 gap-2">
                             {# Кнопка "Отмена" ведет на страницу профиля #}
-                            <a href="{% url 'users:profile' username=user.username %}" class="btn btn-outline-secondary me-2">
+                            <a href="{% url 'users:profile' username=user.username %}" class="btn btn-outline-secondary">
+                                <i class="fa-solid fa-times me-1"></i>
                                 Отмена
                             </a>
-                            <button type="submit" class="btn btn-primary"> {# Основная оранжевая кнопка #}
+                            <button type="submit" class="btn btn-primary">
                                 <i class="fa-solid fa-save me-1"></i>
                                 Сохранить изменения
                             </button>
                         </div>
                     </form>
-                </div> {# Конец card-body #}
-            </div> {# Конец card #}
+                </div>
+            </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-{# Можно добавить JS для превью изображения перед загрузкой, если нужно #}
-{% endblock %}
+<script>
+    // Скрипт для предварительного просмотра нового аватара перед загрузкой
+    document.addEventListener('DOMContentLoaded', function() {
+        // Находим поле загрузки файла для аватара
+        const avatarInput = document.querySelector('input[type="file"][name="avatar"]');
 
-<!-- TODO: Реализовать JS для live-превью загружаемого аватара. -->
-<!-- TODO: Убедиться, что ProfileUpdateForm включает поля first_name, last_name, email, bio, contacts, avatar. -->
+        if (avatarInput) {
+            avatarInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+
+                    reader.onload = function(e) {
+                        // Проверяем, есть ли уже контейнер для превью
+                        let previewContainer = document.querySelector('.avatar-preview-container');
+
+                        if (!previewContainer) {
+                            // Если контейнера нет, создаем новую секцию
+                            const section = document.createElement('div');
+                            section.className = 'current-avatar-section';
+                            section.innerHTML = `
+                                <label class="form-label d-block mb-3">Превью нового аватара</label>
+                                <div class="avatar-preview-container"
+                                     role="img"
+                                     aria-label="Превью нового аватара">
+                                </div>
+                            `;
+
+                            // Вставляем перед формой
+                            avatarInput.closest('form').insertBefore(section, avatarInput.closest('.mb-3'));
+                            previewContainer = section.querySelector('.avatar-preview-container');
+                        }
+
+                        // Обновляем изображение
+                        previewContainer.style.backgroundImage = `url('${e.target.result}')`;
+                    };
+
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
