@@ -1,17 +1,16 @@
 {% extends "base.html" %}
+
+{% load back_button %}
 {% load static %}
 {% load django_bootstrap5 %}
-
 {% block title %}{{ post.title }} - Chatty{% endblock %}
 
 {% block content %}
     <div class="container mt-4 orange-background">
     {# Кнопка Назад #}
-    <div class="mb-3">
-    <a href="{{ request.META.HTTP_REFERER|default:'/' }}" class="btn btn-outline-secondary w-auto d-inline-flex align-items-center">
-        <i class="fa-solid fa-arrow-left me-2"></i>
-        <span class="d-none d-sm-inline">Назад</span>
-    </a>
+    {% back_button post %}
+    <div class="floating-back-button" id="floatingBackButton">
+    {% back_button post extra_class="btn-sm" %}
 </div>
         <div class="row justify-content-center">
             <div class="col-lg-9">
@@ -38,8 +37,10 @@
                                     <i class="fa-solid fa-ellipsis-vertical"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="postDetailMenu{{ post.id }}">
-                                    <li><a class="dropdown-item" href="{% url 'posts:post-update' pk=post.pk %}"><i class="fa-solid fa-pen-to-square fa-fw me-2"></i>Редактировать</a></li>
-                                    <li><a class="dropdown-item text-danger" href="{% url 'posts:post-delete' pk=post.pk %}"><i class="fa-solid fa-trash-can fa-fw me-2"></i>Удалить</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'posts:post-update' pk=post.pk %}?from={{ request.GET.from|default:'latest' }}">
+                                        <i class="fa-solid fa-pen-to-square fa-fw me-2"></i>Редактировать</a></li>
+                                    <li><a class="dropdown-item text-danger" href="{% url 'posts:post-delete' pk=post.pk %}?from={{ request.GET.from|default:'latest' }}">
+                                        <i class="fa-solid fa-trash-can fa-fw me-2"></i>Удалить</a></li>
                                 </ul>
                             </div>
                         {% endif %}
@@ -184,7 +185,7 @@
 
                                         {% if user == comment.author or user.is_staff %}
                                             <div class="comment-actions mt-2">
-                                                <form method="post" action="{% url 'posts:comment-delete' pk=comment.pk %}" class="d-inline">
+                                                <form method="post" action="{% url 'posts:comment-delete' pk=comment.pk %}?from={{ request.GET.from }}">
                                                     {% csrf_token %}
                                                     <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Удалить этот комментарий?')">
                                                         <i class="fa-solid fa-trash"></i> Удалить
@@ -239,13 +240,18 @@
                     <div class="card shadow-sm mb-4">
                         <div class="card-body">
                             <h5 class="card-title mb-3">Оставить комментарий</h5>
-                            <form method="post" action="{% url 'posts:post-comment' pk=post.pk %}">
-                                {% csrf_token %}
-                                {% bootstrap_form comment_form %}
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fa-solid fa-paper-plane me-1"></i> Отправить
-                                </button>
-                            </form>
+
+                        <form method="post"
+                            action="{% url 'posts:post-comment' pk=post.pk %}?from={{ request.GET.from }}">
+                        {% csrf_token %}
+                        <input type="hidden" name="from" value="{{ request.GET.from }}">
+                        {% bootstrap_form comment_form %}
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-paper-plane me-1"></i> Отправить
+                        </button>
+                        </form>
+
+
                         </div>
                     </div>
                 {% else %}
@@ -316,6 +322,21 @@
 {% block extra_js %}
 {{ block.super }}
 <script>
+
+
+    //Стрелка "Назад"
+    document.addEventListener('DOMContentLoaded', function () {
+        const btn = document.getElementById('floatingBackButton');
+        window.addEventListener('scroll', function () {
+            if (window.scrollY > 300) {
+                btn.classList.add('show');
+            } else {
+                btn.classList.remove('show');
+            }
+        });
+    });
+
+
     // Массив URL изображений
     const postImages = [
         {% for image in post.images.all|dictsort:"order" %}

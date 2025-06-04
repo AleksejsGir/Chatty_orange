@@ -81,12 +81,12 @@
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="postMenu{{ post.id }}">
                                                 <li>
-                                                    <a class="dropdown-item" href="{% url 'posts:post-update' pk=post.pk %}">
+                                                    <a class="dropdown-item" href="{% url 'posts:post-update' pk=post.pk %}?from={{ request.GET.from|default:'latest' }}">
                                                         <i class="fa-solid fa-pen-to-square me-2"></i>Редактировать
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item text-danger" href="{% url 'posts:post-delete' pk=post.pk %}">
+                                                    <a class="dropdown-item text-danger" href="{% url 'posts:post-delete' pk=post.pk %}?from={{ current_filter|default:'feed' }}">
                                                         <i class="fa-solid fa-trash-can me-2"></i>Удалить
                                                     </a>
                                                 </li>
@@ -96,7 +96,7 @@
                                 </div>
 
                                 <h2 class="post-title">
-                                    <a href="{% url 'posts:post-detail' pk=post.pk %}">
+                                    <a href="{% url 'posts:post-detail' pk=post.pk %}?from={{ current_filter|default:'feed' }}">
                                         {% if search_query %}
                                             {{ post.title|safe|highlight:search_query }}
                                         {% else %}
@@ -116,7 +116,7 @@
                                 {% if post.tags.all %}
                                     <div class="post-tags mb-2">
                                         {% for tag in post.tags.all %}
-                                            <a href="{% url 'posts:tag-posts' slug=tag.slug %}" class="badge rounded-pill bg-light text-primary me-1">
+                                            <a href="{% url 'posts:tag-posts' slug=tag.slug %}?from={{ current_filter|default:'feed' }}" class="badge rounded-pill bg-light text-primary me-1">
                                                 #{{ tag.name }}
                                             </a>
                                         {% endfor %}
@@ -128,8 +128,8 @@
                                     <div class="post-images mb-3" data-post-id="{{ post.pk }}">
                                         {# Основное изображение с навигацией #}
                                         <div class="main-image mb-3 position-relative">
-                                            <a href="{% url 'posts:post-detail' pk=post.pk %}" class="d-block">
-                                                <img src="{{ post.images.first.image.url }}"
+                                            <a href="{% url 'posts:post-detail' pk=post.pk %}?from={{ current_filter|default:'feed' }}" class="d-block">
+                                                <img src="{{ post.images.first.image.url }}?from={{ current_filter|default:'feed' }}"
                                                      class="img-fluid rounded shadow-sm"
                                                      alt="{{ post.title }}"
                                                      id="mainImage-{{ post.pk }}"
@@ -208,7 +208,7 @@
                                             </button>
                                         {% endif %}
 
-                                        <a href="{% url 'posts:post-detail' pk=post.pk %}#comments" class="btn-interaction comment-button">
+                                        <a href="{% url 'posts:post-detail' pk=post.pk %}?from={{ current_filter|default:'feed' }}#comments" class="btn-interaction comment-button">
                                             <i class="fa-regular fa-comment"></i>
                                             <span class="interaction-count">{{ post.num_comments }}</span>
                                         </a>
@@ -339,8 +339,8 @@
                                         <span class="stat-label">Подписок</span>
                                     </a>
                                 </div>
-                                <div class="user-profile-actions">
-                                    <a href="{% url 'posts:post-create' %}" class="btn btn-primary btn-sm w-100">
+                                <div class="user-profile-actions d-flex justify-content-center">
+                                    <a href="{% url 'posts:post-create' %}" class="btn btn-primary btn-sm">
                                         <i class="fa-solid fa-pen-to-square me-2"></i>Новый пост
                                     </a>
                                 </div>

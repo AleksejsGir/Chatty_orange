@@ -72,80 +72,212 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ===== КНОПКИ ===== */
+/* Базовые стили для всех кнопок */
 .btn {
-  font-weight: 500;
-  border-radius: var(--radius-md);
-  padding: 0.5rem 1rem;
-  transition: all var(--transition-fast);
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  cursor: pointer;
 }
 
+/* Эффект свечения при наведении для всех кнопок */
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left var(--transition-slow);
+}
+
+.btn:hover::before {
+  left: 100%;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  text-decoration: none;
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-md);
+}
+
+.btn i {
+  font-size: 1rem;
+  transition: transform var(--transition-fast);
+}
+
+.btn:hover i {
+  transform: scale(1.1);
+}
+
+/* Основная кнопка (оранжевая) */
 .btn-primary {
-  background-color: var(--primary);
-  border-color: var(--primary);
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
   color: white;
+  border: none;
 }
 
 .btn-primary:hover, .btn-primary:focus {
-  background-color: var(--primary-dark);
-  border-color: var(--primary-dark);
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+  color: white;
 }
 
+/* Контурная кнопка */
 .btn-outline-primary {
+  background: white;
   color: var(--primary);
-  border-color: var(--primary);
+  border: 2px solid var(--primary-light);
 }
 
 .btn-outline-primary:hover, .btn-outline-primary:focus {
-  background-color: var(--primary);
+  background: var(--primary-ultra-light);
+  color: var(--primary-dark);
   border-color: var(--primary);
-  color: white;
 }
 
+/* Кнопка создания поста */
 .btn-create {
-  background-color: var(--primary);
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
   color: white;
-  font-weight: 500;
-  border-radius: var(--radius-md);
-  padding: 0.5rem 1rem;
-  transition: all var(--transition-fast);
 }
 
 .btn-create:hover {
-  background-color: var(--primary-dark);
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
   color: white;
 }
 
+/* Кнопка регистрации */
 .btn-signup {
-  background-color: var(--primary);
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
   color: white;
-  border-radius: var(--radius-md);
-  padding: 0.5rem 1rem;
-  font-weight: 500;
 }
 
 .btn-signup:hover {
-  background-color: var(--primary-dark);
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
   color: white;
 }
 
+/* Кнопки фильтров */
 .btn-filter {
+  background: white;
   color: var(--text-medium);
-  background-color: transparent;
   border: 1px solid var(--bg-gray);
-  border-radius: var(--radius-md);
-  padding: 0.4rem 1rem;
+  padding: 0.5rem 1rem;
   font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-filter:hover {
-  background-color: var(--bg-gray);
+  background: var(--bg-gray);
   color: var(--text-dark);
+  border-color: var(--text-light);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-filter.active {
-  background-color: var(--primary-ultra-light);
-  color: var(--primary);
-  border-color: var(--primary-light);
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: white;
+  border-color: var(--primary);
+}
+
+/* Вторичные кнопки */
+.btn-secondary {
+  background: linear-gradient(135deg, var(--text-medium), var(--text-light));
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: linear-gradient(135deg, var(--text-dark), var(--text-medium));
+  color: white;
+}
+
+/* Кнопки опасных действий */
+.btn-danger {
+  background: linear-gradient(135deg, var(--danger), #dc2626);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: white;
+}
+
+/* Кнопки успеха */
+.btn-success {
+  background: linear-gradient(135deg, var(--success), #059669);
+  color: white;
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  color: white;
+}
+
+/* Информационные кнопки */
+.btn-info {
+  background: linear-gradient(135deg, var(--info), #2563eb);
+  color: white;
+}
+
+.btn-info:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+}
+
+/* Маленькие кнопки */
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.btn-sm i {
+  font-size: 0.875rem;
+}
+
+/* Большие кнопки */
+.btn-lg {
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+}
+
+.btn-lg i {
+  font-size: 1.125rem;
+}
+
+/* Кнопки на всю ширину */
+.btn-block {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Отключенные кнопки */
+.btn:disabled, .btn.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn:disabled:hover, .btn.disabled:hover {
+  transform: none;
+  box-shadow: var(--shadow-sm);
 }
 
 /* ===== НАВИГАЦИЯ ===== */
@@ -332,7 +464,6 @@ h1, h2, h3, h4, h5, h6 {
 .hero-image {
   max-width: 100%;
   height: auto;
-
   animation: float 6s ease-in-out infinite;
 }
 
@@ -609,22 +740,41 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-post-menu {
-  background: none;
-  border: none;
+  background: white;
+  border: 1px solid var(--bg-gray);
   color: var(--text-light);
   font-size: 1.25rem;
   cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 50%;
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-post-menu::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(249,115,22,0.1), transparent);
+  transition: left var(--transition-normal);
+}
+
+.btn-post-menu:hover::before {
+  left: 100%;
 }
 
 .btn-post-menu:hover {
   background-color: var(--bg-gray);
   color: var(--text-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 .post-title {
@@ -677,26 +827,69 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-interaction {
-  background: none;
-  border: none;
+  background: white;
+  border: 1px solid var(--bg-gray);
   color: var(--text-medium);
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.5rem;
+  padding: 0.5rem 0.75rem;
   border-radius: var(--radius-md);
   transition: all var(--transition-fast);
   font-size: 0.875rem;
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-interaction::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(249,115,22,0.1), transparent);
+  transition: left var(--transition-normal);
+}
+
+.btn-interaction:hover::before {
+  left: 100%;
 }
 
 .btn-interaction:hover {
   background-color: var(--bg-gray);
   color: var(--text-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-interaction:active {
+  transform: translateY(0);
+}
+
+.btn-interaction.active .fa-solid {
+  transform: scale(1.1);
+  transition: all 0.2s ease;
+}
+
+.btn-interaction:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .like-button:hover {
   color: var(--danger);
+}
+
+.like-button.active {
+  color: var(--danger);
+}
+
+.like-button.active i,
+.like-button.active .fa-heart {
+  color: var(--primary) !important;
 }
 
 .comment-button:hover {
@@ -707,14 +900,76 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--info);
 }
 
+.dislike-button.active i {
+  color: var(--danger) !important;
+}
+
+.dislike-button:not(.active):hover i {
+  color: var(--text-medium);
+}
+
 .interaction-count {
   font-weight: 500;
 }
 
 .btn-view-post {
   color: var(--primary);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--primary-ultra-light);
+  border: 1px solid var(--primary-light);
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-view-post::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(249,115,22,0.2), transparent);
+  transition: left var(--transition-normal);
+}
+
+.btn-view-post:hover::before {
+  left: 100%;
+}
+
+.btn-view-post:hover {
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+}
+
+/* Стили для постов подписчиков */
+.subscriber-post {
+  border: 2px solid var(--primary) !important;
+  border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.subscriber-post::after {
+  position: absolute;
+  top: 8px;
+  right: -28px;
+  background: var(--primary);
+  color: white;
+  padding: 3px 28px;
+  transform: rotate(45deg);
+  font-size: 12px;
+  font-weight: 500;
 }
 
 /* ===== ПАГИНАЦИЯ ===== */
@@ -906,18 +1161,39 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-follow {
-  background-color: var(--bg-light);
+  background: white;
   color: var(--primary);
-  border: 1px solid var(--primary);
-  font-size: 0.75rem;
-  padding: 0.25rem 0.75rem;
+  border: 2px solid var(--primary-light);
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
   border-radius: var(--radius-full);
   transition: all var(--transition-fast);
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-follow::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(249,115,22,0.2), transparent);
+  transition: left var(--transition-normal);
+}
+
+.btn-follow:hover::before {
+  left: 100%;
 }
 
 .btn-follow:hover {
-  background-color: var(--primary-ultra-light);
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: white;
   border-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 .sidebar-card-footer-link {
@@ -981,7 +1257,8 @@ h1, h2, h3, h4, h5, h6 {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+  color: white;
   opacity: 0.8;
 }
 
@@ -1057,41 +1334,52 @@ h1, h2, h3, h4, h5, h6 {
   align-items: flex-start;
 }
 
-.btn-edit-profile, .btn-follow-profile, .btn-message-profile {
-  padding: 0.5rem 1rem;
-  font-weight: 500;
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
-}
+/* ===== СИСТЕМА КНОПОК ПРОФИЛЯ ===== */
 
+/* Основная кнопка (редактирование профиля) */
 .btn-edit-profile {
-  background-color: var(--bg-light);
-  color: var(--text-dark);
-  border: 1px solid var(--bg-gray);
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: white;
 }
 
 .btn-edit-profile:hover {
-  background-color: var(--bg-gray);
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+  color: white;
 }
 
+/* Кнопка подписки */
 .btn-follow-profile {
-  background-color: var(--primary);
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
   color: white;
-  border: none;
 }
 
 .btn-follow-profile:hover {
-  background-color: var(--primary-dark);
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+  color: white;
 }
 
+/* Кнопка отписки */
+.btn-unfollow-profile {
+  background: linear-gradient(135deg, var(--text-medium), var(--text-light));
+  color: white;
+}
+
+.btn-unfollow-profile:hover {
+  background: linear-gradient(135deg, var(--danger), #dc2626);
+  color: white;
+}
+
+/* Вторичная кнопка (сообщения) */
 .btn-message-profile {
-  background-color: white;
+  background: white;
   color: var(--text-dark);
-  border: 1px solid var(--bg-gray);
+  border: 2px solid var(--primary-light);
 }
 
 .btn-message-profile:hover {
-  background-color: var(--bg-gray);
+  background: var(--primary-ultra-light);
+  color: var(--primary-dark);
+  border-color: var(--primary);
 }
 
 .profile-content {
@@ -1194,6 +1482,203 @@ h1, h2, h3, h4, h5, h6 {
   gap: 1rem;
 }
 
+/* ===== ТЕГИ ===== */
+.post-tags {
+  margin-top: 1rem;
+}
+
+.badge.rounded-pill.bg-light.text-primary {
+  background-color: var(--primary-ultra-light) !important;
+  color: var(--primary) !important;
+  font-weight: 500;
+  padding: 0.35rem 0.75rem;
+  margin-right: 0.5rem;
+  transition: all var(--transition-fast);
+}
+
+.badge.rounded-pill.bg-light.text-primary:hover {
+  background-color: var(--primary-light) !important;
+  color: white !important;
+}
+
+/* Стили для выбора тегов на форме */
+.tag-selection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.tag-checkbox-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
+.tag-checkbox-list li {
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-gray);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.tag-checkbox-list li:hover {
+  background-color: var(--primary-ultra-light);
+}
+
+.tag-checkbox-list li.active {
+  background-color: var(--primary-ultra-light);
+  border: 1px solid var(--primary-light);
+}
+
+.tag-checkbox-list li label {
+  margin-left: 0.5rem;
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
+.tag-checkbox-list li input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+}
+
+.tag-checkbox-list li input[type="checkbox"]:checked + label {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+/* Анимация для выбора тега */
+.tag-checkbox-list li::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: var(--primary);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%, -50%);
+  transform-origin: 50% 50%;
+}
+
+.tag-checkbox-list li:active::after {
+  opacity: 0.3;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-md);
+  transform: scale(0, 0) translate(-50%, -50%);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* ===== ФОН С АПЕЛЬСИНАМИ ===== */
+.orange-background {
+  position: relative;
+}
+
+.orange-background::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/static/images/oranges-background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  opacity: 0.15;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.content-card-on-oranges {
+  background-color: rgba(255, 255, 255, 0.85);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.orange-background h1,
+.orange-background h2,
+.orange-background h3,
+.orange-background .page-title {
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+}
+
+/* ===== СОЦИАЛЬНЫЕ КНОПКИ ===== */
+.divider-wrapper {
+  position: relative;
+  text-align: center;
+  margin: 1.5rem 0;
+}
+
+.divider-line {
+  margin: 0;
+  border-top: 1px solid #dee2e6;
+}
+
+.divider-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #fff;
+  padding: 0 1rem;
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+.social-login .btn {
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.social-login .btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left var(--transition-slow);
+}
+
+.social-login .btn:hover::before {
+  left: 100%;
+}
+
+.social-login .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ===== ИКОНКИ FONT AWESOME ===== */
+.fa-thumbs-up:before { content: "\f164"; }
+.fa-thumbs-down:before { content: "\f165"; }
+
+/* ===== ФОРМЫ ===== */
+.form-check-label a {
+  white-space: nowrap;
+}
+
 /* ===== МЕДИА-ЗАПРОСЫ ===== */
 @media (max-width: 991.98px) {
   .hero-text-column {
@@ -1212,12 +1697,6 @@ h1, h2, h3, h4, h5, h6 {
   .cta-container {
     padding: 2rem;
   }
-
-  /*.navbar .search-form {*/
-  /*  margin: 0.5rem 0;*/
-  /*  width: 100%;*/
-  /*  max-width: none;*/
-  /*}*/
 
   .profile-avatar-container {
     margin-left: auto;
@@ -1270,295 +1749,23 @@ h1, h2, h3, h4, h5, h6 {
     width: 100%;
   }
 
-  .btn-edit-profile, .btn-follow-profile, .btn-message-profile {
+  .btn {
     width: 100%;
+    justify-content: center;
+  }
+
+  .form-check-label span {
+    display: inline!important;
   }
 }
 
-.like-button.active {
-    color: #dc3545; /* Красный цвет для активного лайка */
-}
-
-.like-button.active .fa-heart {
-    color: #dc3545;
-}
-
-
-.dislike-button.active i {
-    color: #0d6efd;
-}
-
-.dislike-button:not(.active):hover i {
-    color: #6c757d;
-}
-
-.dislike-button[disabled] {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-
-.like-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* Стили для тегов на странице поста */
-.post-tags {
-    margin-top: 1rem;
-}
-
-.badge.rounded-pill.bg-light.text-primary {
-    background-color: var(--primary-ultra-light) !important;
-    color: var(--primary) !important;
-    font-weight: 500;
-    padding: 0.35rem 0.75rem;
-    margin-right: 0.5rem;
-    transition: all var(--transition-fast);
-}
-
-.badge.rounded-pill.bg-light.text-primary:hover {
-    background-color: var(--primary-light) !important;
-    color: white !important;
-}
-
-/* Стили для выбора тегов на форме */
-.tag-selection {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-}
-
-.tag-checkbox-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    list-style: none;
-    padding: 0;
-    margin-bottom: 1rem;
-    width: 100%;
-}
-
-.tag-checkbox-list li {
-    display: flex;
-    align-items: center;
-    background-color: var(--bg-gray);
-    padding: 0.5rem 0.75rem;
-    border-radius: var(--radius-md);
-    transition: all var(--transition-fast);
-    cursor: pointer;
-    user-select: none;
-}
-
-.tag-checkbox-list li:hover {
-    background-color: var(--primary-ultra-light);
-}
-
-.tag-checkbox-list li label {
-    margin-left: 0.5rem;
-    margin-bottom: 0;
-    cursor: pointer;
-}
-
-.tag-checkbox-list li input[type="checkbox"]:checked + label {
-    color: var(--primary);
-    font-weight: 500;
-}
-
-/* Улучшенные стили для чекбоксов тегов */
-.tag-checkbox-list li.active {
-    background-color: var(--primary-ultra-light);
-    border: 1px solid var(--primary-light);
-}
-
-.tag-checkbox-list li input[type="checkbox"] {
-    /* Комментируем, чтобы не скрывать нативные чекбоксы совсем - это может быть проблемой для доступности */
-    /* display: none; */
-    /* Вместо этого делаем их меньше и стилизуем */
-    width: 16px;
-    height: 16px;
-    accent-color: var(--primary);
-}
-
-/* Анимация для выбора тега */
-.tag-checkbox-list li {
-    position: relative;
-    overflow: hidden;
-}
-
-.tag-checkbox-list li::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 5px;
-    height: 5px;
-    background: var(--primary);
-    opacity: 0;
-    border-radius: 100%;
-    transform: scale(1, 1) translate(-50%, -50%);
-    transform-origin: 50% 50%;
-}
-
-.tag-checkbox-list li:active::after {
-    opacity: 0.3;
-    width: 100%;
-    height: 100%;
-    border-radius: var(--radius-md);
-    transform: scale(0, 0) translate(-50%, -50%);
-    transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-/* Стиль для мобильных устройств */
 @media (max-width: 576px) {
-    .tag-checkbox-list {
-        gap: 0.5rem;
-    }
+  .tag-checkbox-list {
+    gap: 0.5rem;
+  }
 
-    .tag-checkbox-list li {
-        padding: 0.4rem 0.6rem;
-        font-size: 0.9rem;
-    }
-}
-/* Фон с изображением апельсинов */
-.orange-background {
-    position: relative;
-}
-
-.orange-background::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('/static/images/oranges-background.jpg'); /* Путь к изображению */
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    opacity: 0.15; /* Приглушенная яркость для лучшей читаемости */
-    z-index: -1;
-    pointer-events: none;
-}
-
-/* Для блоков контента на фоне апельсинов */
-.content-card-on-oranges {
-    background-color: rgba(255, 255, 255, 0.85);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-}
-
-/* Для улучшения контраста текста на фоне */
-.orange-background h1,
-.orange-background h2,
-.orange-background h3,
-.orange-background .page-title {
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
-}
-
-.fa-thumbs-up, .fa-thumbs-down {
-    transition: all 0.2s ease;
-}
-.btn-interaction.active .fa-solid {
-    transform: scale(1.2);
-}
-
-/* Добавьте в конец файла */
-.like-button.active i {
-    color: var(--primary) !important; /* Оранжевый цвет из ваших переменных */
-}
-
-.dislike-button.active i {
-    color: #EF4444 !important; /* Красный цвет из вашей палитры */
-}
-
-/* Для анимации при нажатии */
-.btn-interaction.active .fa-solid {
-    transform: scale(1.1);
-    transition: all 0.2s ease;
-}
-
-.form-check-label a {
-    white-space: nowrap; /* Запрет переноса ссылок */
-}
-
-@media (max-width: 768px) {
-    .form-check-label span {
-        display: inline!important; /* Инлайн отображение на мобильных */
-    }
-}
-.fa-thumbs-up:before { content: "\f164"; }
-.fa-thumbs-down:before { content: "\f165"; }
-
-/* Добавьте в orange-style.css */
-/*.post-card {*/
-/*    border: 2px solid #f97316 !important;*/
-/*    border-radius: 8px;*/
-/*    transition: all 0.3s ease;*/
-/*    overflow: hidden; !* Для сохранения скругления углов *!*/
-/*}*/
-
-/*.post-card:hover {*/
-/*    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);*/
-/*    transform: translateY(-2px);*/
-/*}*/
-
-/* В orange-style.css */
-.subscriber-post {
-    border: 2px solid #f97316 !important;
-    border-radius: 8px;
-    position: relative;
-    overflow: hidden;
-}
-
-.subscriber-post::after {
-    /*content: "Подписка активна";*/
-    position: absolute;
-    top: 8px;
-    right: -28px;
-    background: #f97316;
-    color: white;
-    padding: 3px 28px;
-    transform: rotate(45deg);
-    font-size: 12px;
-    font-weight: 500;
-}
-
-/* Разделитель "или" для социальных кнопок */
-.divider-wrapper {
-    position: relative;
-    text-align: center;
-    margin: 1.5rem 0;
-}
-
-.divider-line {
-    margin: 0;
-    border-top: 1px solid #dee2e6;
-}
-
-.divider-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: #fff;
-    padding: 0 1rem;
-    color: #6c757d;
-    font-size: 0.875rem;
-}
-
-/* Кнопки социальных сетей */
-.social-login .btn {
-    font-weight: 500;
-    padding: 0.75rem;
-    transition: all 0.3s ease;
-}
-
-.social-login .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  .tag-checkbox-list li {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.9rem;
+  }
 }
