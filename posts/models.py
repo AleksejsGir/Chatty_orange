@@ -134,13 +134,22 @@ class Comment(models.Model):
         default=True,
         verbose_name="Активен"
     )
-
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE)
+    level = models.PositiveIntegerField(editable=False)
     def __str__(self):
         return f"Комментарий от {self.author} к посту {self.post.title}"
 
     def get_absolute_url(self):
         """Возвращает URL для просмотра поста с комментариями."""
         return reverse('posts:post-detail', kwargs={'pk': self.post.pk}) + '#comments'
+
+    def save(self, *args, **kwargs):
+        # Автоматически определяем уровень перед сохранением
+        if self.parent:
+            self.level = self.parent.level + 1
+        else:
+            self.level = 0  # Это корневой комментарий
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Комментарий"
