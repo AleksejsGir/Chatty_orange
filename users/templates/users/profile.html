@@ -56,30 +56,38 @@
             </div>
 
             <!-- Кнопки действий -->
+            <!-- В profile.html замените блок с кнопками действий -->
             <div class="profile-actions" style="margin-top: 40px;">
                 {% if user.is_authenticated %}
                     {% if user == profile_user %}
-                        <a href="{% url 'users:profile-edit' pk=user.pk %}?from=profile" class="btn btn-edit-profile">
-                            <i class="fa-solid fa-user-edit me-1"></i>Редактировать профиль
+                        <a href="{% url 'users:profile-edit' pk=user.pk %}?from=profile"
+                           class="btn-profile-base btn-edit-profile">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                            Редактировать профиль
                         </a>
                     {% else %}
                         <!-- Кнопка подписки/отписки -->
                         <form action="{% url 'subscriptions:toggle' username=profile_user.username %}" method="post">
                             {% csrf_token %}
                             {% if is_subscribed %}
-                                <button type="submit" class="btn btn-outline-secondary subscription-toggle js-subscription-toggle" data-username="{{ profile_user.username }}">
-                                    <i class="fa-solid fa-user-minus me-1"></i>Отписаться
+                                <button type="submit"
+                                        class="btn-profile-base btn-unfollow-profile subscription-toggle js-subscription-toggle"
+                                        data-username="{{ profile_user.username }}">
+                                    <i class="fa-solid fa-user-minus"></i>
+                                    Отписаться
                                 </button>
                             {% else %}
-                                <button type="submit" class="btn btn-follow-profile subscription-toggle js-subscription-toggle" data-username="{{ profile_user.username }}">
-                                    <i class="fa-solid fa-user-plus me-1"></i>Подписаться
+                                <button type="submit"
+                                        class="btn-profile-base btn-follow-profile subscription-toggle js-subscription-toggle"
+                                        data-username="{{ profile_user.username }}">
+                                    <i class="fa-solid fa-user-plus"></i>
+                                    Подписаться
                                 </button>
                             {% endif %}
                         </form>
                     {% endif %}
                 {% endif %}
             </div>
-        </div>
 
         <!-- Основной контент профиля -->
         <div class="profile-content">

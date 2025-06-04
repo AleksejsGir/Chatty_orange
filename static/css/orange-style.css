@@ -1057,41 +1057,219 @@ h1, h2, h3, h4, h5, h6 {
   align-items: flex-start;
 }
 
-.btn-edit-profile, .btn-follow-profile, .btn-message-profile {
-  padding: 0.5rem 1rem;
-  font-weight: 500;
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
+/*.btn-edit-profile, .btn-follow-profile, .btn-message-profile {*/
+/*  padding: 0.5rem 1rem;*/
+/*  font-weight: 500;*/
+/*  border-radius: var(--radius-md);*/
+/*  transition: all var(--transition-fast);*/
+/*}*/
+
+
+/* ===== ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ ===== */
+.profile-container {
+  background-color: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 2rem;
+  overflow: hidden;
 }
 
+.profile-header {
+  position: relative;
+}
+
+.profile-cover {
+  height: 200px;
+  background-color: var(--bg-gray);
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-cover-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+  color: white;
+  opacity: 0.8;
+}
+
+.profile-info-container {
+  padding: 1.5rem;
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-top: -60px;
+}
+
+.profile-avatar-container {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 5px solid white;
+  box-shadow: var(--shadow-md);
+  z-index: 2;
+}
+
+.profile-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary-light);
+  color: white;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.profile-info {
+  flex: 1;
+  min-width: 200px;
+}
+
+.profile-name {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.profile-fullname {
+  font-size: 1rem;
+  color: var(--text-medium);
+  margin-bottom: 1rem;
+}
+
+.profile-stats {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.profile-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+/* ===== СИСТЕМА КНОПОК ПРОФИЛЯ ===== */
+
+/* Базовый класс для всех кнопок профиля */
+.btn-profile-base {
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  cursor: pointer;
+}
+
+/* Эффект свечения при наведении для всех кнопок */
+.btn-profile-base::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left var(--transition-slow);
+}
+
+.btn-profile-base:hover::before {
+  left: 100%;
+}
+
+.btn-profile-base:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-profile-base i {
+  font-size: 1rem;
+  transition: transform var(--transition-fast);
+}
+
+.btn-profile-base:hover i {
+  transform: scale(1.1);
+}
+
+/* Основная кнопка (редактирование профиля) */
 .btn-edit-profile {
-  background-color: var(--bg-light);
-  color: var(--text-dark);
-  border: 1px solid var(--bg-gray);
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: white;
 }
 
 .btn-edit-profile:hover {
-  background-color: var(--bg-gray);
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  text-decoration: none;
 }
 
+/* Кнопка подписки */
 .btn-follow-profile {
-  background-color: var(--primary);
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
   color: white;
-  border: none;
 }
 
 .btn-follow-profile:hover {
-  background-color: var(--primary-dark);
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
+/* Кнопка отписки */
+.btn-unfollow-profile {
+  background: linear-gradient(135deg, var(--text-medium), var(--text-light));
+  color: white;
+}
+
+.btn-unfollow-profile:hover {
+  background: linear-gradient(135deg, var(--danger), #dc2626);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Вторичная кнопка (сообщения) */
 .btn-message-profile {
-  background-color: white;
+  background: white;
   color: var(--text-dark);
-  border: 1px solid var(--bg-gray);
+  border: 2px solid var(--primary-light);
 }
 
 .btn-message-profile:hover {
-  background-color: var(--bg-gray);
+  background: var(--primary-ultra-light);
+  color: var(--primary-dark);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 .profile-content {
@@ -1194,6 +1372,20 @@ h1, h2, h3, h4, h5, h6 {
   gap: 1rem;
 }
 
+/* ===== АДАПТИВНОСТЬ ДЛЯ МОБИЛЬНЫХ УСТРОЙСТВ ===== */
+@media (max-width: 767.98px) {
+  .btn-profile-base {
+    width: 100%;
+    justify-content: center;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .profile-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+}
 /* ===== МЕДИА-ЗАПРОСЫ ===== */
 @media (max-width: 991.98px) {
   .hero-text-column {
@@ -1213,11 +1405,6 @@ h1, h2, h3, h4, h5, h6 {
     padding: 2rem;
   }
 
-  /*.navbar .search-form {*/
-  /*  margin: 0.5rem 0;*/
-  /*  width: 100%;*/
-  /*  max-width: none;*/
-  /*}*/
 
   .profile-avatar-container {
     margin-left: auto;
