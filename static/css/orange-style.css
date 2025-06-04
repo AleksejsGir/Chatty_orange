@@ -332,7 +332,6 @@ h1, h2, h3, h4, h5, h6 {
 .hero-image {
   max-width: 100%;
   height: auto;
-
   animation: float 6s ease-in-out infinite;
 }
 
@@ -695,8 +694,27 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-dark);
 }
 
+.btn-interaction.active .fa-solid {
+  transform: scale(1.1);
+  transition: all 0.2s ease;
+}
+
+.btn-interaction:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .like-button:hover {
   color: var(--danger);
+}
+
+.like-button.active {
+  color: var(--danger);
+}
+
+.like-button.active i,
+.like-button.active .fa-heart {
+  color: var(--primary) !important;
 }
 
 .comment-button:hover {
@@ -707,6 +725,14 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--info);
 }
 
+.dislike-button.active i {
+  color: var(--danger) !important;
+}
+
+.dislike-button:not(.active):hover i {
+  color: var(--text-medium);
+}
+
 .interaction-count {
   font-weight: 500;
 }
@@ -715,6 +741,26 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--primary);
   font-weight: 500;
   font-size: 0.875rem;
+}
+
+/* Стили для постов подписчиков */
+.subscriber-post {
+  border: 2px solid var(--primary) !important;
+  border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.subscriber-post::after {
+  position: absolute;
+  top: 8px;
+  right: -28px;
+  background: var(--primary);
+  color: white;
+  padding: 3px 28px;
+  transform: rotate(45deg);
+  font-size: 12px;
+  font-weight: 500;
 }
 
 /* ===== ПАГИНАЦИЯ ===== */
@@ -981,116 +1027,6 @@ h1, h2, h3, h4, h5, h6 {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  opacity: 0.8;
-}
-
-.profile-info-container {
-  padding: 1.5rem;
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  margin-top: -60px;
-}
-
-.profile-avatar-container {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 5px solid white;
-  box-shadow: var(--shadow-md);
-  z-index: 2;
-}
-
-.profile-avatar {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.profile-avatar-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--primary-light);
-  color: white;
-  font-size: 2.5rem;
-  font-weight: 700;
-}
-
-.profile-info {
-  flex: 1;
-  min-width: 200px;
-}
-
-.profile-name {
-  font-size: 1.75rem;
-  font-weight: 700;
-  margin-bottom: 0.25rem;
-}
-
-.profile-fullname {
-  font-size: 1rem;
-  color: var(--text-medium);
-  margin-bottom: 1rem;
-}
-
-.profile-stats {
-  display: flex;
-  gap: 2rem;
-  margin-top: 1rem;
-}
-
-.profile-stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.profile-actions {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-}
-
-/*.btn-edit-profile, .btn-follow-profile, .btn-message-profile {*/
-/*  padding: 0.5rem 1rem;*/
-/*  font-weight: 500;*/
-/*  border-radius: var(--radius-md);*/
-/*  transition: all var(--transition-fast);*/
-/*}*/
-
-
-/* ===== ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ ===== */
-.profile-container {
-  background-color: white;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  margin-bottom: 2rem;
-  overflow: hidden;
-}
-
-.profile-header {
-  position: relative;
-}
-
-.profile-cover {
-  height: 200px;
-  background-color: var(--bg-gray);
-  position: relative;
-  overflow: hidden;
-}
-
-.profile-cover-gradient {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
   background: linear-gradient(135deg, var(--primary-dark), var(--primary));
   color: white;
   opacity: 0.8;
@@ -1167,8 +1103,6 @@ h1, h2, h3, h4, h5, h6 {
   gap: 1rem;
   align-items: flex-start;
 }
-
-/* ===== СИСТЕМА КНОПОК ПРОФИЛЯ ===== */
 
 /* Базовый класс для всех кнопок профиля */
 .btn-profile-base {
@@ -1372,20 +1306,186 @@ h1, h2, h3, h4, h5, h6 {
   gap: 1rem;
 }
 
-/* ===== АДАПТИВНОСТЬ ДЛЯ МОБИЛЬНЫХ УСТРОЙСТВ ===== */
-@media (max-width: 767.98px) {
-  .btn-profile-base {
-    width: 100%;
-    justify-content: center;
-    padding: 1rem 1.5rem;
-    font-size: 1rem;
-  }
-
-  .profile-actions {
-    flex-direction: column;
-    width: 100%;
-  }
+/* ===== ТЕГИ ===== */
+.post-tags {
+  margin-top: 1rem;
 }
+
+.badge.rounded-pill.bg-light.text-primary {
+  background-color: var(--primary-ultra-light) !important;
+  color: var(--primary) !important;
+  font-weight: 500;
+  padding: 0.35rem 0.75rem;
+  margin-right: 0.5rem;
+  transition: all var(--transition-fast);
+}
+
+.badge.rounded-pill.bg-light.text-primary:hover {
+  background-color: var(--primary-light) !important;
+  color: white !important;
+}
+
+/* Стили для выбора тегов на форме */
+.tag-selection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.tag-checkbox-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
+.tag-checkbox-list li {
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-gray);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.tag-checkbox-list li:hover {
+  background-color: var(--primary-ultra-light);
+}
+
+.tag-checkbox-list li.active {
+  background-color: var(--primary-ultra-light);
+  border: 1px solid var(--primary-light);
+}
+
+.tag-checkbox-list li label {
+  margin-left: 0.5rem;
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
+.tag-checkbox-list li input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+}
+
+.tag-checkbox-list li input[type="checkbox"]:checked + label {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+/* Анимация для выбора тега */
+.tag-checkbox-list li::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: var(--primary);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%, -50%);
+  transform-origin: 50% 50%;
+}
+
+.tag-checkbox-list li:active::after {
+  opacity: 0.3;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-md);
+  transform: scale(0, 0) translate(-50%, -50%);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* ===== ФОН С АПЕЛЬСИНАМИ ===== */
+.orange-background {
+  position: relative;
+}
+
+.orange-background::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/static/images/oranges-background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  opacity: 0.15;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.content-card-on-oranges {
+  background-color: rgba(255, 255, 255, 0.85);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.orange-background h1,
+.orange-background h2,
+.orange-background h3,
+.orange-background .page-title {
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+}
+
+/* ===== СОЦИАЛЬНЫЕ КНОПКИ ===== */
+.divider-wrapper {
+  position: relative;
+  text-align: center;
+  margin: 1.5rem 0;
+}
+
+.divider-line {
+  margin: 0;
+  border-top: 1px solid #dee2e6;
+}
+
+.divider-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #fff;
+  padding: 0 1rem;
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+.social-login .btn {
+  font-weight: 500;
+  padding: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.social-login .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* ===== ИКОНКИ FONT AWESOME ===== */
+.fa-thumbs-up:before { content: "\f164"; }
+.fa-thumbs-down:before { content: "\f165"; }
+
+/* ===== ФОРМЫ ===== */
+.form-check-label a {
+  white-space: nowrap;
+}
+
 /* ===== МЕДИА-ЗАПРОСЫ ===== */
 @media (max-width: 991.98px) {
   .hero-text-column {
@@ -1404,7 +1504,6 @@ h1, h2, h3, h4, h5, h6 {
   .cta-container {
     padding: 2rem;
   }
-
 
   .profile-avatar-container {
     margin-left: auto;
@@ -1457,295 +1556,25 @@ h1, h2, h3, h4, h5, h6 {
     width: 100%;
   }
 
-  .btn-edit-profile, .btn-follow-profile, .btn-message-profile {
+  .btn-profile-base {
     width: 100%;
+    justify-content: center;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .form-check-label span {
+    display: inline!important;
   }
 }
 
-.like-button.active {
-    color: #dc3545; /* Красный цвет для активного лайка */
-}
-
-.like-button.active .fa-heart {
-    color: #dc3545;
-}
-
-
-.dislike-button.active i {
-    color: #0d6efd;
-}
-
-.dislike-button:not(.active):hover i {
-    color: #6c757d;
-}
-
-.dislike-button[disabled] {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-
-.like-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* Стили для тегов на странице поста */
-.post-tags {
-    margin-top: 1rem;
-}
-
-.badge.rounded-pill.bg-light.text-primary {
-    background-color: var(--primary-ultra-light) !important;
-    color: var(--primary) !important;
-    font-weight: 500;
-    padding: 0.35rem 0.75rem;
-    margin-right: 0.5rem;
-    transition: all var(--transition-fast);
-}
-
-.badge.rounded-pill.bg-light.text-primary:hover {
-    background-color: var(--primary-light) !important;
-    color: white !important;
-}
-
-/* Стили для выбора тегов на форме */
-.tag-selection {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-}
-
-.tag-checkbox-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    list-style: none;
-    padding: 0;
-    margin-bottom: 1rem;
-    width: 100%;
-}
-
-.tag-checkbox-list li {
-    display: flex;
-    align-items: center;
-    background-color: var(--bg-gray);
-    padding: 0.5rem 0.75rem;
-    border-radius: var(--radius-md);
-    transition: all var(--transition-fast);
-    cursor: pointer;
-    user-select: none;
-}
-
-.tag-checkbox-list li:hover {
-    background-color: var(--primary-ultra-light);
-}
-
-.tag-checkbox-list li label {
-    margin-left: 0.5rem;
-    margin-bottom: 0;
-    cursor: pointer;
-}
-
-.tag-checkbox-list li input[type="checkbox"]:checked + label {
-    color: var(--primary);
-    font-weight: 500;
-}
-
-/* Улучшенные стили для чекбоксов тегов */
-.tag-checkbox-list li.active {
-    background-color: var(--primary-ultra-light);
-    border: 1px solid var(--primary-light);
-}
-
-.tag-checkbox-list li input[type="checkbox"] {
-    /* Комментируем, чтобы не скрывать нативные чекбоксы совсем - это может быть проблемой для доступности */
-    /* display: none; */
-    /* Вместо этого делаем их меньше и стилизуем */
-    width: 16px;
-    height: 16px;
-    accent-color: var(--primary);
-}
-
-/* Анимация для выбора тега */
-.tag-checkbox-list li {
-    position: relative;
-    overflow: hidden;
-}
-
-.tag-checkbox-list li::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 5px;
-    height: 5px;
-    background: var(--primary);
-    opacity: 0;
-    border-radius: 100%;
-    transform: scale(1, 1) translate(-50%, -50%);
-    transform-origin: 50% 50%;
-}
-
-.tag-checkbox-list li:active::after {
-    opacity: 0.3;
-    width: 100%;
-    height: 100%;
-    border-radius: var(--radius-md);
-    transform: scale(0, 0) translate(-50%, -50%);
-    transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-/* Стиль для мобильных устройств */
 @media (max-width: 576px) {
-    .tag-checkbox-list {
-        gap: 0.5rem;
-    }
+  .tag-checkbox-list {
+    gap: 0.5rem;
+  }
 
-    .tag-checkbox-list li {
-        padding: 0.4rem 0.6rem;
-        font-size: 0.9rem;
-    }
-}
-/* Фон с изображением апельсинов */
-.orange-background {
-    position: relative;
-}
-
-.orange-background::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('/static/images/oranges-background.jpg'); /* Путь к изображению */
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    opacity: 0.15; /* Приглушенная яркость для лучшей читаемости */
-    z-index: -1;
-    pointer-events: none;
-}
-
-/* Для блоков контента на фоне апельсинов */
-.content-card-on-oranges {
-    background-color: rgba(255, 255, 255, 0.85);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-}
-
-/* Для улучшения контраста текста на фоне */
-.orange-background h1,
-.orange-background h2,
-.orange-background h3,
-.orange-background .page-title {
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
-}
-
-.fa-thumbs-up, .fa-thumbs-down {
-    transition: all 0.2s ease;
-}
-.btn-interaction.active .fa-solid {
-    transform: scale(1.2);
-}
-
-/* Добавьте в конец файла */
-.like-button.active i {
-    color: var(--primary) !important; /* Оранжевый цвет из ваших переменных */
-}
-
-.dislike-button.active i {
-    color: #EF4444 !important; /* Красный цвет из вашей палитры */
-}
-
-/* Для анимации при нажатии */
-.btn-interaction.active .fa-solid {
-    transform: scale(1.1);
-    transition: all 0.2s ease;
-}
-
-.form-check-label a {
-    white-space: nowrap; /* Запрет переноса ссылок */
-}
-
-@media (max-width: 768px) {
-    .form-check-label span {
-        display: inline!important; /* Инлайн отображение на мобильных */
-    }
-}
-.fa-thumbs-up:before { content: "\f164"; }
-.fa-thumbs-down:before { content: "\f165"; }
-
-/* Добавьте в orange-style.css */
-/*.post-card {*/
-/*    border: 2px solid #f97316 !important;*/
-/*    border-radius: 8px;*/
-/*    transition: all 0.3s ease;*/
-/*    overflow: hidden; !* Для сохранения скругления углов *!*/
-/*}*/
-
-/*.post-card:hover {*/
-/*    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);*/
-/*    transform: translateY(-2px);*/
-/*}*/
-
-/* В orange-style.css */
-.subscriber-post {
-    border: 2px solid #f97316 !important;
-    border-radius: 8px;
-    position: relative;
-    overflow: hidden;
-}
-
-.subscriber-post::after {
-    /*content: "Подписка активна";*/
-    position: absolute;
-    top: 8px;
-    right: -28px;
-    background: #f97316;
-    color: white;
-    padding: 3px 28px;
-    transform: rotate(45deg);
-    font-size: 12px;
-    font-weight: 500;
-}
-
-/* Разделитель "или" для социальных кнопок */
-.divider-wrapper {
-    position: relative;
-    text-align: center;
-    margin: 1.5rem 0;
-}
-
-.divider-line {
-    margin: 0;
-    border-top: 1px solid #dee2e6;
-}
-
-.divider-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: #fff;
-    padding: 0 1rem;
-    color: #6c757d;
-    font-size: 0.875rem;
-}
-
-/* Кнопки социальных сетей */
-.social-login .btn {
-    font-weight: 500;
-    padding: 0.75rem;
-    transition: all 0.3s ease;
-}
-
-.social-login .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  .tag-checkbox-list li {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.9rem;
+  }
 }
