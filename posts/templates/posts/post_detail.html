@@ -66,9 +66,6 @@
                                 <div class="image-counter bg-dark bg-opacity-50 text-white px-3 py-1 rounded-pill">
                                     <span id="currentImage">1</span>/{{ post.images.count }}
                                 </div>
-{#                                <button class="btn btn-sm btn-light enlarge-button" id="enlargeImage" onclick="openLightbox(currentIndex)">#}
-{#                                    <i class="fa-solid fa-expand me-1"></i> Увеличить#}
-{#                                </button>#}
                             </div>
 
                             {# Кнопки навигации #}
@@ -103,7 +100,7 @@
                 {% endif %}
 
                     {# --- Текст поста --- #}
-                    <div class="post-content fs-5 mb-4">
+                    <div class="post-content fs-6 mb-4">
                         {{ post.text|safe }}
                     </div>
 
