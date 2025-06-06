@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let nextTourStepBtn = null;
     let endTourBtn = null;
     let closeTourModalBtn = null;
+    let nextButtonListenerAttached = false;
 
     // Создаем расширенное меню
     function createMenu() {
@@ -408,11 +409,25 @@ document.addEventListener('DOMContentLoaded', function() {
         endTourBtn = document.getElementById('endTourBtn');
         closeTourModalBtn = document.getElementById('closeTourModalBtn');
 
-        if (nextTourStepBtn) {
+        if (nextTourStepBtn && !nextButtonListenerAttached) {
             nextTourStepBtn.addEventListener('click', () => {
-                currentTourStep++;
-                showTourStep(currentTourStep);
+                if (currentTourStep >= MAX_TOUR_STEPS) {
+                    completeTour();
+                } else {
+                    currentTourStep++;
+                    // Убедимся, что showTourStep вызывается только для следующего шага
+                    // и не пытается перейти за MAX_TOUR_STEPS через эту логику
+                    if (currentTourStep <= MAX_TOUR_STEPS) {
+                        showTourStep(currentTourStep);
+                    } else {
+                        // Эта ситуация не должна возникать при правильной логике,
+                        // но на всякий случай можно добавить обработку или лог
+                        console.warn('Попытка перейти за пределы MAX_TOUR_STEPS');
+                        completeTour(); // Завершаем тур, если что-то пошло не так
+                    }
+                }
             });
+            nextButtonListenerAttached = true;
         }
         if (endTourBtn) {
             endTourBtn.addEventListener('click', completeTour);
@@ -465,12 +480,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 duration: 0.5
             });
 
-            if (stepNumber >= MAX_TOUR_STEPS) {
-                nextTourStepBtn.textContent = 'Завершить';
-                nextTourStepBtn.onclick = completeTour;
-            } else {
-                nextTourStepBtn.textContent = 'Далее';
+            if (nextTourStepBtn) { // Добавим проверку на существование кнопки
+                if (stepNumber >= MAX_TOUR_STEPS) {
+                    nextTourStepBtn.textContent = 'Завершить';
+                } else {
+                    nextTourStepBtn.textContent = 'Далее';
+                }
             }
+            // Убедиться, что строка `nextTourStepBtn.onclick = completeTour;` удалена или закомментирована.
+            // Также удалить любые другие присвоения nextTourStepBtn.onclick в этой функции.
 
         } catch (error) {
             console.error('Ошибка:', error);

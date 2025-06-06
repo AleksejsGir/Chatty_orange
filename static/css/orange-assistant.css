@@ -253,7 +253,9 @@
 }
 
 /* Области для помощи в создании поста */
-#postSuggestionArea,
+#postSuggestionArea {
+    /* animation: fadeIn 0.3s ease; */ /* Анимация временно отключена для проверки */
+}
 #postCheckResultArea {
     animation: fadeIn 0.3s ease;
 }

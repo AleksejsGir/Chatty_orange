@@ -3,6 +3,7 @@
 {% load django_bootstrap5 %}
 {% load i18n %}
 
+
 {% block title %}
     {% if form.instance.pk %}
         Редактирование поста
@@ -58,6 +59,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="orange-background">
 <div class="container mt-4 mb-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
@@ -100,7 +102,7 @@
                             <div id="postSuggestionArea" class="mt-2 p-3 border rounded bg-light" style="display: none;">
                                 <!-- Сюда будут загружаться подсказки ИИ -->
                             </div>
-                            <div id="postCheckResultArea" class="mt-2 p-3 border rounded" style="display: none; border-color: #0dcaf0 !important;">
+                            <div id="postCheckResultArea" class="mt-2 p-3 border rounded" style="display: none; border-color: #f77216 !important;">
                                 <!-- Сюда будут загружаться результаты проверки ИИ -->
                             </div>
                         </div>

@@ -97,7 +97,7 @@ def get_interactive_tour_step(step_number: int, user_info: dict) -> str:
             "title": "💬 Взаимодействие",
             "content": """Как общаться на Chatty Orange:
 
-            ❤️ Лайки - нажми на сердечко под постом
+            ❤️ Лайки - нажми на палец вверх под постом
             💬 Комментарии - поделись мнением
             🔄 Подписки - следи за интересными авторами
             📰 Лента - все посты от твоих подписок
@@ -118,7 +118,8 @@ def get_interactive_tour_step(step_number: int, user_info: dict) -> str:
     }
 
     step_data = tour_steps.get(step_number, tour_steps[4])
-    return f"<h5>{step_data['title']}</h5>{step_data['content']}"
+    content_html = step_data['content'].replace('\n', '<br>')
+    return f"<h5>{step_data['title']}</h5><p>{content_html}</p>"
 
 
 def get_post_creation_suggestion(current_text: str, user_info: dict) -> str:
