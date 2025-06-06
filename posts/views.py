@@ -6,14 +6,14 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.contrib.auth import get_user_model
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.db.models import Count, Q
 from django.views.generic.detail import SingleObjectMixin
 from django.views import View
 
-from .models import Post, Comment, Tag, PostImage
+from .models import Post, Comment, Tag
 from .forms import PostForm, CommentForm, PostImageFormSet
 from subscriptions.models import Subscription  # Добавляем импорт модели подписок
 

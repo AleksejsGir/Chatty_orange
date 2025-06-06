@@ -22,7 +22,7 @@ class Post(models.Model):
     slug = models.SlugField( # Slug был упомянут в задаче S2.2, но не использовался в urls/views
         max_length=200,
         unique=True,
-        blank=True, # Разрешим быть пустым, чтобы автогенерация работала
+        blank=True, # Разрешим быть пустым, чтобы работала автогенерация
         verbose_name="URL-адрес (slug)"
     )
     likes = models.ManyToManyField(
