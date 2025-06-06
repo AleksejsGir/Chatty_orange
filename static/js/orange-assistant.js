@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
         assistantBootstrapModal = new bootstrap.Modal(assistantModalElement);
     }
     const assistantContainer = document.querySelector('.assistant-container');
+    const currentUsername = assistantContainer ? assistantContainer.dataset.username : null;
 
     // Кнопки действий
     const aiFaqBtn = document.getElementById('aiFaqBtn');
@@ -33,6 +34,13 @@ document.addEventListener('DOMContentLoaded', function() {
     let endTourBtn = null;
     let closeTourModalBtn = null;
     let nextButtonListenerAttached = false;
+
+    function getTourStorageKey() {
+        if (currentUsername && currentUsername !== 'Гость' && currentUsername.trim() !== '') {
+            return `chattyOrangeTourCompleted_${currentUsername}`;
+        }
+        return 'chattyOrangeTourCompleted_guest'; // Для гостей или если имя пользователя по какой-то причине пустое
+    }
 
     // Создаем расширенное меню
     function createMenu() {
@@ -500,7 +508,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (interactiveTourModal) {
             interactiveTourModal.hide();
         }
-        localStorage.setItem('chattyOrangeTourCompleted', 'true');
+        localStorage.setItem(getTourStorageKey(), 'true');
         currentTourStep = 1;
 
         // Показываем поздравление
@@ -529,9 +537,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     window.startInteractiveTour = function() {
-        if (localStorage.getItem('chattyOrangeTourCompleted') === 'true') {
+        if (localStorage.getItem(getTourStorageKey()) === 'true') {
             if (confirm("Вы уже проходили тур. Хотите пройти его снова?")) {
-                localStorage.removeItem('chattyOrangeTourCompleted');
+                localStorage.removeItem(getTourStorageKey());
             } else {
                 return false;
             }
@@ -752,7 +760,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Проверка для новых пользователей
     if (!localStorage.getItem('chattyOrangeReturningUser')) {
         setTimeout(() => {
-            if (!localStorage.getItem('chattyOrangeTourCompleted')) {
+            if (!localStorage.getItem(getTourStorageKey())) {
                 showWelcomeMessage();
             }
         }, 3000);
