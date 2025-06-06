@@ -1,3 +1,7 @@
+/* Основные стили помощника */
+.dialog-box {
+    display: none !important;
+}
 .assistant-container {
     position: fixed;
     top: 100px;
@@ -11,186 +15,317 @@
     height: 100px;
     transition: transform 0.3s ease;
     filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
-    position: relative; /* Добавить позиционирование */
-    left: -30px; /* Смещение влево */
-    pointer-events: auto; /* Разрешить события */
+    position: relative;
+    left: -30px;
+    pointer-events: auto;
     animation: float 3s ease-in-out infinite;
+    cursor: pointer;
 }
 
 .assistant-image:hover {
     transform: rotate(-5deg) scale(1.1);
 }
 
-.assistant-container:hover .assistant-menu {
-    opacity: 1;
-    transform: translateY(0);
-    display: flex;
-}
-
-.dialog-box {
-    pointer-events: none; /* Чтобы диалог не перехватывал события мыши */
+/* Расширенное меню помощника */
+.assistant-menu {
     position: absolute;
-    top: 110px;
-    right: -40px; /* Новое позиционирование */
-    width: 220px;
-    padding: 15px;
-    background: #fff;
+    top: 120px;
+    right: -30px;
+    width: 250px;
+    background: white;
     border-radius: 12px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    padding: 20px;
     display: none;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 1001;
     opacity: 0;
-    font-family: 'Inter', sans-serif;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: auto !important;
+    border: 2px solid #f97316 !important;
 }
 
-.greeting {
+.assistant-menu.show {
+    display: flex;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.menu-title {
+    color: #f97316;
     font-weight: 600;
-    color: #ff6b00;
-    margin-bottom: 5px;
-    font-size: 1.1rem;
-}
-
-.question {
+    margin-bottom: 10px;
+    text-align: center;
     font-size: 0.9rem;
+}
+
+.menu-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.menu-section:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.assistant-menu a {
     color: #444;
-    line-height: 1.4;
+    text-decoration: none;
+    padding: 10px 12px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
 }
 
-/* Анимации */
-.assistant-image {
-    pointer-events: auto; /* Разрешаем события только на изображении */
-    transform: rotate(-5deg) scale(1.05);
-    cursor: pointer;
+.assistant-menu a:hover {
+    background: #fff7ed;
+    color: #f97316;
+    transform: translateX(5px);
 }
 
-.assistant-image:hover {
-    transform: rotate(-5deg) scale(1.05);
-    cursor: pointer;
+.assistant-menu a i {
+    width: 20px;
 }
 
-/* Анимация появления */
+/* Анимация плавания */
 @keyframes float {
     0% { transform: translateY(0px); }
     50% { transform: translateY(-10px); }
     100% { transform: translateY(0px); }
 }
 
-.assistant-image {
-    animation: float 3s ease-in-out infinite;
-}
-
-/* Обновленный orange-assistant.css */
-.assistant-menu {
-  position: absolute;
-  top: 120px;
-  right: -30px;
-  width: 200px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-  padding: 15px;
-  display: none;
-  flex-direction: column;
-  gap: 10px;
-  z-index: 1001;
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  pointer-events: auto !important; /* Разрешаем взаимодействие с меню */
-  border: 2px solid #f97316 !important; /* Оранжевая рамка */
-}
-
-.assistant-menu.show {
-  display: flex;
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.assistant-menu a {
-  color: #444;
-  text-decoration: none;
-  padding: 8px;
-  border-radius: 6px;
-  transition: all 0.2s;
-}
-
-.assistant-menu a:hover {
-  background: #fff7ed;
-  color: #f97316;
-}
-
-.close-menu-btn {
-  margin-top: 10px;
-  background: #f97316;
-  color: white !important;
-  border: none;
-  padding: 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-.close-menu-btn:hover {
-  transform: scale(1.05);
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.temporary-message {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: white;
-  padding: 15px 25px;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  animation: slideUp 0.3s ease;
-}
-
-@keyframes slideUp {
-  from { bottom: -50px; opacity: 0; }
-  to { bottom: 20px; opacity: 1; }
-}
-
-/* Styles for AI Chat Modal */
+/* Стили для чата */
 #aiChatBody {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding: 10px;
-    max-height: 400px; /* Or any height you prefer */
+    gap: 15px;
+    padding: 15px;
+    max-height: 400px;
     overflow-y: auto;
+    background: #fafafa;
+    border-radius: 8px;
 }
 
 .user-message {
     align-self: flex-end;
-    background-color: #e0f7fa; /* Светло-голубой */
-    color: #004d40; /* Темно-бирюзовый */
-    padding: 8px 12px;
-    border-radius: 10px 10px 0 10px;
+    background-color: #e0f7fa;
+    color: #004d40;
+    padding: 12px 16px;
+    border-radius: 16px 16px 4px 16px;
     max-width: 70%;
     word-wrap: break-word;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .ai-message {
     align-self: flex-start;
-    background-color: #fff3e0; /* Светло-оранжевый */
-    color: #bf360c; /* Темно-оранжевый */
-    padding: 8px 12px;
-    border-radius: 10px 10px 10px 0;
+    background-color: #fff3e0;
+    color: #bf360c;
+    padding: 12px 16px;
+    border-radius: 16px 16px 16px 4px;
     max-width: 70%;
     word-wrap: break-word;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.ai-message.thinking, .thinking { /* Applied to the thinking message */
+.thinking-message {
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #757575;
     font-style: italic;
-    color: #757575; /* Серый */
-    background-color: #f0f0f0; /* Слегка серый фон для "думает" */
 }
 
-#aiChatMessageInput {
-    resize: none; /* Запретить изменение размера textarea */
+.thinking-dots {
+    display: flex;
+    gap: 4px;
+}
+
+.thinking-dots span {
+    width: 8px;
+    height: 8px;
+    background: #f97316;
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.thinking-dots span:nth-child(1) { animation-delay: -0.32s; }
+.thinking-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce {
+    0%, 80%, 100% {
+        transform: scale(0);
+    } 40% {
+        transform: scale(1);
+    }
+}
+
+/* Быстрые действия */
+.quick-actions {
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.quick-action {
+    font-size: 0.85rem;
+    padding: 6px 12px;
+}
+
+/* Эмодзи в сообщениях */
+.emoji {
+    font-size: 1.5em;
+    vertical-align: middle;
+}
+
+/* Модальное окно чата */
+.modal-content {
+    border: 2px solid #f97316;
+    border-radius: 12px;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+    color: white;
+    border-radius: 10px 10px 0 0;
+}
+
+.modal-title {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+}
+
+/* Кнопки действий */
+.action-btn {
+    transition: all 0.2s;
+}
+
+.action-btn.active {
+    background: #f97316;
+    color: white;
+    transform: scale(1.05);
+}
+
+/* Приветственное окно */
+.welcome-popup {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    z-index: 1050;
+    max-width: 300px;
+}
+
+.welcome-content {
+    text-align: center;
+}
+
+.welcome-content img {
+    margin-bottom: 10px;
+}
+
+/* Окно завершения */
+.completion-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    z-index: 1060;
+    text-align: center;
+}
+
+/* Области для помощи в создании поста */
+#postSuggestionArea,
+#postCheckResultArea {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .assistant-container {
+        top: auto;
+        bottom: 80px;
+        right: 20px;
+    }
+
+    .assistant-image {
+        width: 80px;
+        height: 80px;
+    }
+
+    .assistant-menu {
+        width: 220px;
+        right: -20px;
+        bottom: 100px;
+        top: auto;
+    }
+}
+
+/* Форматирование текста в сообщениях */
+.ai-message strong,
+.user-message strong {
+    font-weight: 600;
+    color: inherit;
+}
+
+.ai-message em,
+.user-message em {
+    font-style: italic;
+}
+
+.ai-message code,
+.user-message code {
+    background: rgba(0,0,0,0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+/* Скроллбар для чата */
+#aiChatBody::-webkit-scrollbar {
+    width: 8px;
+}
+
+#aiChatBody::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+#aiChatBody::-webkit-scrollbar-thumb {
+    background: #f97316;
+    border-radius: 4px;
+}
+
+#aiChatBody::-webkit-scrollbar-thumb:hover {
+    background: #ea580c;
 }

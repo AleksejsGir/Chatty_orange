@@ -29,13 +29,8 @@
 
 <body class="d-flex flex-column h-100">
     <!-- Ассистент -->
-    <div class="assistant-container"data-username="
-        {% if user.is_authenticated %}{{ user.username }}{% endif %}">
-        <div class="dialog-box" id="dialogBox">
-            <div class="greeting">Привет!</div>
-            <div class="question">Чем могу помочь?</div>
-        </div>
-        <img src="{% static 'images/orange.png' %}?v=2"
+    <div class="assistant-container" data-username="{% if user.is_authenticated %}{{ user.username }}{% endif %}">
+        <img src="{% static 'images/orange.png' %}?v=3"
              class="assistant-image"
              id="orangeAssistant"
              alt="Помощник">

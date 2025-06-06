@@ -1,100 +1,159 @@
 import json
 import logging
-
 from django.http import JsonResponse
 from django.views import View
 from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt # Используем csrf_exempt для упрощения на начальном этапе.
-                                                     # В продакшене лучше настроить CSRF правильно для AJAX.
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 
-from .ai_services import get_gemini_response, get_faq_answer, get_feature_explanation, get_interactive_tour_step, get_post_creation_suggestion, get_subscription_recommendations, check_post_content # Импортируем наш сервис
+from .ai_services import (
+    get_gemini_response,
+    get_faq_answer,
+    get_feature_explanation,
+    get_interactive_tour_step,
+    get_post_creation_suggestion,
+    get_subscription_recommendations,
+    check_post_content,
+    analyze_profile_stats,
+    generate_post_ideas,
+    analyze_sentiment
+)
 
 logger = logging.getLogger(__name__)
 
-@method_decorator(csrf_exempt, name='dispatch') # Отключаем CSRF-защиту для этого View.
-                                                # ВАЖНО: Для продакшена рассмотрите более безопасные подходы.
+
+@method_decorator(csrf_exempt, name='dispatch')
 class ChatWithAIView(View):
+    """Основной view для взаимодействия с ИИ-помощником."""
+
     def post(self, request, *args, **kwargs):
         try:
-            # Пытаемся загрузить данные из JSON-тела запроса
+            # Загружаем данные из запроса
             if request.content_type == 'application/json':
                 data = json.loads(request.body)
             else:
-                # Если это обычный POST-запрос (например, из формы)
                 data = request.POST
 
             action_type = data.get('action_type')
-            user_input = data.get('user_input', '') # Текст от пользователя (для faq, feature_explanation, general_chat)
-            user_info = data.get('user_info', {}) # Дополнительная информация о пользователе, если передается
+            user_input = data.get('user_input', '')
+            user_info = data.get('user_info', {})
 
-            # Параметры, специфичные для новых action_types
-            step_number = data.get('step_number') # Для interactive_tour_step
-            current_text = data.get('current_text', '') # Для post_creation_suggestion
+            # Добавляем информацию о текущем пользователе
+            if request.user.is_authenticated:
+                user_info.update({
+                    'user_id': request.user.id,
+                    'username': request.user.username,
+                    'is_authenticated': True
+                })
+            else:
+                user_info.update({
+                    'user_id': None,
+                    'username': user_info.get('username', 'Гость'),
+                    'is_authenticated': False
+                })
 
-            if not action_type:
-                return JsonResponse({'error': 'Параметр action_type не указан'}, status=400)
+            # Логируем запрос для статистики
+            logger.info(f"AI request: action={action_type}, user={user_info.get('username')}")
 
-            ai_response = ""
+            # Обработка различных типов действий
             if action_type == 'faq':
                 if not user_input:
-                    return JsonResponse({'error': 'Для action_type "faq" нужен параметр "user_input" (вопрос).'}, status=400)
+                    return JsonResponse({'error': 'Введите ваш вопрос'}, status=400)
                 ai_response = get_faq_answer(question=user_input, user_info=user_info)
+
             elif action_type == 'feature_explanation':
                 if not user_input:
-                    return JsonResponse({'error': 'Для action_type "feature_explanation" нужен параметр "user_input" (название функции/запрос).'}, status=400)
+                    return JsonResponse({'error': 'Укажите функцию для объяснения'}, status=400)
                 ai_response = get_feature_explanation(feature_query=user_input, user_info=user_info)
-            elif action_type == 'general_chat':
-                # Логика для general_chat, как была раньше или немного доработанная
-                if not user_input:
-                    prompt = f"Пользователь {user_info.get('username', 'аноним')} открыл чат с ИИ-помощником на сайте Chatty Orange, но ничего не написал. Поприветствуй его и предложи помощь."
-                else:
-                    prompt = f"Пользователь {user_info.get('username', 'аноним')} (контекст: {json.dumps(user_info, ensure_ascii=False)}) пишет в общем чате ИИ-помощника на сайте Chatty Orange: '{user_input}'. Поддержи разговор или ответь на его вопрос."
-                ai_response = get_gemini_response(prompt)
-            elif action_type == 'interactive_tour_step':
-                if step_number is None: # Проверяем наличие step_number
-                    return JsonResponse({'error': 'Для action_type "interactive_tour_step" нужен параметр "step_number".'}, status=400)
-                try:
-                    step_number = int(step_number) # Убедимся, что это число
-                except ValueError:
-                    return JsonResponse({'error': 'Параметр "step_number" должен быть целым числом.'}, status=400)
-                ai_response = get_interactive_tour_step(step_number=step_number, user_info=user_info)
-            elif action_type == 'post_creation_suggestion':
-                # current_text может быть пустым, это нормально
-                ai_response = get_post_creation_suggestion(current_text=current_text, user_info=user_info)
-            elif action_type == 'subscription_recommendations':
-                current_user_id = request.user.id if request.user.is_authenticated else None
-                ai_response = get_subscription_recommendations(user_info=user_info, current_user_id=current_user_id)
-            elif action_type == 'check_post_content':
-                post_text = data.get('user_input', '') # Используем user_input для текста поста
-                if not post_text.strip():
-                    return JsonResponse({'error': 'Для action_type "check_post_content" нужен непустой параметр "user_input" (текст поста).'}, status=400)
-                ai_response = check_post_content(post_text=post_text, user_info=user_info)
-            else:
-                # Если action_type не распознан, можно использовать general_chat или вернуть ошибку
-                logger.warning(f"Неизвестный action_type: {action_type}. Используется fallback.")
-                # Формируем более общий промпт для нераспознанных типов, чтобы ИИ мог попытаться помочь
-                # Этот fallback должен быть достаточно общим.
-                # Убираем user_input, current_text, step_number из этого общего fallback,
-                # так как они могут быть нерелевантны или даже сбивать с толку ИИ, если action_type действительно неизвестен.
-                # Вместо этого, можно просто сказать, что тип действия не распознан.
-                # Либо, если хотим передавать все, что есть, то предыдущий вариант был ок.
-                # Сейчас сделаем его более простым:
-                logger.info(f"Fallback: action_type='{action_type}', user_input='{user_input}', current_text='{current_text}', step_number='{step_number}'")
-                prompt = (f"Пользователь {user_info.get('username', 'Аноним')} отправил запрос с неизвестным/неподдерживаемым типом действия '{action_type}'. "
-                            f"Текст пользователя (если есть): '{user_input}'. "
-                            "Сообщи пользователю, что такой тип действия не поддерживается или попробуй ответить по контексту, если это имеет смысл для Chatty Orange.")
-                ai_response = get_gemini_response(prompt)
-                # Либо: return JsonResponse({'error': f'Неизвестный action_type: {action_type}'}, status=400)
 
-            return JsonResponse({'response': ai_response})
+            elif action_type == 'general_chat':
+                if not user_input:
+                    ai_response = f"Привет, {user_info.get('username')}! 👋 Я твой Апельсиновый Помощник! Чем могу помочь?"
+                else:
+                    prompt = f"""Пользователь {user_info.get('username')} пишет: '{user_input}'
+                    Контекст: социальная сеть Chatty Orange.
+                    Ответь дружелюбно и полезно, используй эмодзи."""
+                    ai_response = get_gemini_response(prompt)
+
+            elif action_type == 'interactive_tour_step':
+                step_number = data.get('step_number')
+                if step_number is None:
+                    return JsonResponse({'error': 'Не указан номер шага'}, status=400)
+                try:
+                    step_number = int(step_number)
+                except ValueError:
+                    return JsonResponse({'error': 'Номер шага должен быть числом'}, status=400)
+                ai_response = get_interactive_tour_step(step_number=step_number, user_info=user_info)
+
+            elif action_type == 'post_creation_suggestion':
+                current_text = data.get('current_text', '')
+                ai_response = get_post_creation_suggestion(current_text=current_text, user_info=user_info)
+
+            elif action_type == 'subscription_recommendations':
+                current_user_id = user_info.get('user_id')
+                ai_response = get_subscription_recommendations(user_info=user_info, current_user_id=current_user_id)
+
+            elif action_type == 'check_post_content':
+                if not user_input:
+                    return JsonResponse({'error': 'Введите текст для проверки'}, status=400)
+                ai_response = check_post_content(post_text=user_input, user_info=user_info)
+
+            elif action_type == 'analyze_profile':
+                if not user_info.get('is_authenticated'):
+                    ai_response = "🔒 Эта функция доступна только авторизованным пользователям!"
+                else:
+                    ai_response = analyze_profile_stats(user_id=user_info.get('user_id'))
+
+            elif action_type == 'generate_post_ideas':
+                tags = data.get('tags', [])
+                ai_response = generate_post_ideas(user_info=user_info, tags=tags)
+
+            elif action_type == 'analyze_sentiment':
+                if not user_input:
+                    return JsonResponse({'error': 'Введите текст для анализа'}, status=400)
+                ai_response = analyze_sentiment(text=user_input)
+
+            else:
+                # Неизвестный тип действия
+                logger.warning(f"Unknown action_type: {action_type}")
+                ai_response = "🤔 Я пока не умею это делать, но постоянно учусь! Попробуй другую функцию."
+
+            # Сохраняем статистику использования (опционально)
+            self.save_usage_stats(action_type, user_info)
+
+            return JsonResponse({
+                'response': ai_response,
+                'timestamp': timezone.now().isoformat()
+            })
 
         except json.JSONDecodeError:
-            logger.error("Ошибка декодирования JSON в ChatWithAIView")
-            return JsonResponse({'error': 'Неверный формат JSON в теле запроса'}, status=400)
+            logger.error("JSON decode error in ChatWithAIView")
+            return JsonResponse({'error': 'Неверный формат данных'}, status=400)
         except Exception as e:
-            logger.error(f"Неожиданная ошибка в ChatWithAIView: {e}")
-            return JsonResponse({'error': f'Внутренняя ошибка сервера: {str(e)}'}, status=500)
+            logger.error(f"Unexpected error in ChatWithAIView: {e}")
+            return JsonResponse({'error': 'Внутренняя ошибка сервера'}, status=500)
 
     def get(self, request, *args, **kwargs):
-        # Можно добавить простой ответ для GET-запросов, если это необходимо для отладки
-        return JsonResponse({'message': 'Это эндпоинт для AI ассистента. Используйте POST-запросы.'})
+        """Информация об API."""
+        return JsonResponse({
+            'message': 'Chatty Orange AI Assistant API',
+            'version': '2.0',
+            'endpoints': {
+                'faq': 'Ответы на вопросы о сайте',
+                'feature_explanation': 'Объяснение функций',
+                'general_chat': 'Общий чат',
+                'interactive_tour_step': 'Интерактивный тур',
+                'post_creation_suggestion': 'Помощь в создании постов',
+                'subscription_recommendations': 'Рекомендации подписок',
+                'check_post_content': 'Проверка контента',
+                'analyze_profile': 'Анализ профиля',
+                'generate_post_ideas': 'Генерация идей',
+                'analyze_sentiment': 'Анализ настроения'
+            }
+        })
+
+    def save_usage_stats(self, action_type, user_info):
+        """Сохраняет статистику использования ИИ (для будущей аналитики)."""
+        # Здесь можно сохранять в БД или отправлять в аналитику
+        pass
