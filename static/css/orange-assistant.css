@@ -154,3 +154,43 @@
   from { bottom: -50px; opacity: 0; }
   to { bottom: 20px; opacity: 1; }
 }
+
+/* Styles for AI Chat Modal */
+#aiChatBody {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    max-height: 400px; /* Or any height you prefer */
+    overflow-y: auto;
+}
+
+.user-message {
+    align-self: flex-end;
+    background-color: #e0f7fa; /* Светло-голубой */
+    color: #004d40; /* Темно-бирюзовый */
+    padding: 8px 12px;
+    border-radius: 10px 10px 0 10px;
+    max-width: 70%;
+    word-wrap: break-word;
+}
+
+.ai-message {
+    align-self: flex-start;
+    background-color: #fff3e0; /* Светло-оранжевый */
+    color: #bf360c; /* Темно-оранжевый */
+    padding: 8px 12px;
+    border-radius: 10px 10px 10px 0;
+    max-width: 70%;
+    word-wrap: break-word;
+}
+
+.ai-message.thinking, .thinking { /* Applied to the thinking message */
+    font-style: italic;
+    color: #757575; /* Серый */
+    background-color: #f0f0f0; /* Слегка серый фон для "думает" */
+}
+
+#aiChatMessageInput {
+    resize: none; /* Запретить изменение размера textarea */
+}

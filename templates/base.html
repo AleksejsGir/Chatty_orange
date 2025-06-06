@@ -189,13 +189,27 @@
         </div>
     </div>
 
-    <div class="modal fade" id="aiAssistantModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+    <div class="modal fade" id="aiAssistantModal" tabindex="-1" aria-labelledby="aiAssistantModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
-                <div class="modal-body text-center py-4">
-                    <h5 class="mb-3">ИИ помощник</h5>
-                    <p>Я виртуальный помощник. Чем могу помочь?</p>
-                    <button class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="aiAssistantModalLabel">
+                        Апельсиновый Помощник
+                        <img src="{% static 'images/orange.png' %}" alt="Orange Icon" style="width: 30px; height: auto; margin-left: 10px;">
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="aiChatBody" style="max-height: 400px; overflow-y: auto;">
+                    <!-- Сообщения чата будут добавлены сюда с помощью JavaScript -->
+                    <!-- Начальное приветствие может быть добавлено JS при открытии -->
+                </div>
+                <div class="modal-footer">
+                    <div class="d-flex w-100 mb-2">
+                        <button id="aiFaqBtn" class="btn btn-sm btn-outline-secondary me-2" title="Задать вопрос о сайте или его правилах">Вопрос по сайту</button>
+                        <button id="aiFeatureBtn" class="btn btn-sm btn-outline-info" title="Узнать, как работает определенная функция">Объясни функцию</button>
+                    </div>
+                    <textarea id="aiChatMessageInput" class="form-control" placeholder="Спроси меня что-нибудь..." rows="2"></textarea>
+                    <button id="aiSendMessageBtn" class="btn btn-primary mt-2 w-100">Отправить</button>
                 </div>
             </div>
         </div>
