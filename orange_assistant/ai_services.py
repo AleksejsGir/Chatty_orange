@@ -20,7 +20,7 @@ def get_gemini_response(prompt: str) -> str:
 
     # Список доступных моделей может измениться. Проверьте документацию Google.
     # На момент написания, 'gemini-pro' подходит для текстовых задач.
-    model = genai.GenerativeModel('gemini-pro')
+    model = genai.GenerativeModel('gemini-1.5-flash-latest')
 
     try:
         response = model.generate_content(prompt)
