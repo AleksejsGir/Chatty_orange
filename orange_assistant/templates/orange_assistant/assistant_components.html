@@ -1,4 +1,3 @@
-
 {% load static %}
 
     <div class="assistant-container" data-username="{% if user.is_authenticated %}{{ user.username }}{% endif %}">
@@ -8,6 +7,7 @@
              alt="Помощник">
     </div>
 
+<!-- Модальное окно правил -->
 <div class="modal fade" id="rulesModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
@@ -16,7 +16,6 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Вставляем контент из terms_of_use.html -->
                     <section class="mb-4">
                         <h4 class="mb-3 text-primary">1. Основные правила</h4>
                         <div class="ms-3">
@@ -57,15 +56,15 @@
         </div>
     </div>
 
+<!-- Модальное окно инструкций -->
 <div class="modal fade" id="guideModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-lg"> <!-- Добавлен modal-lg для большей ширины -->
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
-                <div class="modal-header"> <!-- Добавлен modal-header для единообразия -->
+                <div class="modal-header">
                     <h5 class="modal-title">Инструкция сайта</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body py-3"> <!-- Убран text-center, немного уменьшен padding -->
-
+                <div class="modal-body py-3">
                     <h4>Основные возможности Chatty Orange:</h4>
                     <ul class="text-start mb-3">
                         <li><strong>📸Делитесь мыслями и фотографиями:</strong> Создавайте посты, добавляйте до 10 изображений.</li>
@@ -82,43 +81,16 @@
                         <li><strong>Апельсиновый Помощник:</strong> Если у вас возникнут вопросы, вы всегда можете обратиться к Апельсиновому Помощнику (иконка апельсина справа). Он может объяснить функции сайта, помочь с навигацией или даже предложить идеи для постов!</li>
                     </ul>
                     <p class="text-center mt-3"><em>Желаем приятного общения на Chatty Orange!</em> 🍊</p>
-
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Понятно!</button> <!-- Текст кнопки изменен для ясности -->
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Понятно!</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="aiAssistantModal" tabindex="-1" aria-labelledby="aiAssistantModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="aiAssistantModalLabel">
-                        Апельсиновый Помощник
-                        <img src="{% static 'images/orange.png' %}" alt="Orange Icon" style="width: 30px; height: auto; margin-left: 10px;">
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="aiChatBody">
-                    <!-- Сообщения чата будут добавлены сюда с помощью JavaScript -->
-                    <!-- Начальное приветствие может быть добавлено JS при открытии -->
-                </div>
-                <div class="modal-footer">
-{#                    <div class="d-flex w-100 mb-2">#}
-{#                        <button id="aiFaqBtn" class="btn btn-sm btn-outline-secondary me-2" title="Задать вопрос о сайте или его правилах">Вопрос по сайту</button>#}
-{#                        <button id="aiFeatureBtn" class="btn btn-sm btn-outline-info" title="Узнать, как работает определенная функция">Объясни функцию</button>#}
-{#                    </div>#}
-                    <textarea id="aiChatMessageInput" class="form-control" placeholder="Спроси меня что-нибудь..." rows="2"></textarea>
-                    <button id="aiSendMessageBtn" class="btn btn-primary mt-2 w-100">Отправить</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-<!-- Interactive Tour Modal -->
-    <div class="modal fade" id="interactiveTourModal" tabindex="-1" aria-labelledby="interactiveTourModalLabel" aria-hidden="true">
+<!-- Модальное окно интерактивного тура -->
+<div class="modal fade" id="interactiveTourModal" tabindex="-1" aria-labelledby="interactiveTourModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
