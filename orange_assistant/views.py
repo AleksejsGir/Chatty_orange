@@ -265,7 +265,6 @@ class ChatWithAIView(View):
 
         logger.info(f"Processing natural language query: '{user_input}' from {user_info.get('username', 'anonymous')}")
 
-        # В функции handle_natural_language_query замените секцию ПОИСК ПОСТОВ/СТАТЕЙ на эту:
 
         # === ПОИСК ПОСТОВ/СТАТЕЙ ===
         post_search_patterns = [

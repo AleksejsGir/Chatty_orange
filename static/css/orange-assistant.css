@@ -109,26 +109,27 @@
     bottom: 20px;
     right: 20px;
     width: 380px;
-    max-height: 600px;
+    height: 600px; /* ВАЖНО: фиксированная высота */
+    min-width: 300px;
+    min-height: 200px;
+    max-width: 90vw;
+    max-height: 90vh;
     background: white;
     border-radius: 12px;
     box-shadow: 0 8px 25px rgba(0,0,0,0.15);
     border: 2px solid #f97316;
     display: none;
-    flex-direction: column;
+    flex-direction: column; /* ВАЖНО: колонка */
     z-index: 1050;
     transition: all 0.3s ease;
-    overflow: hidden; /* To contain elements during resize and prevent widget scrollbars */
-    min-width: 300px; /* Minimum dimensions */
-    min-height: 200px; /* Minimum dimensions */
 }
 
 .chat-widget.minimized {
-    max-height: 60px;
+    height: 60px; /* ИЗМЕНЕНО: используем height вместо max-height */
     overflow: hidden;
 }
 
-/* Заголовок чата */
+/* Заголовок чата - ФИКСИРОВАННЫЙ размер */
 .chat-widget-header {
     background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
     color: white;
@@ -137,63 +138,114 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    min-height: 60px;
+    height: 60px; /* ФИКСИРОВАННАЯ высота */
     box-sizing: border-box;
     position: relative;
+    flex-shrink: 0; /* ВАЖНО: не сжимается */
 }
 
-/* Resize handle в левом верхнем углу */
-.resize-handle-corner {
+/* Тело чата - РАСТЯГИВАЕТСЯ */
+.chat-widget-body {
+    padding: 16px;
+    overflow-y: auto;
+    background: #fafafa;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1; /* ВАЖНО: занимает все доступное место */
+    min-height: 0; /* ВАЖНО: позволяет сжиматься */
+}
+
+/* Подвал чата - ФИКСИРОВАННЫЙ внизу */
+.chat-widget-footer {
+    padding: 12px 16px;
+    background: white;
+    border-radius: 0 0 10px 10px;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    flex-shrink: 0; /* ВАЖНО: не сжимается */
+    height: auto; /* Автоматическая высота по содержимому */
+}
+
+/* ИСПРАВЛЕННЫЙ ресайзер в левом верхнем углу */
+.chat-widget-resizer {
     position: absolute;
     top: 0;
     left: 0;
     width: 20px;
     height: 20px;
     cursor: nw-resize;
-    background: rgba(255,255,255,0.2);
-    border-radius: 10px 0 10px 0;
     z-index: 10;
-    transition: background-color 0.2s;
+    background: transparent;
+    border-radius: 12px 0 0 0;
 }
 
-.resize-handle-corner:hover {
-    background: rgba(255,255,255,0.4);
-}
-
-.resize-handle-corner::before {
+/* Визуальный индикатор ресайзера */
+.chat-widget-resizer::before {
     content: '';
     position: absolute;
-    top: 3px;
-    left: 3px;
+    top: 4px;
+    left: 4px;
     width: 0;
     height: 0;
-    border-left: 8px solid rgba(255,255,255,0.6);
+    border-left: 8px solid rgba(255, 255, 255, 0.3);
     border-bottom: 8px solid transparent;
+    transition: border-left-color 0.2s ease;
 }
 
-.resize-handle-corner::after {
+.chat-widget-resizer::after {
     content: '';
     position: absolute;
     top: 8px;
     left: 8px;
     width: 0;
     height: 0;
-    border-left: 4px solid rgba(255,255,255,0.8);
+    border-left: 4px solid rgba(255, 255, 255, 0.5);
     border-bottom: 4px solid transparent;
+    transition: border-left-color 0.2s ease;
 }
 
-/* Индикатор изменения размера */
+.chat-widget-resizer:hover::before {
+    border-left-color: rgba(255, 255, 255, 0.7);
+}
+
+.chat-widget-resizer:hover::after {
+    border-left-color: rgba(255, 255, 255, 0.9);
+}
+
+/* Стили во время изменения размера */
 .chat-widget.resizing {
     user-select: none;
     pointer-events: auto;
+    transition: none;
 }
 
 .chat-widget.resizing * {
     user-select: none;
+    pointer-events: none;
 }
 
-.chat-widget.resizing .resize-handle-corner {
-    background: rgba(255,255,255,0.6);
+.chat-widget.resizing .chat-widget-resizer {
+    pointer-events: auto;
+}
+
+.chat-widget.resizing .chat-widget-resizer::before {
+    border-left-color: #f97316;
+}
+
+.chat-widget.resizing .chat-widget-resizer::after {
+    border-left-color: #fb923c;
+}
+
+/* Курсор изменения размера для всего окна во время ресайза */
+body.resizing-chat {
+    cursor: nw-resize !important;
+}
+
+body.resizing-chat * {
+    cursor: nw-resize !important;
 }
 
 .chat-widget-title {
@@ -242,29 +294,6 @@
 .chat-btn-close:hover {
     background: #dc3545;
     border-color: #dc3545;
-}
-
-/* Тело чата */
-.chat-widget-body {
-    padding: 16px;
-    max-height: 400px;
-    overflow-y: auto;
-    background: #fafafa;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    flex: 1;
-}
-
-/* Подвал чата */
-.chat-widget-footer {
-    padding: 12px 16px;
-    background: white;
-    border-radius: 0 0 10px 10px;
-    border-top: 1px solid #eee;
-    display: flex;
-    gap: 8px;
-    align-items: flex-end;
 }
 
 .chat-input {
@@ -655,16 +684,4 @@
     background: #f97316;
     color: white;
     transform: scale(1.05);
-}
-
-/* Resizer for top-left corner (was bottom-right) */
-.chat-widget-resizer {
-    width: 16px;
-    height: 16px;
-    background-color: transparent; /* Can be lightgray for debugging */
-    position: absolute;
-    left: 0;
-    top: 0;
-    cursor: nwse-resize; /* Suitable for diagonal resizing */
-    z-index: 10;
 }

@@ -244,6 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
         chatWidget.className = 'chat-widget';
         chatWidget.innerHTML = `
             <div class="chat-widget-header">
+                <div class="chat-widget-resizer"></div>
                 <div class="chat-widget-title">
                     <img src="/static/images/orange.png" alt="Orange" style="width: 24px; height: 24px; margin-right: 8px;">
                     <span>Апельсиновый Помощник</span>
@@ -269,7 +270,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
-            <div class="chat-widget-resizer"></div>
         `;
 
         document.body.appendChild(chatWidget);
@@ -293,22 +293,28 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // Логика изменения размера виджета
+        // ИСПРАВЛЕННАЯ логика изменения размера виджета
         const resizer = chatWidget.querySelector('.chat-widget-resizer');
         if (resizer) {
             resizer.addEventListener('mousedown', function(e_mousedown) {
-                e_mousedown.preventDefault(); // Предотвратить выделение текста
+                e_mousedown.preventDefault();
 
                 const initialWidth = chatWidget.offsetWidth;
                 const initialHeight = chatWidget.offsetHeight;
                 const initialMouseX = e_mousedown.clientX;
                 const initialMouseY = e_mousedown.clientY;
-                const initialChatX = chatWidget.offsetLeft;
-                const initialChatY = chatWidget.offsetTop;
 
-                // Минимальные размеры из CSS
-                const minWidth = parseInt(getComputedStyle(chatWidget).minWidth, 10) || 300;
-                const minHeight = parseInt(getComputedStyle(chatWidget).minHeight, 10) || 200;
+                const computedStyle = getComputedStyle(chatWidget);
+                const initialRight = parseInt(computedStyle.right, 10) || 20;
+                const initialBottom = parseInt(computedStyle.bottom, 10) || 20;
+
+                const minWidth = 300;
+                const minHeight = 200;
+                const maxWidth = window.innerWidth - initialRight - 50;
+                const maxHeight = window.innerHeight - initialBottom - 50;
+
+                chatWidget.classList.add('resizing');
+                document.body.classList.add('resizing-chat');
 
                 function handleMouseMove(e_mousemove) {
                     const deltaX = e_mousemove.clientX - initialMouseX;
@@ -316,47 +322,79 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     let newWidth = initialWidth - deltaX;
                     let newHeight = initialHeight - deltaY;
-                    let newLeft = initialChatX + deltaX;
-                    let newTop = initialChatY + deltaY;
 
-                    // Применяем минимальные размеры и корректируем позицию, чтобы "якорем" был правый/нижний край
-                    if (newWidth < minWidth) {
-                        newLeft += (newWidth - minWidth); // Компенсируем изменение left, чтобы правый край не "уехал"
-                        newWidth = minWidth;
-                    }
-                    if (newHeight < minHeight) {
-                        newTop += (newHeight - minHeight); // Компенсируем изменение top, чтобы нижний край не "уехал"
-                        newHeight = minHeight;
-                    }
+                    newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+                    newHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
 
-                    // Опционально: максимальные размеры (если нужны)
-                    // if (newWidth > maxWidth) {
-                    //     newLeft += (newWidth - maxWidth);
-                    //     newWidth = maxWidth;
-                    // }
-                    // if (newHeight > maxHeight) {
-                    //     newTop += (newHeight - maxHeight);
-                    //     newHeight = maxHeight;
-                    // }
-
+                    // ВАЖНО: устанавливаем и width, и height
                     chatWidget.style.width = newWidth + 'px';
                     chatWidget.style.height = newHeight + 'px';
-                    chatWidget.style.left = newLeft + 'px';
-                    chatWidget.style.top = newTop + 'px';
+                    chatWidget.style.right = initialRight + 'px';
+                    chatWidget.style.bottom = initialBottom + 'px';
+                    chatWidget.style.left = 'auto';
+                    chatWidget.style.top = 'auto';
                 }
 
                 function handleMouseUp() {
                     document.removeEventListener('mousemove', handleMouseMove);
                     document.removeEventListener('mouseup', handleMouseUp);
 
-                    // TODO: Сохранить размеры в localStorage, если нужно
-                    // localStorage.setItem('chattyOrangeChatWidth', chatWidget.style.width);
-                    // localStorage.setItem('chattyOrangeChatHeight', chatWidget.style.height);
+                    chatWidget.classList.remove('resizing');
+                    document.body.classList.remove('resizing-chat');
+
+                    // Сохраняем размеры
+                    try {
+                        localStorage.setItem('chattyOrangeChatWidth', chatWidget.offsetWidth);
+                        localStorage.setItem('chattyOrangeChatHeight', chatWidget.offsetHeight);
+                        console.log(`Сохранены размеры чата: ${chatWidget.offsetWidth}x${chatWidget.offsetHeight}`);
+                    } catch (e) {
+                        console.log('Не удалось сохранить размеры чата');
+                    }
                 }
 
                 document.addEventListener('mousemove', handleMouseMove);
                 document.addEventListener('mouseup', handleMouseUp);
             });
+        }
+
+        // Восстанавливаем сохраненные размеры чата
+        restoreChatSize();
+    }
+
+    // Функция восстановления размеров чата
+    function restoreChatSize() {
+        try {
+            const savedWidth = localStorage.getItem('chattyOrangeChatWidth');
+            const savedHeight = localStorage.getItem('chattyOrangeChatHeight');
+
+            if (savedWidth && savedHeight) {
+                const width = parseInt(savedWidth, 10);
+                const height = parseInt(savedHeight, 10);
+
+                // Проверяем, что размеры корректные
+                const minWidth = 300;
+                const minHeight = 200;
+                const maxWidth = window.innerWidth - 50;
+                const maxHeight = window.innerHeight - 50;
+
+                if (width >= minWidth && width <= maxWidth &&
+                    height >= minHeight && height <= maxHeight) {
+
+                    chatWidget.style.width = width + 'px';
+                    chatWidget.style.height = height + 'px'; // ИЗМЕНЕНО: используем height
+
+                    console.log(`Восстановлены размеры чата: ${width}x${height}`);
+                }
+            } else {
+                // Устанавливаем размеры по умолчанию
+                chatWidget.style.width = '380px';
+                chatWidget.style.height = '600px';
+            }
+        } catch (e) {
+            console.log('Не удалось восстановить размеры чата:', e);
+            // Устанавливаем размеры по умолчанию при ошибке
+            chatWidget.style.width = '380px';
+            chatWidget.style.height = '600px';
         }
     }
 
@@ -1001,11 +1039,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3000);
         localStorage.setItem('chattyOrangeReturningUser', 'true');
     }
-
-    // Welcome message logic should ideally run after checking chat state,
-    // so it doesn't conflict with an auto-opened chat.
-    // The current placement of chat state check (before Post Creation Helper)
-    // and this welcome message check (at the very end) is fine.
 
     function showWelcomeMessage() {
         const welcomeDiv = document.createElement('div');
