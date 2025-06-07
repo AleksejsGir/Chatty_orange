@@ -5,6 +5,17 @@ import logging
 from datetime import datetime, timedelta
 import json
 
+# Импортируем все модели глобально
+from posts.models import Post, Comment
+from users.models import CustomUser
+
+# Импортируем модель подписок
+try:
+    from subscriptions.models import Subscription
+except ImportError:
+    logger.error("Модель Subscription не найдена")
+    Subscription = None
+
 logger = logging.getLogger(__name__)
 
 
@@ -53,16 +64,54 @@ def get_faq_answer(question: str, user_info: dict) -> str:
 
 
 def get_feature_explanation(feature_query: str, user_info: dict) -> str:
-    """Объясняет, как работают функции сайта."""
-    prompt = f"""Пользователь {user_info.get('username', 'аноним')} спрашивает о функции '{feature_query}' на сайте Chatty Orange. 
+    """Объясняет, как работают функции сайта, или общие возможности ассистента."""
 
-    Подробно объясни:
-    1. Что это за функция
-    2. Как ею пользоваться (пошагово)
-    3. Какие преимущества она дает
-    4. Полезные советы по использованию
+    user_name = user_info.get('username', 'аноним')
+    normalized_query = feature_query.lower()
 
-    Если функция неизвестна, предположи наиболее подходящую по контексту."""
+    general_capability_keywords = [
+        "что ты умеешь", "твои функции", "возможности",
+        "хелп", "помощь", "что можешь", "расскажи о себе", "команды"
+    ]
+
+    is_general_query = any(keyword in normalized_query for keyword in general_capability_keywords)
+
+    if is_general_query:
+        prompt = f"""Пользователь {user_name} спрашивает о твоих общих возможностях или просит помощи.
+Расскажи о себе и основных функциях сайта Chatty Orange, которые ты поддерживаешь.
+Chatty Orange - это социальная сеть, где пользователи могут создавать посты, комментировать, подписываться на других и т.д.
+
+Твои основные возможности:
+- Ответы на вопросы о сайте (FAQ).
+- Объяснение конкретных функций сайта.
+- Помощь в создании постов (предложение идей, советы по улучшению).
+- Рекомендации интересных авторов для подписки.
+- Проверка текста поста на соответствие правилам сайта.
+- Анализ статистики профиля пользователя и советы по его развитию.
+- Генерация идей для новых постов.
+- Анализ эмоционального тона текста.
+
+Кстати, я также недавно научился новым трюкам:
+- 🕵️ **Искать посты по ключевым словам.** Просто спроси: "Найди посты про [ключевое слово]". Например: "Найди посты про путешествия".
+- 📄 **Показывать детали поста.** Если знаешь ID поста, спроси: "Расскажи о посте [ID поста]". Например: "Расскажи о посте 42".
+- 👤 **Находить пользователей.** Спроси: "Найди пользователя [имя пользователя]". Например: "Найди пользователя admin".
+- 📊 **Показывать активность пользователя.** Спроси: "Что нового у пользователя [ID пользователя]?". Например: "Что нового у пользователя 1?".
+
+Представь эту информацию дружелюбно и структурированно. Поощряй пользователя задавать вопросы.
+"""
+    else:
+        prompt = f"""Пользователь {user_name} спрашивает о функции '{feature_query}' на сайте Chatty Orange. 
+
+        Подробно объясни:
+        1. Что это за функция.
+        2. Как ею пользоваться (пошагово).
+        3. Какие преимущества она дает.
+        4. Полезные советы по использованию.
+
+        Если функция '{feature_query}' неизвестна или не является специфической функцией сайта, но ты можешь помочь с этим запросом (например, это общий вопрос или просьба), ответь наилучшим образом. 
+        Если это похоже на запрос одной из твоих специальных возможностей (например, поиск постов, анализ текста), выполни его.
+        Если это совершенно неизвестный запрос, вежливо сообщи, что ты не можешь помочь с этой конкретной темой, но готов помочь с другими вопросами о Chatty Orange."""
+
     return get_gemini_response(prompt)
 
 
@@ -147,45 +196,309 @@ def get_post_creation_suggestion(current_text: str, user_info: dict) -> str:
     return get_gemini_response(prompt)
 
 
-def get_subscription_recommendations(user_info: dict, current_user_id: int = None) -> str:
-    """Рекомендует интересных авторов для подписки."""
-    from django.db.models import Count
-    from users.models import CustomUser
-    from posts.models import Post
+def find_post_by_keyword(keyword: str, user_info: dict) -> str:
+    """
+    Ищет посты по ключевому слову в заголовке или тексте и просит ИИ представить их.
+    """
+    logger.info(f"Пользователь {user_info.get('username', 'аноним')} ищет посты с ключевым словом: '{keyword}'")
+    try:
+        # Проверяем, что модель Post доступна
+        if Post is None:
+            logger.error("Модель Post не доступна")
+            return "Ошибка: модель постов не доступна. Обратитесь к администратору."
+
+        # Выполняем поиск
+        posts = Post.objects.filter(Q(title__icontains=keyword) | Q(text__icontains=keyword))[
+                :10]  # Ограничиваем результат
+
+        logger.info(f"Найдено {posts.count()} постов по ключевому слову '{keyword}'")
+
+        if not posts.exists():
+            logger.info(f"Посты с ключевым словом '{keyword}' не найдены.")
+            return f"К сожалению, посты с ключевым словом '{keyword}' не найдены. Попробуйте другой запрос."
+
+        posts_info = []
+        for post in posts:
+            author_username = post.author.username if post.author else "неизвестный автор"
+            try:
+                post_url = post.get_absolute_url() if hasattr(post, 'get_absolute_url') else f"/posts/{post.id}/"
+            except Exception as e:
+                logger.warning(f"Ошибка при получении URL поста {post.id}: {e}")
+                post_url = f"/posts/{post.id}/"
+
+            posts_info.append(
+                f"ID: {post.id} | Заголовок: {post.title} | Автор: @{author_username} | Ссылка: {post_url}")
+
+        posts_details_str = "\n".join(posts_info)
+        prompt = f"""Пользователь {user_info.get('username', 'аноним')} искал посты по ключевому слову '{keyword}'.
+Найдены следующие посты:
+{posts_details_str}
+
+Представь эту информацию пользователю в дружелюбной манере. Ты можешь кратко описать каждый пост или выделить наиболее интересные.
+Посоветуй пользователю перейти по ссылкам, чтобы узнать больше.
+"""
+        return get_gemini_response(prompt)
+
+    except Exception as e:
+        logger.error(f"Ошибка при поиске постов по ключевому слову '{keyword}': {e}")
+        return f"Произошла ошибка при поиске постов: {str(e)} 🍊"
+
+
+def get_post_details(post_id: int, user_info: dict) -> str:
+    """
+    Получает детали поста по его ID, включая комментарии, и просит ИИ представить их.
+    """
+    logger.info(f"Пользователь {user_info.get('username', 'аноним')} запрашивает детали поста с ID: {post_id}")
+    try:
+        # Проверяем доступность моделей
+        if Post is None:
+            return "Ошибка: модель постов не доступна."
+
+        if Comment is None:
+            return "Ошибка: модель комментариев не доступна."
+
+        post = Post.objects.get(pk=post_id)
+        author_username = post.author.username if post.author else "неизвестный автор"
+        likes_count = post.likes.count() if hasattr(post, 'likes') else 0
+
+        comments = Comment.objects.filter(post=post).order_by('-created_at')[:5]
+        comments_info = []
+        if comments:
+            for comment in comments:
+                comment_author = comment.author.username if comment.author else "аноним"
+                comments_info.append(
+                    f"- @{comment_author}: {comment.text[:100]}{'...' if len(comment.text) > 100 else ''}")
+        else:
+            comments_info.append("Комментариев пока нет.")
+
+        comments_details_str = "\n".join(comments_info)
+
+        post_details = f"""
+        ID поста: {post.id}
+        Заголовок: {post.title}
+        Автор: @{author_username}
+        Текст поста:
+        {post.text[:500]}{'...' if len(post.text) > 500 else ''} 
+        Количество лайков: {likes_count}
+
+        Последние комментарии:
+        {comments_details_str}
+        """
+
+        logger.info(f"Успешно получены детали для поста ID: {post_id}. Заголовок: {post.title}")
+
+        prompt = f"""Пользователь {user_info.get('username', 'аноним')} запросил детали поста.
+Вот информация о посте:
+{post_details}
+
+Представь эту информацию пользователю в развернутом и дружелюбном виде. 
+Можешь сначала дать общую информацию о посте, а затем о комментариях.
+Подскажи, что пользователь может сделать дальше (например, оставить свой комментарий, если это возможно, или посмотреть другие посты автора).
+"""
+        return get_gemini_response(prompt)
+
+    except Post.DoesNotExist:
+        logger.warning(f"Пост с ID {post_id} не найден.")
+        return f"К сожалению, пост с ID {post_id} не найден."
+    except Exception as e:
+        logger.error(f"Ошибка при получении деталей поста ID {post_id}: {e}")
+        return f"Произошла ошибка при загрузке деталей поста: {str(e)} 🍊"
+
+
+def find_user_by_username(username: str, user_info: dict) -> str:
+    """
+    Ищет пользователя по имени (username) и просит ИИ представить его профиль.
+    """
+    logger.info(f"Пользователь {user_info.get('username', 'аноним')} ищет пользователя: '{username}'")
+    try:
+        if CustomUser is None:
+            return "Ошибка: модель пользователей не доступна."
+
+        found_user = CustomUser.objects.get(username__iexact=username)
+
+        # Получаем статистику пользователя
+        posts_count = Post.objects.filter(author=found_user).count() if Post else 0
+
+        # Безопасная проверка подписчиков
+        subscribers_count = 0
+        if Subscription and hasattr(found_user, 'subscribers'):
+            try:
+                subscribers_count = found_user.subscribers.count()
+            except Exception as e:
+                logger.warning(f"Ошибка при подсчете подписчиков: {e}")
+
+        user_details = f"""
+        Имя пользователя: @{found_user.username}
+        Био: {found_user.bio if hasattr(found_user, 'bio') and found_user.bio else "Пользователь пока ничего не рассказал о себе."}
+        Количество постов: {posts_count}
+        Количество подписчиков: {subscribers_count}
+        """
+
+        logger.info(
+            f"Найден пользователь: @{found_user.username}. Постов: {posts_count}, Подписчиков: {subscribers_count}")
+
+        prompt = f"""Пользователь {user_info.get('username', 'аноним')} искал пользователя '{username}'.
+Найден следующий пользователь:
+{user_details}
+
+Представь этого пользователя в дружелюбной манере. Опиши его профиль на основе предоставленной информации.
+Можешь предложить пользователю подписаться, если информация кажется интересной, или посмотреть посты этого автора.
+"""
+        return get_gemini_response(prompt)
+
+    except CustomUser.DoesNotExist:
+        logger.info(f"Пользователь с именем '{username}' не найден.")
+        return f"К сожалению, пользователь с именем '{username}' не найден. Проверьте правильность написания имени."
+    except Exception as e:
+        logger.error(f"Ошибка при поиске пользователя '{username}': {e}")
+        return f"Произошла ошибка при поиске пользователя: {str(e)} 🍊"
+
+
+def get_user_activity(user_id: int, user_info: dict) -> str:
+    """
+    Получает последнюю активность пользователя (посты и комментарии) и просит ИИ представить её.
+    """
+    requesting_user_info = user_info.get('username', 'аноним')
+    logger.info(f"Пользователь {requesting_user_info} запрашивает активность пользователя с ID: {user_id}")
 
     try:
+        if CustomUser is None:
+            return "Ошибка: модель пользователей не доступна."
+
+        target_user = CustomUser.objects.get(pk=user_id)
+        target_username = target_user.username
+
+        # Последние 3 поста пользователя
+        posts_info_list = []
+        if Post:
+            # ПРАВИЛЬНО: для постов используем pub_date
+            latest_posts = Post.objects.filter(author=target_user).order_by('-pub_date')[:3]
+            if latest_posts:
+                for post in latest_posts:
+                    try:
+                        post_url = post.get_absolute_url() if hasattr(post, 'get_absolute_url') else f"/posts/{post.id}/"
+                    except Exception:
+                        post_url = f"/posts/{post.id}/"
+                    posts_info_list.append(f"- Заголовок: {post.title} (Ссылка: {post_url})")
+            else:
+                posts_info_list.append("Недавних постов нет.")
+        else:
+            posts_info_list.append("Информация о постах недоступна.")
+
+        posts_activity_str = "\n".join(posts_info_list)
+
+        # Последние 3 комментария пользователя
+        comments_info_list = []
+        if Comment:
+            # ПРАВИЛЬНО: для комментариев используем created_at
+            latest_comments = Comment.objects.filter(author=target_user).order_by('-created_at')[:3]
+            if latest_comments:
+                for comment in latest_comments:
+                    try:
+                        comment_post_url = comment.post.get_absolute_url() if comment.post and hasattr(comment.post, 'get_absolute_url') else f"/posts/{comment.post.id}/" if comment.post else "URL поста недоступен"
+                    except Exception:
+                        comment_post_url = f"/posts/{comment.post.id}/" if comment.post else "URL поста недоступен"
+                    comments_info_list.append(
+                        f"- Комментарий: \"{comment.text[:100]}{'...' if len(comment.text) > 100 else ''}\" (к посту: {comment_post_url})")
+            else:
+                comments_info_list.append("Недавних комментариев нет.")
+        else:
+            comments_info_list.append("Информация о комментариях недоступна.")
+
+        comments_activity_str = "\n".join(comments_info_list)
+
+        activity_details = f"""
+        Активность пользователя @{target_username}:
+
+        Последние посты:
+        {posts_activity_str}
+
+        Последние комментарии:
+        {comments_activity_str}
+        """
+
+        logger.info(f"Успешно получена активность для пользователя @{target_username} (ID: {user_id}).")
+
+        prompt = f"""Пользователь {requesting_user_info} запросил последнюю активность пользователя @{target_username}.
+Вот эта информация:
+{activity_details}
+
+Представь эту активность пользователю в дружелюбной и информативной манере. 
+Кратко обобщи, что недавно делал @{target_username} на сайте.
+Посоветуй {requesting_user_info} посмотреть эти посты или комментарии, если они его заинтересовали.
+"""
+        return get_gemini_response(prompt)
+
+    except CustomUser.DoesNotExist:
+        logger.warning(f"Запрошена активность для несуществующего пользователя с ID {user_id}.")
+        return f"К сожалению, пользователь с ID {user_id} не найден."
+    except Exception as e:
+        logger.error(f"Ошибка при получении активности пользователя ID {user_id}: {e}")
+        return f"Произошла ошибка при загрузке активности пользователя: {str(e)} 🍊"
+
+
+def get_subscription_recommendations(user_info: dict, current_user_id: int = None) -> str:
+    """Рекомендует интересных авторов для подписки."""
+    logger.info(f"Пользователь {user_info.get('username', 'аноним')} запрашивает рекомендации подписок")
+
+    try:
+        # Проверяем доступность моделей
+        if CustomUser is None:
+            logger.error("Модель CustomUser не доступна")
+            return "Ошибка: модель пользователей не доступна."
+
+        if Post is None:
+            logger.error("Модель Post не доступна")
+            return "Ошибка: модель постов не доступна."
+
         # Получаем популярных авторов
         recommended_users = CustomUser.objects.annotate(
-            num_subscribers=Count('subscribers'),
-            num_posts=Count('posts')
+            num_posts=Count('post')  # Правильное имя related_name
         ).filter(
             num_posts__gt=0  # Только те, кто писал посты
-        ).order_by('-num_subscribers', '-num_posts')
+        ).order_by('-num_posts')
 
+        # Исключаем текущего пользователя
         if current_user_id:
             recommended_users = recommended_users.exclude(id=current_user_id)
-            # Исключаем тех, на кого уже подписан
-            user = CustomUser.objects.get(id=current_user_id)
-            subscribed_ids = user.subscriptions.values_list('target_id', flat=True)
-            recommended_users = recommended_users.exclude(id__in=subscribed_ids)
+
+            # Если модель подписок доступна, исключаем тех, на кого уже подписан
+            if Subscription:
+                try:
+                    user = CustomUser.objects.get(id=current_user_id)
+                    subscribed_ids = Subscription.objects.filter(subscriber=user).values_list('target_id', flat=True)
+                    recommended_users = recommended_users.exclude(id__in=subscribed_ids)
+                except Exception as e:
+                    logger.warning(f"Ошибка при исключении подписок: {e}")
 
         recommended_users = recommended_users[:5]
 
         if not recommended_users:
+            logger.info("Рекомендации не найдены")
             return "🍊 Пока что мало активных авторов, но скоро их станет больше! А пока создай свой первый пост!"
 
         authors_info = []
         for user in recommended_users:
             # Получаем последний пост для контекста
-            last_post = user.posts.order_by('-created_at').first()
-            post_preview = f"Последний пост: {last_post.title[:30]}..." if last_post else "Еще нет постов"
+            try:
+                # ИСПРАВЛЕНО: используем pub_date вместо created_at
+                last_post = Post.objects.filter(author=user).order_by('-pub_date').first()
+                post_preview = f"Последний пост: {last_post.title[:30]}..." if last_post else "Еще нет постов"
+            except Exception as e:
+                logger.warning(f"Ошибка при получении последнего поста для пользователя {user.username}: {e}")
+                post_preview = "Информация о постах недоступна"
+
+            bio_info = ""
+            if hasattr(user, 'bio') and user.bio:
+                bio_info = f'📝 О себе: {user.bio[:100]}...'
 
             authors_info.append(f"""
-🔸 **@{user.username}** ({user.num_subscribers} подписчиков, {user.num_posts} постов)
-{f'📝 О себе: {user.bio[:100]}...' if user.bio else ''}
+🔸 **@{user.username}** ({user.num_posts} постов)
+{bio_info}
 📰 {post_preview}""")
 
         recommendations = "\n".join(authors_info)
+        logger.info(f"Сформированы рекомендации для {len(authors_info)} пользователей")
 
         return f"""🌟 **Рекомендую подписаться на этих интересных авторов:**
 
@@ -195,7 +508,7 @@ def get_subscription_recommendations(user_info: dict, current_user_id: int = Non
 
     except Exception as e:
         logger.error(f"Ошибка при получении рекомендаций: {e}")
-        return "Не удалось загрузить рекомендации. Попробуй позже! 🍊"
+        return f"Не удалось загрузить рекомендации: {str(e)} 🍊"
 
 
 def check_post_content(post_text: str, user_info: dict) -> str:
@@ -233,26 +546,56 @@ def check_post_content(post_text: str, user_info: dict) -> str:
 
 def analyze_profile_stats(user_id: int) -> str:
     """Анализирует статистику профиля и дает советы."""
-    from users.models import CustomUser
-    from posts.models import Post, Comment
-    from subscriptions.models import Subscription
+    logger.info(f"Анализ профиля для пользователя ID: {user_id}")
 
     try:
+        if CustomUser is None:
+            return "Ошибка: модель пользователей не доступна."
+
         user = CustomUser.objects.get(id=user_id)
 
         # Собираем статистику
+        posts_count = Post.objects.filter(author=user).count() if Post else 0
+        comments_count = Comment.objects.filter(author=user).count() if Comment else 0
+
+        # Подсчет лайков
+        likes_received = 0
+        if Post:
+            try:
+                user_posts = Post.objects.filter(author=user)
+                for post in user_posts:
+                    if hasattr(post, 'likes'):
+                        likes_received += post.likes.count()
+            except Exception as e:
+                logger.warning(f"Ошибка при подсчете лайков: {e}")
+
+        # Подписки
+        subscribers_count = 0
+        subscriptions_count = 0
+        if Subscription:
+            try:
+                subscribers_count = Subscription.objects.filter(target=user).count()
+                subscriptions_count = Subscription.objects.filter(subscriber=user).count()
+            except Exception as e:
+                logger.warning(f"Ошибка при подсчете подписок: {e}")
+
+        # Дни на сайте
+        days_on_site = 0
+        if hasattr(user, 'date_joined'):
+            days_on_site = (datetime.now().date() - user.date_joined.date()).days
+        elif hasattr(user, 'created_at'):
+            days_on_site = (datetime.now().date() - user.created_at.date()).days
+
         stats = {
-            'posts_count': user.posts.count(),
-            'comments_count': Comment.objects.filter(author=user).count(),
-            'likes_received': sum(post.likes.count() for post in user.posts.all()),
-            'subscribers_count': user.subscribers.count(),
-            'subscriptions_count': user.subscriptions.count(),
-            'days_on_site': (datetime.now().date() - user.created_at.date()).days
+            'posts_count': posts_count,
+            'comments_count': comments_count,
+            'likes_received': likes_received,
+            'subscribers_count': subscribers_count,
+            'subscriptions_count': subscriptions_count,
+            'days_on_site': days_on_site
         }
 
-        # Последняя активность
-        last_post = user.posts.order_by('-created_at').first()
-        last_comment = Comment.objects.filter(author=user).order_by('-created_at').first()
+        logger.info(f"Статистика для @{user.username}: {stats}")
 
         prompt = f"""Проанализируй статистику пользователя @{user.username} на Chatty Orange:
 
@@ -274,9 +617,12 @@ def analyze_profile_stats(user_id: int) -> str:
 
         return get_gemini_response(prompt)
 
+    except CustomUser.DoesNotExist:
+        logger.warning(f"Пользователь с ID {user_id} не найден для анализа профиля")
+        return "Пользователь не найден."
     except Exception as e:
         logger.error(f"Ошибка анализа профиля: {e}")
-        return "Не удалось проанализировать профиль. Попробуй позже! 🍊"
+        return f"Не удалось проанализировать профиль: {str(e)} 🍊"
 
 
 def generate_post_ideas(user_info: dict, tags: list = None) -> str:

@@ -42,6 +42,141 @@ document.addEventListener('DOMContentLoaded', function() {
         return 'chattyOrangeTourCompleted_guest';
     }
 
+    // === НОВАЯ ФУНКЦИЯ: Автоматическое определение типа команды ===
+    function detectCommandType(messageText) {
+        const lowerText = messageText.toLowerCase().trim();
+
+        // Поиск пользователей
+        const userSearchPatterns = [
+            /найди пользователя/i,
+            /найти пользователя/i,
+            /ищи пользователя/i,
+            /искать пользователя/i,
+            /найди юзера/i,
+            /пользователь \w+/i,
+            /профиль \w+/i,
+            /кто такой \w+/i,
+            /в профиле \w+/i,
+            /@\w+/i
+        ];
+
+        if (userSearchPatterns.some(pattern => pattern.test(lowerText))) {
+            return 'find_user_by_username';
+        }
+
+        // Поиск постов по ключевому слову
+        const postSearchPatterns = [
+            /найди пост/i,
+            /найти пост/i,
+            /ищи пост/i,
+            /найди стать/i,
+            /найти стать/i,
+            /посты про/i,
+            /статьи про/i,
+            /посты о/i,
+            /статьи о/i
+        ];
+
+        if (postSearchPatterns.some(pattern => pattern.test(lowerText))) {
+            return 'find_post_by_keyword';
+        }
+
+        // Посты конкретного пользователя
+        const userPostsPatterns = [
+            /статьи у \w+/i,
+            /посты у \w+/i,
+            /какие статьи у/i,
+            /какие посты у/i,
+            /что писал \w+/i,
+            /посты пользователя/i,
+            /статьи пользователя/i
+        ];
+
+        if (userPostsPatterns.some(pattern => pattern.test(lowerText))) {
+            return 'find_post_by_keyword'; // Будет обработано в handle_natural_language_query
+        }
+
+        // Детали поста
+        const postDetailPatterns = [
+            /расскажи о посте/i,
+            /пост номер/i,
+            /пост \d+/i,
+            /пост id/i,
+            /детали поста/i,
+            /покажи пост/i
+        ];
+
+        if (postDetailPatterns.some(pattern => pattern.test(lowerText))) {
+            return 'get_post_details';
+        }
+
+        // Активность пользователя
+        const activityPatterns = [
+            /что нового у/i,
+            /активность пользователя/i,
+            /что делает \w+/i,
+            /последние посты/i,
+            /недавняя активность/i
+        ];
+
+        if (activityPatterns.some(pattern => pattern.test(lowerText))) {
+            return 'get_user_activity';
+        }
+
+        // Рекомендации
+        const recommendationPatterns = [
+            /кого почитать/i,
+            /рекомендации/i,
+            /посоветуй авторов/i,
+            /интересные авторы/i,
+            /на кого подписаться/i
+        ];
+
+        if (recommendationPatterns.some(pattern => pattern.test(lowerText))) {
+            return 'subscription_recommendations';
+        }
+
+        // Проверка контента
+        const contentCheckPatterns = [
+            /проверь текст/i,
+            /проверить пост/i,
+            /можно ли публиковать/i,
+            /соответствует правилам/i
+        ];
+
+        if (contentCheckPatterns.some(pattern => pattern.test(lowerText))) {
+            return 'check_post_content';
+        }
+
+        // Генерация идей
+        const ideasPatterns = [
+            /идеи для пост/i,
+            /что написать/i,
+            /тема для пост/i,
+            /предложи тему/i,
+            /идеи контента/i
+        ];
+
+        if (ideasPatterns.some(pattern => pattern.test(lowerText))) {
+            return 'generate_post_ideas';
+        }
+
+        // Анализ профиля
+        const profilePatterns = [
+            /моя статистика/i,
+            /анализ профиля/i,
+            /мой прогресс/i,
+            /как дела у меня/i
+        ];
+
+        if (profilePatterns.some(pattern => pattern.test(lowerText))) {
+            return 'analyze_profile';
+        }
+
+        // По умолчанию - общий чат
+        return 'general_chat';
+    }
+
     // Создаем расширенное меню
     function createMenu() {
         if (!menu) {
@@ -184,23 +319,35 @@ document.addEventListener('DOMContentLoaded', function() {
         return false;
     }
 
+    // === УЛУЧШЕННЫЕ БЫСТРЫЕ ДЕЙСТВИЯ ===
     function appendQuickActions() {
         const quickActionsDiv = document.createElement('div');
         quickActionsDiv.className = 'quick-actions mt-3';
         quickActionsDiv.innerHTML = `
-            <div class="d-flex flex-wrap gap-2">
+            <div class="d-flex flex-wrap gap-2 mb-2">
                 <button class="btn btn-sm btn-outline-warning quick-action" data-action="help">
-                    <i class="fas fa-question-circle"></i> Помощь
+                    <i class="fas fa-question-circle"></i> Что ты умеешь?
                 </button>
                 <button class="btn btn-sm btn-outline-info quick-action" data-action="tour">
-                    <i class="fas fa-route"></i> Тур
+                    <i class="fas fa-route"></i> Тур по сайту
                 </button>
+            </div>
+            <div class="d-flex flex-wrap gap-2 mb-2">
                 <button class="btn btn-sm btn-outline-success quick-action" data-action="ideas">
-                    <i class="fas fa-lightbulb"></i> Идеи
+                    <i class="fas fa-lightbulb"></i> Идеи для постов
                 </button>
                 <button class="btn btn-sm btn-outline-primary quick-action" data-action="stats">
-                    <i class="fas fa-chart-line"></i> Статистика
+                    <i class="fas fa-chart-line"></i> Моя статистика
                 </button>
+            </div>
+            <div class="quick-examples mt-2">
+                <small class="text-muted">
+                    <strong>Примеры команд:</strong><br>
+                    • "Найди пользователя Orange"<br>
+                    • "Найди посты про путешествия"<br>
+                    • "Кого почитать?"<br>
+                    • "Расскажи о посте 5"
+                </small>
             </div>
         `;
         aiChatBody.appendChild(quickActionsDiv);
@@ -213,11 +360,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // === УЛУЧШЕННАЯ ОБРАБОТКА БЫСТРЫХ ДЕЙСТВИЙ ===
     function handleQuickAction(action) {
         switch(action) {
             case 'help':
                 currentActionType = 'faq';
-                aiChatMessageInput.value = "Как создать пост?";
+                aiChatMessageInput.value = "Что ты умеешь?";
                 sendChatMessage();
                 break;
             case 'tour':
@@ -225,10 +373,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
             case 'ideas':
                 currentActionType = 'generate_post_ideas';
+                appendMessageToChat("Генерирую идеи для постов...", 'user');
                 sendChatMessage();
                 break;
             case 'stats':
                 currentActionType = 'analyze_profile';
+                appendMessageToChat("Анализирую твою статистику...", 'user');
                 sendChatMessage();
                 break;
         }
@@ -297,12 +447,24 @@ document.addEventListener('DOMContentLoaded', function() {
         return formatted;
     }
 
+    // === УЛУЧШЕННАЯ ФУНКЦИЯ ОТПРАВКИ СООБЩЕНИЙ ===
     async function sendChatMessage() {
         if (!aiChatMessageInput && currentActionType === 'general_chat') return;
 
         const messageText = aiChatMessageInput ? aiChatMessageInput.value.trim() : '';
 
+        // Автоматически определяем тип команды
+        if (currentActionType === 'general_chat' && messageText) {
+            const detectedType = detectCommandType(messageText);
+            currentActionType = detectedType;
+
+            console.log(`Auto-detected command type: ${detectedType} for message: "${messageText}"`);
+        }
+
         if (messageText && currentActionType === 'general_chat') {
+            appendMessageToChat(messageText, 'user');
+        } else if (messageText && currentActionType !== 'general_chat') {
+            // Показываем сообщение пользователя для специальных команд
             appendMessageToChat(messageText, 'user');
         }
 
@@ -363,7 +525,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (aiSendMessageBtn) {
                 aiSendMessageBtn.disabled = false;
             }
-            currentActionType = 'general_chat';
+            currentActionType = 'general_chat'; // Сброс на общий чат
             resetActionButtons();
         }
     }
@@ -386,6 +548,31 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.action-btn').forEach(btn => {
             btn.classList.remove('active');
         });
+    }
+
+    // === ФУНКЦИЯ ПОДСКАЗОК ПРИ ВВОДЕ ===
+    function addInputHints() {
+        if (aiChatMessageInput) {
+            const hints = [
+                "Найди пользователя [имя]",
+                "Найди посты про [тема]",
+                "Кого почитать?",
+                "Расскажи о посте [ID]",
+                "Что нового у [пользователь]?",
+                "Моя статистика",
+                "Идеи для постов"
+            ];
+
+            let hintIndex = 0;
+
+            // Меняем placeholder с подсказками
+            setInterval(() => {
+                if (aiChatMessageInput.value === '' && !aiChatMessageInput.disabled) {
+                    aiChatMessageInput.placeholder = hints[hintIndex];
+                    hintIndex = (hintIndex + 1) % hints.length;
+                }
+            }, 3000);
+        }
     }
 
     // Обработчики событий
@@ -639,6 +826,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Инициализация
     initializeTourElements();
+
+    // === ИНИЦИАЛИЗИРУЕМ ПОДСКАЗКИ ===
+    setTimeout(addInputHints, 1000);
 
     // --- Post Creation Helper ---
     const getPostSuggestionBtn = document.getElementById('getPostSuggestionBtn');
