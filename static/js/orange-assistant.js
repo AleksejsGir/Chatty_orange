@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentUsername && currentUsername !== 'Гость' && currentUsername.trim() !== '') {
             return `chattyOrangeTourCompleted_${currentUsername}`;
         }
-        return 'chattyOrangeTourCompleted_guest'; // Для гостей или если имя пользователя по какой-то причине пустое
+        return 'chattyOrangeTourCompleted_guest';
     }
 
     // Создаем расширенное меню
@@ -80,7 +80,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (assistant) {
                 assistant.appendChild(menu);
 
-                // Добавляем обработчики для меню
                 menu.addEventListener('mouseenter', function() {
                     isMouseOverMenu = true;
                 });
@@ -103,7 +102,6 @@ document.addEventListener('DOMContentLoaded', function() {
         isMenuOpen = true;
         menu.classList.add('show');
 
-        // Анимация помощника
         if (typeof gsap !== 'undefined') {
             gsap.to(assistantImage, {
                 scale: 1.1,
@@ -119,7 +117,6 @@ document.addEventListener('DOMContentLoaded', function() {
             isMenuOpen = false;
             menu.classList.remove('show');
 
-            // Возврат помощника в исходное состояние
             if (typeof gsap !== 'undefined') {
                 gsap.to(assistantImage, {
                     scale: 1,
@@ -144,7 +141,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Обработчики событий для помощника
     if (assistantImage) {
-        // Клик для переключения меню
         assistantImage.addEventListener('click', function(e) {
             e.stopPropagation();
             if (isMenuOpen) {
@@ -154,7 +150,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Наведение мыши
         assistantImage.addEventListener('mouseenter', function() {
             isMouseOverAssistant = true;
             if (!isMenuOpen) {
@@ -180,8 +175,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (aiChatBody) {
             aiChatBody.innerHTML = '';
             appendMessageToChat('Привет! 👋 Я твой Апельсиновый Помощник! Чем могу помочь сегодня?', 'ai');
-
-            // Показываем быстрые кнопки
             appendQuickActions();
         }
         if (assistantBootstrapModal) {
@@ -212,7 +205,6 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         aiChatBody.appendChild(quickActionsDiv);
 
-        // Обработчики для быстрых действий
         quickActionsDiv.querySelectorAll('.quick-action').forEach(btn => {
             btn.addEventListener('click', function() {
                 const action = this.dataset.action;
@@ -242,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function appendMessageToChat(message, sender) {
+    function appendMessageToChat(message, sender, scrollToMessage = false) {
         if (!aiChatBody) return;
 
         const messageDiv = document.createElement('div');
@@ -253,19 +245,42 @@ document.addEventListener('DOMContentLoaded', function() {
             messageDiv.classList.add('thinking');
         }
 
+        // Добавляем уникальный ID для сообщений ИИ
+        if (sender === 'ai') {
+            messageDiv.id = 'ai-message-' + Date.now();
+        }
+
         // Поддержка форматирования
         const formattedMessage = formatMessage(message);
         messageDiv.innerHTML = formattedMessage;
 
         aiChatBody.appendChild(messageDiv);
-        aiChatBody.scrollTop = aiChatBody.scrollHeight;
+
+        // Улучшенная логика прокрутки
+        if (sender === 'user') {
+            // Для сообщений пользователя всегда прокручиваем вниз
+            aiChatBody.scrollTop = aiChatBody.scrollHeight;
+        } else if (sender === 'ai' && scrollToMessage) {
+            // Для сообщений ИИ прокручиваем к началу сообщения с небольшим отступом
+            setTimeout(() => {
+                const messageTop = messageDiv.offsetTop - 20; // 20px отступ сверху
+                aiChatBody.scrollTo({
+                    top: messageTop,
+                    behavior: 'smooth'
+                });
+            }, 100);
+        }
 
         // Анимация появления
-        gsap.from(messageDiv, {
-            opacity: 0,
-            y: 20,
-            duration: 0.3
-        });
+        if (typeof gsap !== 'undefined') {
+            gsap.from(messageDiv, {
+                opacity: 0,
+                y: 20,
+                duration: 0.3
+            });
+        }
+
+        return messageDiv;
     }
 
     function formatMessage(message) {
@@ -332,7 +347,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const responseData = await response.json();
-            appendMessageToChat(responseData.response, 'ai');
+            // Добавляем ответ ИИ с автоматической прокруткой к началу сообщения
+            appendMessageToChat(responseData.response, 'ai', true);
 
         } catch (error) {
             thinkingMessage.remove();
@@ -423,15 +439,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     completeTour();
                 } else {
                     currentTourStep++;
-                    // Убедимся, что showTourStep вызывается только для следующего шага
-                    // и не пытается перейти за MAX_TOUR_STEPS через эту логику
                     if (currentTourStep <= MAX_TOUR_STEPS) {
                         showTourStep(currentTourStep);
                     } else {
-                        // Эта ситуация не должна возникать при правильной логике,
-                        // но на всякий случай можно добавить обработку или лог
                         console.warn('Попытка перейти за пределы MAX_TOUR_STEPS');
-                        completeTour(); // Завершаем тур, если что-то пошло не так
+                        completeTour();
                     }
                 }
             });
@@ -480,23 +492,22 @@ document.addEventListener('DOMContentLoaded', function() {
             const responseData = await response.json();
             tourModalBody.innerHTML = responseData.response;
 
-            // Анимация контента
-            gsap.from(tourModalBody.children, {
-                opacity: 0,
-                y: 30,
-                stagger: 0.1,
-                duration: 0.5
-            });
+            if (typeof gsap !== 'undefined') {
+                gsap.from(tourModalBody.children, {
+                    opacity: 0,
+                    y: 30,
+                    stagger: 0.1,
+                    duration: 0.5
+                });
+            }
 
-            if (nextTourStepBtn) { // Добавим проверку на существование кнопки
+            if (nextTourStepBtn) {
                 if (stepNumber >= MAX_TOUR_STEPS) {
                     nextTourStepBtn.textContent = 'Завершить';
                 } else {
                     nextTourStepBtn.textContent = 'Далее';
                 }
             }
-            // Убедиться, что строка `nextTourStepBtn.onclick = completeTour;` удалена или закомментирована.
-            // Также удалить любые другие присвоения nextTourStepBtn.onclick в этой функции.
 
         } catch (error) {
             console.error('Ошибка:', error);
@@ -511,7 +522,6 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem(getTourStorageKey(), 'true');
         currentTourStep = 1;
 
-        // Показываем поздравление
         showCompletionMessage();
     }
 
@@ -528,12 +538,14 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         document.body.appendChild(message);
 
-        gsap.from(message, {
-            scale: 0,
-            opacity: 0,
-            duration: 0.5,
-            ease: "back.out(1.7)"
-        });
+        if (typeof gsap !== 'undefined') {
+            gsap.from(message, {
+                scale: 0,
+                opacity: 0,
+                duration: 0.5,
+                ease: "back.out(1.7)"
+            });
+        }
     }
 
     window.startInteractiveTour = function() {
@@ -553,27 +565,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Обработчики кликов по меню
     document.addEventListener('click', function(event) {
-        // Тур
         if (event.target && event.target.id === 'startTourBtn') {
             event.preventDefault();
             window.startInteractiveTour();
         }
 
-        // Рекомендации
         if (event.target.matches('#showRecommendationsBtn') || event.target.closest('#showRecommendationsBtn')) {
             event.preventDefault();
             if (window.hideMenu) window.hideMenu();
             showRecommendations();
         }
 
-        // Статистика профиля
         if (event.target.matches('#showProfileStatsBtn') || event.target.closest('#showProfileStatsBtn')) {
             event.preventDefault();
             if (window.hideMenu) window.hideMenu();
             showProfileStats();
         }
 
-        // Идеи для постов
         if (event.target.matches('#showPostIdeasBtn') || event.target.closest('#showPostIdeasBtn')) {
             event.preventDefault();
             if (window.hideMenu) window.hideMenu();
@@ -682,12 +690,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.innerHTML = '<i class="fas fa-lightbulb me-1"></i> Помощь ИИ с постом';
                 postSuggestionArea.style.display = 'block';
 
-                // Анимация появления
-                gsap.from(postSuggestionArea, {
-                    opacity: 0,
-                    height: 0,
-                    duration: 0.3
-                });
+                if (typeof gsap !== 'undefined') {
+                    gsap.from(postSuggestionArea, {
+                        opacity: 0,
+                        height: 0,
+                        duration: 0.3
+                    });
+                }
             }
         });
     }
@@ -740,7 +749,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     const responseData = await response.json();
                     postCheckResultArea.innerHTML = formatMessage(responseData.response);
 
-                    // Добавляем цветовую индикацию
                     if (responseData.response.includes('✅')) {
                         postCheckResultArea.className = 'mt-2 p-3 border rounded alert-success';
                     } else {
@@ -785,11 +793,13 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         document.body.appendChild(welcomeDiv);
 
-        gsap.from(welcomeDiv, {
-            y: 100,
-            opacity: 0,
-            duration: 0.5,
-            ease: "back.out(1.7)"
-        });
+        if (typeof gsap !== 'undefined') {
+            gsap.from(welcomeDiv, {
+                y: 100,
+                opacity: 0,
+                duration: 0.5,
+                ease: "back.out(1.7)"
+            });
+        }
     }
 });
