@@ -8,8 +8,7 @@
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <script src="{% static 'js/orange-assistant.js' %}"></script>
-    <script src="{% static 'js/comments.js' %}"></script>
+
     <!-- Google Fonts - Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,7 +30,7 @@
 
 <body class="d-flex flex-column h-100">
     <!-- Ассистент -->
-    <div class="assistant-container"data-username="
+    <div class="assistant-container" data-username="
         {% if user.is_authenticated %}{{ user.username }}{% endif %}">
         <div class="dialog-box" id="dialogBox">
             <div class="greeting">Привет!</div>
@@ -68,68 +67,85 @@
 
     {% block extra_js %}
         <script src="{% static 'js/likes.js' %}"></script>
-{#        <script src="{% static 'js/orange-assistant.js' %}"></script>#}
+        <script src="{% static 'js/comments.js' %}"></script>
+        <script src="{% static 'js/orange-assistant.js' %}"></script>
+
        <script>
         document.addEventListener('DOMContentLoaded', function() {
             const mainImage = document.getElementById('mainImage');
-            const thumbnails = document.querySelectorAll('.image-thumbnails .img-thumbnail');
-            const currentImageCounter = document.getElementById('currentImage');
-            const prevBtn = document.getElementById('prevImage');
-            const nextBtn = document.getElementById('nextImage');
-            const enlargeBtn = document.getElementById('enlargeImage');
+            // Проверка наличия элементов перед выполнением скрипта
+            if (mainImage) {
+                const thumbnails = document.querySelectorAll('.image-thumbnails .img-thumbnail');
+                const currentImageCounter = document.getElementById('currentImage');
+                const prevBtn = document.getElementById('prevImage');
+                const nextBtn = document.getElementById('nextImage');
+                const enlargeBtn = document.getElementById('enlargeImage');
 
-            let currentIndex = 0;
-            const images = [
-                {% for image in post.images.all %}
-                    '{{ image.image.url }}',
-                {% endfor %}
-            ];
+                let currentIndex = 0;
+                const images = [
+                    {% for image in post.images.all %}
+                        '{{ image.image.url }}',
+                    {% endfor %}
+                ];
 
-            // Обработчики для миниатюр
-            thumbnails.forEach(thumb => {
-                thumb.addEventListener('click', function() {
-                    const index = parseInt(this.getAttribute('data-index'));
-                    updateMainImage(index);
+                // Обработчики для миниатюр
+                if (thumbnails.length > 0) {
+                    thumbnails.forEach(thumb => {
+                        thumb.addEventListener('click', function() {
+                            const index = parseInt(this.getAttribute('data-index'));
+                            updateMainImage(index);
+                        });
+                    });
+                }
+
+                // Кнопки навигации
+                if (prevBtn) prevBtn.addEventListener('click', prevImage);
+                if (nextBtn) nextBtn.addEventListener('click', nextImage);
+
+                // Увеличение изображения
+                if (enlargeBtn) {
+                    enlargeBtn.addEventListener('click', function() {
+                        window.open(images[currentIndex], '_blank');
+                    });
+                }
+
+                function updateMainImage(index) {
+                    currentIndex = index;
+                    mainImage.src = images[index];
+
+                    // Обновление счетчика
+                    if (currentImageCounter) {
+                        currentImageCounter.textContent = index + 1;
+                    }
+
+                    // Обновление активной миниатюры
+                    if (thumbnails.length > 0) {
+                        thumbnails.forEach(thumb => thumb.classList.remove('active'));
+                        thumbnails[index].classList.add('active');
+                    }
+                }
+
+                function prevImage() {
+                    const newIndex = (currentIndex - 1 + images.length) % images.length;
+                    updateMainImage(newIndex);
+                }
+
+                function nextImage() {
+                    const newIndex = (currentIndex + 1) % images.length;
+                    updateMainImage(newIndex);
+                }
+
+                // Обработчики клавиатуры
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'ArrowLeft') prevImage();
+                    if (e.key === 'ArrowRight') nextImage();
                 });
-            });
-
-            // Кнопки навигации
-            prevBtn.addEventListener('click', prevImage);
-            nextBtn.addEventListener('click', nextImage);
-
-            // Увеличение изображения
-            enlargeBtn.addEventListener('click', function() {
-                window.open(images[currentIndex], '_blank');
-            });
-
-            function updateMainImage(index) {
-                currentIndex = index;
-                mainImage.src = images[index];
-                currentImageCounter.textContent = index + 1;
-
-                // Обновление активной миниатюры
-                thumbnails.forEach(thumb => thumb.classList.remove('active'));
-                thumbnails[index].classList.add('active');
             }
-
-            function prevImage() {
-                const newIndex = (currentIndex - 1 + images.length) % images.length;
-                updateMainImage(newIndex);
-            }
-
-            function nextImage() {
-                const newIndex = (currentIndex + 1) % images.length;
-                updateMainImage(newIndex);
-            }
-
-            // Обработчики клавиатуры
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'ArrowLeft') prevImage();
-                if (e.key === 'ArrowRight') nextImage();
-            });
         });
     </script>
     {% endblock %}
+
+    <!-- Модальные окна -->
     <div class="modal fade" id="rulesModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">

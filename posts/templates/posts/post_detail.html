@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load django_bootstrap5 %}
 
 {% load back_button %}
 {% load static %}
@@ -154,48 +155,13 @@
                     <h3 class="mb-4">Комментарии <span class="badge bg-secondary rounded-pill">{{ post.comments.count|default:"0" }}</span></h3>
 
                     {# Список комментариев #}
-
                     {% if comments %}
                         <div class="comments-list">
                             {% for comment in comments %}
-                                <div class="d-flex mb-3 pb-3 border-bottom">
-                                    <div class="flex-shrink-0 me-3">
-                                        {% if comment.author.avatar %}
-                                            <img src="{{ comment.author.avatar.url }}" alt="{{ comment.author.username }}" class="post-avatar" style="width: 40px; height: 40px;">
-                                        {% else %}
-                                            <div class="avatar-placeholder" style="width: 40px; height: 40px; font-size: 1rem;">
-                                                <span>{{ comment.author.username|first|upper }}</span>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h6 class="mt-0 mb-1">
-                                            <a href="{% url 'users:profile' comment.author.username %}" class="post-author-name">{{ comment.author.username }}</a>
-                                            <small class="text-muted ms-2">{{ comment.created_at|date:"d.m.Y H:i" }}</small>
-                                        </h6>
-                                        {% if not comment.is_active and user.is_staff %}
-                                            <div class="alert alert-warning py-2 px-3 mb-2 d-inline-block">
-                                                <i class="fa-solid fa-eye-slash me-1"></i> Комментарий скрыт от обычных пользователей
-                                            </div>
-                                        {% endif %}
-                                        <p>{{ comment.text|linebreaksbr }}</p>
-
-                                        {% if user == comment.author or user.is_staff %}
-                                            <div class="comment-actions mt-2">
-                                                <form method="post" action="{% url 'posts:comment-delete' pk=comment.pk %}?from={{ request.GET.from }}">
-                                                    {% csrf_token %}
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Удалить этот комментарий?')">
-                                                        <i class="fa-solid fa-trash"></i> Удалить
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
+                                {# Включаем шаблон комментария с передачей уровня вложенности #}
+                                {% include 'posts/comment.html' with comment=comment level=0 %}
                             {% endfor %}
                         </div>
-
-
 
                         {# Пагинация комментариев #}
                         {% if comments.paginator.num_pages > 1 %}
@@ -211,9 +177,9 @@
                                     {% endif %}
 
                                     <li class="page-item active">
-                                    <span class="page-link">
-                                        Страница {{ comments.number }} из {{ comments.paginator.num_pages }}
-                                    </span>
+                    <span class="page-link">
+                        Страница {{ comments.number }} из {{ comments.paginator.num_pages }}
+                    </span>
                                     </li>
 
                                     {% if comments.has_next %}
@@ -230,7 +196,6 @@
                     {% else %}
                         <p class="text-center text-muted">Комментариев пока нет. Станьте первым!</p>
                     {% endif %}
-
                 </div>
                 {# Форма добавления комментария #}
                 {% if user.is_authenticated %}

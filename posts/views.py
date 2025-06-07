@@ -2,6 +2,7 @@
 from django.db import transaction
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
@@ -12,6 +13,7 @@ from django.http import JsonResponse
 from django.db.models import Count, Q
 from django.views.generic.detail import SingleObjectMixin
 from django.views import View
+import json
 
 from .models import Post, Comment, Tag
 from .forms import PostForm, CommentForm, PostImageFormSet
@@ -418,21 +420,66 @@ def feed_view(request):
         num_comments=Count('comments', distinct=True)
     )
 
-class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+
+# Представление для редактирования комментария
+class CommentUpdateView(LoginRequiredMixin, UpdateView):
+    model = Comment
+    fields = ['text']
+    template_name = 'posts/comment_edit.html'
+
+    def get_success_url(self):
+        return self.object.post.get_absolute_url()
+
+
+# Представление для удаления комментария
+# class CommentDeleteView(LoginRequiredMixin, DeleteView):
+#     model = Comment
+#
+#     def get_success_url(self):
+#         return self.object.post.get_absolute_url()
+
+
+# Представление для ответа на комментарий
+class CommentReplyView(LoginRequiredMixin, CreateView):
     model = Comment
     fields = ['text']
 
-    def test_func(self):
-        comment = self.get_object()
-        return self.request.user == comment.author or self.request.user.is_staff
-
     def form_valid(self, form):
-        self.object = form.save()
+        parent_comment = get_object_or_404(Comment, pk=self.kwargs['parent_id'])
+        comment = form.save(commit=False)
+        comment.author = self.request.user
+        comment.parent = parent_comment
+        comment.post = parent_comment.post
+        comment.save()
+        return redirect(comment.post.get_absolute_url())
 
-        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({
-                'status': 'success',
-                'new_text': self.object.text
-            })
 
-        return redirect(self.object.get_absolute_url())
+# Обработчик реакций
+def add_reaction_to_comment(request, pk):
+    if request.method == 'POST' and request.user.is_authenticated:
+        comment = get_object_or_404(Comment, pk=pk)
+        emoji = request.POST.get('emoji')
+        # Здесь должна быть ваша логика добавления реакции
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
+
+
+@require_POST
+def edit_comment(request, pk):
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'error', 'message': 'Требуется авторизация'}, status=403)
+
+    try:
+        comment = Comment.objects.get(pk=pk, author=request.user)
+        data = json.loads(request.body)
+        new_text = data.get('text', '')
+
+        if new_text:
+            comment.text = new_text
+            comment.save()
+            return JsonResponse({'status': 'success', 'text': comment.text})
+
+        return JsonResponse({'status': 'error', 'message': 'Пустой текст'}, status=400)
+
+    except Comment.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Комментарий не найден'}, status=404)
