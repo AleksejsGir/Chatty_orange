@@ -9,17 +9,19 @@ from django.urls import reverse_lazy
 from django.contrib.auth import get_user_model
 from django.shortcuts import redirect, get_object_or_404
 from django.core.paginator import Paginator
-from django.http import JsonResponse
+from django.http import JsonResponse, request
 from django.db.models import Count, Q
 from django.views.generic.detail import SingleObjectMixin
 from django.views import View
 import json
 
-from .models import Post, Comment, Tag
+from .models import Post, Comment, Tag, CommentReaction
 from .forms import PostForm, CommentForm, PostImageFormSet
 from subscriptions.models import Subscription  # Добавляем импорт модели подписок
 
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+
 
 User = get_user_model()  # Получаем модель пользователя
 
@@ -455,13 +457,33 @@ class CommentReplyView(LoginRequiredMixin, CreateView):
 
 
 # Обработчик реакций
-def add_reaction_to_comment(request, pk):
-    if request.method == 'POST' and request.user.is_authenticated:
-        comment = get_object_or_404(Comment, pk=pk)
-        emoji = request.POST.get('emoji')
-        # Здесь должна быть ваша логика добавления реакции
-        return JsonResponse({'status': 'success'})
-    return JsonResponse({'status': 'error'}, status=400)
+def comment_react(request, pk):
+    comment = get_object_or_404(Comment, pk=pk)
+    emoji = request.POST.get('emoji')
+
+    # Логика добавления/удаления реакции
+    reaction, created = CommentReaction.objects.get_or_create(
+        comment=comment,
+        emoji=emoji,
+        defaults={'count': 0}
+    )
+
+    if request.user in reaction.users.all():
+        reaction.users.remove(request.user)
+        reaction.count -= 1
+    else:
+        reaction.users.add(request.user)
+        reaction.count += 1
+
+    reaction.save()
+
+    return JsonResponse({
+        'status': 'success',
+        'reactions': [
+            {'emoji': r.emoji, 'count': r.count}
+            for r in comment.reactions.all()
+        ]
+    })
 
 
 @require_POST
@@ -483,3 +505,42 @@ def edit_comment(request, pk):
 
     except Comment.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Комментарий не найден'}, status=404)
+
+
+@login_required
+@require_POST
+def toggle_reaction(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    emoji = request.POST.get('emoji')
+
+    if not emoji:
+        return JsonResponse({'status': 'error', 'message': 'Emoji not provided'})
+
+    # Проверяем существующую реакцию
+    reaction = CommentReaction.objects.filter(
+        comment=comment,
+        user=request.user,
+        emoji=emoji
+    ).first()
+
+    if reaction:
+        # Удаляем реакцию, если она уже существует
+        reaction.delete()
+        action = 'removed'
+    else:
+        # Создаем новую реакцию
+        CommentReaction.objects.create(
+            comment=comment,
+            user=request.user,
+            emoji=emoji
+        )
+        action = 'added'
+
+    # Получаем обновленные реакции
+    reactions = comment.aggregated_reactions
+
+    return JsonResponse({
+        'status': 'success',
+        'action': action,
+        'reactions': list(reactions)
+    })

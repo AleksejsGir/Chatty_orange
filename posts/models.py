@@ -1,4 +1,5 @@
 # posts/models.py
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.conf import settings
 from django.utils.text import slugify
@@ -6,6 +7,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.db.models import Count
 from ckeditor.fields import RichTextField  # Импортируем RichTextField
+
+User = get_user_model()
 
 class Post(models.Model):
     author = models.ForeignKey(
@@ -151,6 +154,11 @@ class Comment(models.Model):
             self.level = 0  # Это корневой комментарий
         super().save(*args, **kwargs)
 
+    @property
+    def aggregated_reactions(self):
+        from django.db.models import Count
+        return self.reactions.values('emoji').annotate(count=Count('id')).order_by('-count')
+
     class Meta:
         verbose_name = "Комментарий"
         verbose_name_plural = "Комментарии"
@@ -189,3 +197,20 @@ class AnonymousLike(models.Model):
         unique_together = ('post', 'session_key')
         verbose_name = "Анонимный лайк"
         verbose_name_plural = "Анонимные лайки"
+
+class CommentReaction(models.Model):
+    comment = models.ForeignKey(
+        'Comment',
+        on_delete=models.CASCADE,
+        related_name='reactions'
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,  # Используем настройки
+        on_delete=models.CASCADE,
+        related_name='comment_reactions'
+    )
+    emoji = models.CharField(max_length=10)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('comment', 'user', 'emoji')

@@ -34,14 +34,25 @@
                 <p>{{ comment.text|linebreaksbr }}</p>
 
                 <!-- Блок реакций -->
-                <div class="emoji-reactions mt-2">
-                    {% for reaction in comment.reactions.all %}
-                        <span class="badge reaction-badge"
-                              data-emoji="{{ reaction.emoji }}"
-                              data-comment-id="{{ comment.id }}">
-                            {{ reaction.emoji }} {{ reaction.count }}
-                        </span>
-                    {% endfor %}
+                <div class="reactions-section mt-2">
+                    <div class="emoji-reactions">
+                        {% for reaction in comment.aggregated_reactions %}
+                            <span class="reaction-badge"
+                                  data-emoji="{{ reaction.emoji }}"
+                                  data-comment-id="{{ comment.id }}">
+                                {{ reaction.emoji }} {{ reaction.count }}
+                            </span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="quick-reactions d-flex gap-1 mt-1">
+                        <button class="btn-reaction-quick" data-emoji="👍">👍</button>
+                        <button class="btn-reaction-quick" data-emoji="❤️">❤️</button>
+                        <button class="btn-reaction-quick" data-emoji="😂">😂</button>
+                        <button class="btn-reaction-quick" data-emoji="😮">😮</button>
+                        <button class="btn-reaction-quick" data-emoji="😢">😢</button>
+                        <button class="btn-reaction-quick" data-emoji="😠">😠</button>
+                    </div>
                 </div>
             </div>
 
