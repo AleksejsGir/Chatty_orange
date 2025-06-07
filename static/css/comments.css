@@ -74,3 +74,62 @@
 .reaction-badge .count {
     font-weight: 500;
 }
+/*.icon-button {*/
+/*  background: transparent;*/
+/*  border: 0;*/
+/*  padding: 8px;*/
+/*  cursor: pointer;*/
+/*  border-radius: 50%; !* Круглая зона наведения *!*/
+/*  transition: background 0.3s;*/
+/*}*/
+
+.icon-button:hover {
+  color: #3498db; /* Новый цвет иконки */
+}
+
+/*.icon-button svg {*/
+/*  width: 24px;*/
+/*  height: 24px;*/
+/*  display: block;*/
+/*  color: #2c3e50; !* Основной цвет *!*/
+/*  transition: color 0.2s;*/
+/*}*/
+.icon-button svg {
+  transition: transform 0.2s, color 0.2s;
+}
+.icon-button:hover svg {
+  transform: scale(1.1);
+}
+/* comments.css - Обновленные стили для кнопок */
+.btn-action {
+    background: none;
+    border: none;
+    padding: 0.25rem;
+    color: var(--text-medium);
+    transition: all var(--transition-fast);
+    cursor: pointer;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-action:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.btn-action.text-muted:hover { color: #6c757d; }
+.btn-action.text-primary:hover { color: #0d6efd; }
+.btn-action.text-danger:hover { color: #dc3545; }
+
+/* Увеличиваем иконки при наведении */
+.btn-action i {
+    transition: transform 0.2s, color 0.2s;
+    font-size: 0.9rem;
+}
+
+.btn-action:hover i {
+    transform: scale(1.15);
+}
