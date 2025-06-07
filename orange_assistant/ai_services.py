@@ -18,7 +18,7 @@ def get_gemini_response(prompt: str) -> str:
         return "Ошибка: Ключ API для сервиса ИИ не настроен."
 
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash-latest')
+    model = genai.GenerativeModel('gemini-2.0-flash')
 
     try:
         response = model.generate_content(prompt)
