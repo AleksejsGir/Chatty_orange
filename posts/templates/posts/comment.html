@@ -1,5 +1,5 @@
 <div class="comment-block {% if level > 0 %}nested-comment{% endif %}" data-comment-id="{{ comment.id }}">
-    <div class="d-flex mb-3 pb-3">
+    <div class="d-flex mb-3 pb-3 border-bottom">
         <div class="flex-shrink-0 me-3">
             {% if comment.author.avatar %}
                 <img src="{{ comment.author.avatar.url }}" alt="{{ comment.author.username }}" class="post-avatar" style="width: 40px; height: 40px;">
@@ -9,55 +9,64 @@
                 </div>
             {% endif %}
         </div>
-        <div class="flex-grow-1 position-relative">
-            <div class="comment-header mb-2">
-                <h6 class="mt-0 mb-1 d-inline-block">
-                    <a href="{% url 'users:profile' comment.author.username %}" class="post-author-name">{{ comment.author.username }}</a>
-                    <small class="text-muted ms-2">{{ comment.created_at|date:"d.m.Y H:i" }}</small>
-                </h6>
-                <div class="comment-actions">
-                    <button class="btn-emoji" data-bs-toggle="modal" data-bs-target="#emojiModal">
-                        <i class="fa-regular fa-face-smile"></i>
-                    </button>
-                    {% if user == comment.author or user.is_staff %}
-                        <a href="{% url 'posts:comment-edit' pk=comment.pk %}?from={{ current_filter|default:'feed' }}" class="text-primary">
-                            <i class="fa-regular fa-pen-to-square"></i>
-                        </a>
-                        <form method="post" action="{% url 'posts:comment-delete' pk=comment.pk %}?from={{ request.GET.from }}" class="d-inline">
-                            {% csrf_token %}
-                            <input type="hidden" name="from" value="{{ request.GET.from }}">
-                            <button type="submit" class="btn btn-link text-danger p-0" onclick="return confirm('Удалить этот комментарий?')">
-                                <i class="fa-regular fa-trash-can"></i>
-                            </button>
-                        </form>
-
-                    {% endif %}
-                </div>
-            </div>
+        <div class="flex-grow-1">
+            <h6 class="mt-0 mb-1">
+                <a href="{% url 'users:profile' comment.author.username %}" class="post-author-name">{{ comment.author.username }}</a>
+                <small class="text-muted ms-2">{{ comment.created_at|date:"d.m.Y H:i" }}</small>
+            </h6>
 
             {% if not comment.is_active and user.is_staff %}
                 <div class="alert alert-warning py-2 px-3 mb-2 d-inline-block">
-                    <i class="fa-solid fa-eye-slash me-1"></i> Комментарий скрыт
+                    <i class="fa-solid fa-eye-slash me-1"></i> Комментарий скрыт от обычных пользователей
                 </div>
             {% endif %}
 
-            <div class="comment-content">
+            <div class="comment-content" data-comment-id="{{ comment.id }}">
                 <p>{{ comment.text|linebreaksbr }}</p>
-                <div class="emoji-reactions mt-2">
-                    {% for reaction in comment.reactions.all %}
-                        <span class="badge">{{ reaction.emoji }} {{ reaction.count }}</span>
-                    {% endfor %}
-                </div>
             </div>
 
-            <button class="btn-reply btn btn-link p-0 mt-2 text-muted">
-                <i class="fa-regular fa-comment-dots me-1"></i>Ответить
-            </button>
+            <!-- Блок с иконками действий -->
+            <div class="comment-actions mt-2 d-flex gap-2">
+                <!-- Кнопка реакции -->
+                <button class="btn-reaction" data-comment-id="{{ comment.id }}" title="Добавить реакцию">
+                    <i class="fa-regular fa-face-smile"></i>
+                </button>
 
-            <div class="reply-form mt-3">
+                <!-- Кнопка ответа -->
+                <button class="btn-reply-comment" data-comment-id="{{ comment.id }}" title="Ответить">
+                    <i class="fa-regular fa-comment-dots"></i>
+                </button>
+
+                {% if user == comment.author or user.is_staff %}
+                <!-- Кнопка редактирования -->
+                <button class="btn-edit-comment" data-comment-id="{{ comment.id }}" title="Редактировать">
+                    <i class="fa-regular fa-pen-to-square"></i>
+                </button>
+
+                <!-- Кнопка удаления -->
+                <button class="btn-delete-comment" data-comment-id="{{ comment.id }}" title="Удалить">
+                    <i class="fa-regular fa-trash-can"></i>
+                </button>
+                {% endif %}
+            </div>
+
+            <!-- Форма редактирования (изначально скрыта) -->
+            <div class="edit-form-container" data-comment-id="{{ comment.id }}">
+                <form method="post" class="edit-comment-form mt-2" data-comment-id="{{ comment.id }}">
+                    {% csrf_token %}
+                    <textarea name="text" class="form-control mb-2" rows="3">{{ comment.text }}</textarea>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-sm btn-primary">Сохранить</button>
+                        <button type="button" class="btn btn-sm btn-secondary cancel-edit">Отмена</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Форма ответа (изначально скрыта) -->
+            <div class="reply-form" data-comment-id="{{ comment.id }}">
                 <form method="post" action="{% url 'posts:comment-reply' parent_id=comment.id %}?from={{ request.GET.from }}" class="mt-2">
                     {% csrf_token %}
-                    {% bootstrap_form comment_form %}
+                    {{ comment_form.text }}
                     <div class="mt-2">
                         <button type="submit" class="btn btn-primary btn-sm">Отправить</button>
                         <button type="button" class="btn btn-secondary btn-sm cancel-reply">Отмена</button>
@@ -65,13 +74,14 @@
                 </form>
             </div>
 
-            {% if comment.replies.all %}
-                <div class="replies mt-3">
-                    {% for reply in comment.replies.all %}
-                        {% include 'posts/comment.html' with comment=reply level=level|add:1 %}
-                    {% endfor %}
-                </div>
-            {% endif %}
+            <!-- Контейнер для реакций -->
+            <div class="reactions-container mt-2" data-comment-id="{{ comment.id }}">
+                {% for reaction in comment.reactions.all %}
+                <span class="reaction-badge" data-emoji="{{ reaction.emoji }}">
+                    {{ reaction.emoji }} <span class="count">{{ reaction.count }}</span>
+                </span>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </div>

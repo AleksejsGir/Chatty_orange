@@ -1,0 +1,76 @@
+ /* comments.css - Стили для комментариев и действий с ними */
+
+/* Стили для кнопок действий с комментариями */
+.comment-actions {
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.comment-block:hover .comment-actions {
+    opacity: 1;
+}
+
+.btn-reaction,
+.btn-reply-comment,
+.btn-edit-comment,
+.btn-delete-comment {
+    background: none;
+    border: none;
+    color: var(--text-medium);
+    padding: 0.25rem;
+    font-size: 0.9rem;
+    transition: all var(--transition-fast);
+    cursor: pointer;
+}
+
+.btn-reaction:hover { color: var(--warning); }
+.btn-reply-comment:hover { color: var(--info); }
+.btn-edit-comment:hover { color: var(--primary); }
+.btn-delete-comment:hover { color: var(--danger); }
+
+/* Стили для форм */
+.edit-form-container {
+    display: none;
+    margin-top: 1rem;
+}
+
+.edit-form-container.active {
+    display: block;
+}
+
+.reply-form {
+    display: none;
+    margin-top: 1rem;
+}
+
+.reply-form.active {
+    display: block;
+}
+
+/* Стили для реакций */
+.reactions-container {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.reaction-badge {
+    background-color: var(--primary-ultra-light);
+    border-radius: 1rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.reaction-badge:hover {
+    background-color: var(--primary-light);
+    transform: translateY(-2px);
+}
+
+.reaction-badge .count {
+    font-weight: 500;
+}

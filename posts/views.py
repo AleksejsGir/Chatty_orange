@@ -270,12 +270,6 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         comment = self.get_object()
         return self.request.user == comment.author or self.request.user.is_staff
 
-    # def get_success_url(self):
-    #     from_param = self.request.POST.get('from') or self.request.GET.get('from')
-    #     if from_param:
-    #         return f"{self.object.post.get_absolute_url()}?from={from_param}#comments"
-    #     return self.object.post.get_absolute_url() + '#comments'
-
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         post_url = self.object.post.get_absolute_url()
@@ -285,6 +279,15 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         if from_param:
             return redirect(f"{post_url}?from={from_param}#comments")
         return redirect(f"{post_url}#comments")
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'success'})
+
+        return redirect(self.get_success_url())
 
 
 # posts/views.py (PostLikeView)
@@ -414,3 +417,22 @@ def feed_view(request):
         total_dislikes=Count('dislikes', distinct=True),
         num_comments=Count('comments', distinct=True)
     )
+
+class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Comment
+    fields = ['text']
+
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.author or self.request.user.is_staff
+
+    def form_valid(self, form):
+        self.object = form.save()
+
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'status': 'success',
+                'new_text': self.object.text
+            })
+
+        return redirect(self.object.get_absolute_url())
