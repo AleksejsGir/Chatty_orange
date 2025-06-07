@@ -108,7 +108,7 @@
     flex-direction: column;
     gap: 15px;
     padding: 15px;
-    max-height: 400px;
+    max-height: 550px;
     overflow-y: auto;
     background: #fafafa;
     border-radius: 8px;
@@ -189,9 +189,14 @@
 }
 
 /* Модальное окно чата */
+#aiAssistantModal .modal-dialog {
+    max-height: 80vh;
+}
+
 .modal-content {
     border: 2px solid #f97316;
     border-radius: 12px;
+    height: 100%; /* Ensure modal-content fills the dialog */
 }
 
 .modal-header {
@@ -330,4 +335,10 @@
 
 #aiChatBody::-webkit-scrollbar-thumb:hover {
     background: #ea580c;
+}
+
+#aiSendMessageBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
