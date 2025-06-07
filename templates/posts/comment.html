@@ -51,12 +51,16 @@
                 <button class="btn-action text-muted"
                         data-bs-toggle="modal"
                         data-bs-target="#emojiModal"
-                        title="Добавить реакцию">
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title="Реакция">
                     <i class="fa-regular fa-face-smile"></i>
                 </button>
 
                 <!-- Ответ -->
                 <button class="btn-action text-muted btn-reply"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
                         title="Ответить">
                     <i class="fa-regular fa-comment-dots"></i>
                 </button>
@@ -65,6 +69,8 @@
                 {% if user == comment.author or user.is_staff %}
                     <a href="{% url 'posts:comment-edit' pk=comment.pk %}"
                        class="btn-action text-primary"
+                       data-bs-toggle="tooltip"
+                       data-bs-placement="top"
                        title="Редактировать">
                         <i class="fa-regular fa-pen-to-square"></i>
                     </a>
@@ -78,6 +84,8 @@
                         {% csrf_token %}
                         <button type="submit"
                                 class="btn-action text-danger"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
                                 title="Удалить"
                                 onclick="return confirm('Удалить этот комментарий?')">
                             <i class="fa-regular fa-trash-can"></i>

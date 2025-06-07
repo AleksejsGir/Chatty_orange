@@ -1,5 +1,9 @@
 // comments.js - Обработчики для действий с комментариями
 document.addEventListener('DOMContentLoaded', function() {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl, {trigger: 'hover'});
+    });
     // Обработчик удаления комментария
     document.querySelectorAll('.btn-delete-comment').forEach(button => {
         button.addEventListener('click', function() {
