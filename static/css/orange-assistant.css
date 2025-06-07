@@ -118,6 +118,9 @@
     flex-direction: column;
     z-index: 1050;
     transition: all 0.3s ease;
+    overflow: hidden; /* To contain elements during resize and prevent widget scrollbars */
+    min-width: 300px; /* Minimum dimensions */
+    min-height: 200px; /* Minimum dimensions */
 }
 
 .chat-widget.minimized {
@@ -652,4 +655,16 @@
     background: #f97316;
     color: white;
     transform: scale(1.05);
+}
+
+/* Resizer for top-left corner (was bottom-right) */
+.chat-widget-resizer {
+    width: 16px;
+    height: 16px;
+    background-color: transparent; /* Can be lightgray for debugging */
+    position: absolute;
+    left: 0;
+    top: 0;
+    cursor: nwse-resize; /* Suitable for diagonal resizing */
+    z-index: 10;
 }

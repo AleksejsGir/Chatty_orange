@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
+    const CHAT_OPEN_STATE_KEY = 'chattyOrangeChatOpen';
+
     const assistant = document.querySelector('.assistant-container');
     const assistantImage = document.querySelector('.assistant-image');
     let menu = null;
@@ -267,6 +269,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
+            <div class="chat-widget-resizer"></div>
         `;
 
         document.body.appendChild(chatWidget);
@@ -289,6 +292,72 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         }
+
+        // Логика изменения размера виджета
+        const resizer = chatWidget.querySelector('.chat-widget-resizer');
+        if (resizer) {
+            resizer.addEventListener('mousedown', function(e_mousedown) {
+                e_mousedown.preventDefault(); // Предотвратить выделение текста
+
+                const initialWidth = chatWidget.offsetWidth;
+                const initialHeight = chatWidget.offsetHeight;
+                const initialMouseX = e_mousedown.clientX;
+                const initialMouseY = e_mousedown.clientY;
+                const initialChatX = chatWidget.offsetLeft;
+                const initialChatY = chatWidget.offsetTop;
+
+                // Минимальные размеры из CSS
+                const minWidth = parseInt(getComputedStyle(chatWidget).minWidth, 10) || 300;
+                const minHeight = parseInt(getComputedStyle(chatWidget).minHeight, 10) || 200;
+
+                function handleMouseMove(e_mousemove) {
+                    const deltaX = e_mousemove.clientX - initialMouseX;
+                    const deltaY = e_mousemove.clientY - initialMouseY;
+
+                    let newWidth = initialWidth - deltaX;
+                    let newHeight = initialHeight - deltaY;
+                    let newLeft = initialChatX + deltaX;
+                    let newTop = initialChatY + deltaY;
+
+                    // Применяем минимальные размеры и корректируем позицию, чтобы "якорем" был правый/нижний край
+                    if (newWidth < minWidth) {
+                        newLeft += (newWidth - minWidth); // Компенсируем изменение left, чтобы правый край не "уехал"
+                        newWidth = minWidth;
+                    }
+                    if (newHeight < minHeight) {
+                        newTop += (newHeight - minHeight); // Компенсируем изменение top, чтобы нижний край не "уехал"
+                        newHeight = minHeight;
+                    }
+
+                    // Опционально: максимальные размеры (если нужны)
+                    // if (newWidth > maxWidth) {
+                    //     newLeft += (newWidth - maxWidth);
+                    //     newWidth = maxWidth;
+                    // }
+                    // if (newHeight > maxHeight) {
+                    //     newTop += (newHeight - maxHeight);
+                    //     newHeight = maxHeight;
+                    // }
+
+                    chatWidget.style.width = newWidth + 'px';
+                    chatWidget.style.height = newHeight + 'px';
+                    chatWidget.style.left = newLeft + 'px';
+                    chatWidget.style.top = newTop + 'px';
+                }
+
+                function handleMouseUp() {
+                    document.removeEventListener('mousemove', handleMouseMove);
+                    document.removeEventListener('mouseup', handleMouseUp);
+
+                    // TODO: Сохранить размеры в localStorage, если нужно
+                    // localStorage.setItem('chattyOrangeChatWidth', chatWidget.style.width);
+                    // localStorage.setItem('chattyOrangeChatHeight', chatWidget.style.height);
+                }
+
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+            });
+        }
     }
 
     // Функции управления чатом
@@ -304,6 +373,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             chatWidget.style.display = 'flex';
             isChatOpen = true;
+            localStorage.setItem(CHAT_OPEN_STATE_KEY, 'true');
 
             if (isChatMinimized) {
                 expandChat();
@@ -318,6 +388,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!chatWidget) return;
 
         isChatMinimized = true;
+        localStorage.setItem(CHAT_OPEN_STATE_KEY, 'true'); // Keep chat "open" conceptually
         chatWidget.classList.add('minimized');
 
         const minimizeBtn = chatWidget.querySelector('.chat-btn-minimize');
@@ -345,6 +416,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         chatWidget.style.display = 'none';
         isChatOpen = false;
+        localStorage.setItem(CHAT_OPEN_STATE_KEY, 'false');
         isChatMinimized = false;
     }
 
@@ -786,6 +858,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Инициализация
     initializeTourElements();
 
+    // Автоматически открывать чат, если он был открыт ранее
+    const chatWasOpen = localStorage.getItem(CHAT_OPEN_STATE_KEY);
+    if (chatWasOpen === 'true') {
+        if (typeof window.showAIAssistant === 'function') {
+            // showAIAssistant сама вызовет createChatWidget, если нужно
+            window.showAIAssistant();
+        }
+    }
+
     // Post Creation Helper
     const getPostSuggestionBtn = document.getElementById('getPostSuggestionBtn');
     const postSuggestionArea = document.getElementById('postSuggestionArea');
@@ -920,6 +1001,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3000);
         localStorage.setItem('chattyOrangeReturningUser', 'true');
     }
+
+    // Welcome message logic should ideally run after checking chat state,
+    // so it doesn't conflict with an auto-opened chat.
+    // The current placement of chat state check (before Post Creation Helper)
+    // and this welcome message check (at the very end) is fine.
 
     function showWelcomeMessage() {
         const welcomeDiv = document.createElement('div');
