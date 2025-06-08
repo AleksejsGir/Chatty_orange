@@ -225,9 +225,10 @@ def find_post_by_keyword(keyword: str, user_info: dict) -> str:
                 logger.warning(f"Ошибка при получении URL поста {post.id}: {e}")
                 post_url = f"/posts/{post.id}/"
 
-            # Убираем ID из отображения, делаем ссылки более дружелюбными
+            # ИСПРАВЛЕНО: Возвращаем чистый текст БЕЗ HTML-тегов
+            # JavaScript formatMessage сам создаст ссылки
             posts_info.append(
-                f"• **{post.title}** от @{author_username}\nСсылка: {post_url}")
+                f"• **{post.title}** от @{author_username}\n  Ссылка: {post_url}")
 
         posts_details_str = "\n\n".join(posts_info)
 
@@ -271,7 +272,8 @@ def get_post_details(post_id: int, user_info: dict) -> str:
 
         comments_details_str = "\n".join(comments_info)
 
-        # Убираем ID из отображения
+        # ИСПРАВЛЕНО: Убираем HTML-теги, возвращаем чистый текст
+        # JavaScript formatMessage сам создаст ссылки из @username
         post_details = f"""
 📰 **{post.title}**
 ✍️ Автор: @{author_username}

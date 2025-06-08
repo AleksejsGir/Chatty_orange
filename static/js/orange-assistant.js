@@ -783,6 +783,20 @@ document.addEventListener('DOMContentLoaded', function() {
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/__(.*?)__/g, '<em>$1</em>')
             .replace(/`(.*?)`/g, '<code>$1</code>');
+        // Обработка никнеймов (@username)
+        formatted = formatted.replace(/@(\w+)/g, (match, username) => {
+            return `<a href="/users/profile/${username}/" class="chat-link username-link" data-url="/users/profile/${username}/" title="Перейти к профилю @${username}">@${username}</a>`;
+        });
+
+        // Обработка упоминаний "пользователя Username"
+        formatted = formatted.replace(/пользовател[яьй]\s+(\w+)/g, (match, username) => {
+            return match.replace(username, `<a href="/users/profile/${username}/" class="chat-link username-link" data-url="/users/profile/${username}/" title="Перейти к профилю ${username}">${username}</a>`);
+        });
+
+        // Обработка "автор Username" и "от Username"
+        formatted = formatted.replace(/(автор|от)\s+(\w+)/g, (match, prefix, username) => {
+            return `${prefix} <a href="/users/profile/${username}/" class="chat-link username-link" data-url="/users/profile/${username}/" title="Перейти к профилю ${username}">${username}</a>`;
+        });
 
         // ИСПРАВЛЕНО: ссылки НЕ закрывают чат, открываются в том же окне
         formatted = formatted.replace(

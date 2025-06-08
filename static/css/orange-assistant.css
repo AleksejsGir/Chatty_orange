@@ -747,3 +747,57 @@ body.resizing-chat * {
         transform: translateY(0);
     }
 }
+/* Стили для кликабельных ссылок в чате */
+.username-link {
+    color: #ff6b35 !important;
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 1px dashed #ff6b35;
+    transition: all 0.2s ease;
+    padding: 1px 2px;
+    border-radius: 3px;
+}
+
+.username-link:hover {
+    color: #ff4500 !important;
+    border-bottom: 1px solid #ff4500;
+    text-decoration: none;
+    background-color: rgba(255, 107, 53, 0.1);
+}
+
+/*.post-link {*/
+/*    color: #007bff !important;*/
+/*    text-decoration: none;*/
+/*    font-weight: 500;*/
+/*    padding: 2px 6px;*/
+/*    background: rgba(0, 123, 255, 0.1);*/
+/*    border-radius: 4px;*/
+/*    transition: all 0.2s ease;*/
+/*    border-bottom: 1px dashed #007bff;*/
+/*}*/
+
+/*.post-link:hover {*/
+/*    background: rgba(0, 123, 255, 0.2);*/
+/*    text-decoration: none;*/
+/*    color: #0056b3 !important;*/
+/*    border-bottom: 1px solid #0056b3;*/
+/*}*/
+
+.chat-link {
+    cursor: pointer;
+    display: inline-block;
+}
+
+.chat-link:focus {
+    outline: 2px solid #ff6b35;
+    outline-offset: 2px;
+}
+
+/* Особые стили для никнеймов в разных контекстах */
+.ai-message .username-link {
+    font-weight: 700;
+}
+
+.ai-message .post-link {
+    font-weight: 600;
+}

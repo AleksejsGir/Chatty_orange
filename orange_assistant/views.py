@@ -265,117 +265,151 @@ class ChatWithAIView(View):
 
         logger.info(f"Processing natural language query: '{user_input}' from {user_info.get('username', 'anonymous')}")
 
+        # ===============================
+        # КРИТИЧЕСКИ ВАЖНО: СНАЧАЛА ПРОВЕРЯЕМ ПОИСК ПОСТОВ ПОЛЬЗОВАТЕЛЯ
+        # ===============================
 
-        # === ПОИСК ПОСТОВ/СТАТЕЙ ===
-        post_search_patterns = [
-            'найди пост', 'найти пост', 'ищи пост', 'искать пост',
-            'найди стать', 'найти стать', 'покажи пост', 'статьи у',
-            'какие статьи', 'какие посты', 'посты пользователя',
-            'статьи пользователя', 'что писал'
+        # Убираем markdown форматирование в самом начале
+        clean_input = re.sub(r'\*\*(.*?)\*\*', r'\1', user_input)
+        clean_lower = clean_input.lower().strip()
+
+        # СУПЕР-АГРЕССИВНАЯ проверка на поиск постов пользователя
+        user_posts_indicators = [
+            'статьи у', 'посты у', 'какие статьи у', 'какие посты у',
+            'статьи пользователя', 'посты пользователя',
+            'статьи от', 'посты от',
+            'что писал', 'что писала',
+            'статьи у пользователя', 'посты у пользователя'
         ]
 
-        if any(pattern in lower_input for pattern in post_search_patterns):
-            # УЛУЧШЕННАЯ ЛОГИКА: Сначала проверяем поиск постов конкретного пользователя
-            user_posts_patterns = [
-                'статьи у', 'посты у', 'что писал', 'посты пользователя',
-                'статьи пользователя', 'какие статьи у', 'какие посты у',
-                'статьи от', 'посты от', 'какие статьи', 'какие посты'
-            ]
+        # Паттерны для извлечения имени (БЕЗ **форматирования**)
+        username_patterns = [
+            r'(?:статьи|посты)\s+у\s+([A-Za-z0-9_-]+)',
+            r'(?:статьи|посты)\s+пользователя\s+([A-Za-z0-9_-]+)',
+            r'что\s+(?:писал|писала)\s+([A-Za-z0-9_-]+)',
+            r'какие\s+(?:статьи|посты)\s+у\s+([A-Za-z0-9_-]+)',
+            r'(?:статьи|посты)\s+от\s+([A-Za-z0-9_-]+)',
+            r'(?:статьи|посты)\s+у\s+пользователя\s+([A-Za-z0-9_-]+)',
+            # Для "какие статьи Orange" (без предлогов)
+            r'какие\s+(?:статьи|посты)\s+([A-Za-z0-9_-]+)(?:\s|$|\?)',
+        ]
 
-            # ПРОВЕРКА: может ли это быть поиском постов пользователя?
-            is_user_posts_query = any(phrase in lower_input for phrase in user_posts_patterns)
+        # ПРОВЕРЯЕМ: содержит ли запрос индикаторы поиска постов пользователя?
+        contains_user_posts_indicator = any(indicator in clean_lower for indicator in user_posts_indicators)
 
-            if is_user_posts_query:
-                # Пытаемся найти имя пользователя
-                username = None
+        # ДОПОЛНИТЕЛЬНАЯ проверка для "какие статьи Username"
+        if not contains_user_posts_indicator:
+            if re.search(r'какие\s+(?:статьи|посты)\s+[A-Za-z0-9_-]+', clean_lower):
+                contains_user_posts_indicator = True
 
-                # УЛУЧШЕННЫЕ регулярные выражения
-                user_patterns = [
-                    r'(?:статьи|посты)\s+у\s+(\w+)',
-                    r'(?:статьи|посты)\s+пользователя\s+(\w+)',
-                    r'что\s+писал\s+(\w+)',
-                    r'какие\s+(?:статьи|посты)\s+у\s+(\w+)',
-                    r'(?:статьи|посты)\s+от\s+(\w+)',
-                    # Для случаев типа "Какие статьи Orange?" (без "у")
-                    r'какие\s+(?:статьи|посты)\s+(\w+)(?:\?|$)',
-                ]
+        if contains_user_posts_indicator:
+            logger.info("DETECTED: User posts query - prioritizing user search")
 
-                for pattern in user_patterns:
-                    match = re.search(pattern, lower_input)
-                    if match:
-                        username = match.group(1)
-                        break
+            # Пытаемся извлечь имя пользователя
+            username = None
+            for pattern in username_patterns:
+                match = re.search(pattern, clean_input, re.IGNORECASE)
+                if match:
+                    username = match.group(1)
+                    logger.info(f"Extracted username: '{username}' via pattern: {pattern}")
+                    break
 
-                # Если не нашли через регулярки, попробуем простой подход для "Какие статьи Orange?"
-                if not username:
-                    # Для фраз типа "Какие статьи Orange" или "Какие посты Alek"
-                    words = user_input.split()
-                    for i, word in enumerate(words):
-                        if word.lower() in ['статьи', 'посты'] and i + 1 < len(words):
-                            next_word = words[i + 1].strip('?!.')
-                            # Проверяем, что это не служебное слово
-                            if next_word.lower() not in ['у', 'от', 'пользователя', 'про', 'о', 'об']:
+            # Если не нашли через паттерны, пробуем другой способ
+            if not username:
+                words = clean_input.split()
+                for i, word in enumerate(words):
+                    if word.lower() in ['статьи', 'посты']:
+                        # Ищем следующее слово после статьи/посты, пропуская служебные
+                        for j in range(i + 1, len(words)):
+                            next_word = words[j].strip('?!.,')
+                            if (next_word.lower() not in ['у', 'от', 'пользователя', 'про', 'о', 'об', 'по', 'с'] and
+                                    len(next_word) > 1 and re.match(r'^[A-Za-z0-9_-]+$', next_word)):
                                 username = next_word
+                                logger.info(f"Extracted username via fallback: '{username}'")
                                 break
+                        if username:
+                            break
 
-                if username:
-                    logger.info(f"Searching posts by user: '{username}'")
-                    # Ищем посты этого пользователя
-                    try:
-                        from posts.models import Post
-                        from users.models import CustomUser
+            # Если найден пользователь - ищем его посты
+            if username:
+                try:
+                    from posts.models import Post
+                    from users.models import CustomUser
 
-                        user = CustomUser.objects.get(username__iexact=username)
-                        user_posts = Post.objects.filter(author=user).order_by('-pub_date')[:10]
+                    user = CustomUser.objects.get(username__iexact=username)
+                    user_posts = Post.objects.filter(author=user).order_by('-pub_date')[:10]
 
-                        if user_posts.exists():
-                            posts_info = []
-                            for post in user_posts:
-                                try:
-                                    post_url = post.get_absolute_url() if hasattr(post,
-                                                                                  'get_absolute_url') else f"/posts/{post.id}/"
-                                except:
-                                    post_url = f"/posts/{post.id}/"
-                                posts_info.append(f"• **{post.title}** (ID: {post.id}) - {post_url}")
+                    if user_posts.exists():
+                        posts_info = []
+                        for post in user_posts:
+                            try:
+                                post_url = post.get_absolute_url() if hasattr(post,
+                                                                              'get_absolute_url') else f"/posts/{post.id}/"
+                            except:
+                                post_url = f"/posts/{post.id}/"
+                            posts_info.append(f"• **{post.title}** (ID: {post.id})\n  Ссылка: {post_url}")
 
-                            posts_list = "\n".join(posts_info)
-                            return f"📝 **Посты пользователя @{username}:**\n\n{posts_list}\n\n💡 Чтобы узнать больше о конкретном посте, напиши: 'Расскажи о посте [ID]'"
-                        else:
-                            return f"📝 У пользователя @{username} пока нет опубликованных постов."
+                        posts_list = "\n\n".join(posts_info)
+                        return f"📝 **Посты пользователя @{username}:**\n\n{posts_list}\n\n💡 Чтобы узнать больше о конкретном посте, напиши: 'Расскажи о посте [ID]'"
+                    else:
+                        return f"📝 У пользователя @{username} пока нет опубликованных постов."
 
-                    except CustomUser.DoesNotExist:
-                        return f"❌ Пользователь '{username}' не найден."
-                    except Exception as e:
-                        logger.error(f"Error searching posts by user {username}: {e}")
-                        return f"❌ Ошибка при поиске постов пользователя {username}: {e}"
-
-                # Если имя пользователя не найдено, показываем подсказку
-                else:
-                    return """🔍 Не удалось определить пользователя. Попробуйте:
-
-        **Примеры правильных команд:**
-        • 'Какие статьи у Orange?'
-        • 'Посты пользователя Alek'  
-        • 'Что писал Orange?'
-        • 'Статьи от Orange'"""
-
-            # Обычный поиск по ключевому слову (только если НЕ найден пользователь)
+                except CustomUser.DoesNotExist:
+                    return f"❌ Пользователь '{username}' не найден."
+                except Exception as e:
+                    logger.error(f"Error searching posts by user {username}: {e}")
+                    return f"❌ Ошибка при поиске постов пользователя {username}: {e}"
             else:
-                keyword = self.extract_keyword_for_posts(user_input)
-                if keyword:
-                    logger.info(f"Searching posts with keyword: '{keyword}'")
-                    return find_post_by_keyword(keyword, user_info)
-                else:
-                    return """🔍 Укажите тему для поиска или пользователя. Примеры:
+                # Если не удалось извлечь имя пользователя из запроса с индикаторами
+                return """🔍 Не удалось определить пользователя. Попробуйте:
 
-        **Поиск по теме:**
-        • 'Найди посты про путешествия'
-        • 'Найди пост (QLED телевизоры)'
+    **Примеры правильных команд:**
+    • 'Какие статьи у Orange?'
+    • 'Посты пользователя Alek'  
+    • 'Что писал Orange?'
+    • 'Статьи от Orange'"""
 
-        **Посты пользователя:**
-        • 'Какие статьи у Orange?'
-        • 'Посты пользователя Alek'
-        • 'Что писал Orange?'"""
+        # ===============================
+        # ТОЛЬКО ПОСЛЕ проверки пользователей - общий поиск постов
+        # ===============================
+
+        general_post_search_patterns = [
+            'найди пост', 'найти пост', 'ищи пост', 'искать пост',
+            'найди стать', 'найти стать', 'покажи пост',
+            'найди посты про', 'найти посты про', 'ищи посты про'
+        ]
+
+        if any(pattern in lower_input for pattern in general_post_search_patterns):
+            logger.info("Detected general post search query")
+            keyword = self.extract_keyword_for_posts(user_input)
+            if keyword:
+                logger.info(f"Searching posts with keyword: '{keyword}'")
+                return find_post_by_keyword(keyword, user_info)
+            else:
+                return """🔍 Укажите тему для поиска. Примеры:
+
+    **Поиск по теме:**
+    • 'Найди посты про путешествия'
+    • 'Найди пост (QLED телевизоры)'
+
+    **Посты пользователя:**
+    • 'Какие статьи у Orange?'
+    • 'Посты пользователя Alek'
+    • 'Что писал Orange?'"""
+
+        # === ПОИСК ПОЛЬЗОВАТЕЛЕЙ ===
+        user_search_patterns = [
+            'найди пользователя', 'найти пользователя', 'ищи пользователя',
+            'найди юзера', 'профиль', 'кто такой'
+        ]
+
+        if any(pattern in lower_input for pattern in user_search_patterns):
+            username = self.extract_username(user_input)
+            if username:
+                logger.info(f"Searching user: '{username}'")
+                return find_user_by_username(username, user_info)
+            else:
+                return "❌ Не удалось извлечь имя пользователя. Попробуйте: 'Найди пользователя [имя]'"
 
         # === ДЕТАЛИ ПОСТА ===
         post_detail_patterns = [
@@ -384,7 +418,6 @@ class ChatWithAIView(View):
         ]
 
         if any(pattern in lower_input for pattern in post_detail_patterns):
-            # Ищем числа в тексте
             numbers = re.findall(r'\d+', user_input)
             if numbers:
                 try:
@@ -403,7 +436,6 @@ class ChatWithAIView(View):
         ]
 
         if any(pattern in lower_input for pattern in activity_patterns):
-            # Ищем числа для ID пользователя
             numbers = re.findall(r'\d+', user_input)
             if numbers:
                 try:
@@ -413,7 +445,6 @@ class ChatWithAIView(View):
                 except ValueError:
                     pass
 
-            # Ищем имя пользователя
             username_patterns = [
                 r'что\s+нового\s+у\s+(\w+)',
                 r'активность\s+пользователя\s+(\w+)',
@@ -448,10 +479,8 @@ class ChatWithAIView(View):
             return get_subscription_recommendations(user_info, current_user_id)
 
         # === ОБЩИЙ ЧАТ ===
-        # Если ничего не подошло, обрабатываем как обычный чат
         logger.info(f"Processing as general chat: '{user_input}'")
 
-        # Специальные подсказки для популярных запросов
         help_suggestions = []
 
         if 'пользователь' in lower_input or 'юзер' in lower_input:
