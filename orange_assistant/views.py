@@ -91,12 +91,31 @@ class ChatWithAIView(View):
             user_input = data.get('user_input', '')
             user_info = data.get('user_info', {})
 
-            # ✅ ЗАЩИТА 2: Ограничение длины запроса
-            if len(user_input) > 1000:
-                logger.warning(f"Too long request from {username}: {len(user_input)} chars")
-                return JsonResponse({
-                    'error': 'Слишком длинный запрос! Максимум 1000 символов.'
-                }, status=400)
+            # ✅ ЗАЩИТА 2: Умная проверка длины запроса (ПОСЛЕ определения action_type)
+            def validate_request_length(user_input: str, action_type: str, username: str):
+                """Проверяет длину запроса в зависимости от типа действия"""
+                limits = {
+                    'check_post_content': 5000,  # Проверка контента поста
+                    'post_creation_suggestion': 5000,  # Помощь с созданием поста
+                    'analyze_sentiment': 3000,  # Анализ настроения
+                    'general_chat': 2000,  # Общий чат
+                    'faq': 1000,  # FAQ
+                    'feature_explanation': 1000,  # Объяснение функций
+                }
+
+                limit = limits.get(action_type, 1000)  # По умолчанию 1000
+
+                if len(user_input) > limit:
+                    logger.warning(
+                        f"Too long request from {username}: {len(user_input)} chars, limit: {limit}, action: {action_type}")
+                    return False, f'Слишком длинный запрос! Максимум {limit} символов для данного типа действия.'
+
+                return True, ""
+
+            # Проверяем длину ПОСЛЕ получения action_type
+            is_valid, error_msg = validate_request_length(user_input, action_type, username)
+            if not is_valid:
+                return JsonResponse({'error': error_msg}, status=400)
 
             # ✅ ЗАЩИТА 3: Базовая валидация action_type
             allowed_actions = {
