@@ -6,10 +6,15 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/profile.css' %}">
+    <style>
+        .style-test {
+            display: none;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
-    <div class="container mt-4">
+    <div class="container mt-4 orange-background">
         <div class="profile-container">
             <!-- Шапка профиля с градиентом -->
             <div class="profile-header">
@@ -20,208 +25,202 @@
 
             <!-- Основной блок информации -->
             <div class="profile-info-container">
-                <!-- Верхняя часть: аватар, информация и кнопки -->
-                <div class="profile-header-section">
-                    <!-- Аватар -->
-                    <div class="profile-avatar-container">
-                        {% if profile_user.avatar %}
-                            <img src="{{ profile_user.avatar.url }}" alt="Аватар {{ profile_user.username }}" class="profile-avatar">
-                        {% else %}
-                            <div class="profile-avatar-placeholder">
-                                <span>{{ profile_user.username|first|upper }}</span>
-                            </div>
-                        {% endif %}
-                    </div>
+                <!-- Аватар -->
+                <div class="profile-avatar-container">
+                    {% if profile_user.avatar %}
+                        <img src="{{ profile_user.avatar.url }}" alt="Аватар {{ profile_user.username }}" class="profile-avatar">
+                    {% else %}
+                        <div class="profile-avatar-placeholder">
+                            <span>{{ profile_user.username|first|upper }}</span>
+                        </div>
+                    {% endif %}
+                </div>
 
-                    <!-- Информация о пользователе -->
-                    <div class="profile-info-section">
-                        <h1 class="profile-name">{{ profile_user.username }}</h1>
-                        {% if profile_user.first_name or profile_user.last_name %}
-                            <div class="profile-fullname">{{ profile_user.get_full_name }}</div>
-                        {% endif %}
+                <!-- Информация о пользователе -->
+                <div class="profile-info">
+                    <h1 class="profile-name">{{ profile_user.username }}</h1>
+                    {% if profile_user.first_name or profile_user.last_name %}
+                        <div class="profile-fullname">{{ profile_user.get_full_name }}</div>
+                    {% endif %}
 
-                        <!-- Статистика профиля -->
-                        <div class="profile-stats">
+                    <!-- Статистика профиля -->
+                    <div class="profile-stats">
+                        <div class="profile-stat">
+                            <span class="stat-value">{{ profile_user.post_set.count }}</span>
+                            <span class="stat-label">Постов</span>
+                        </div>
+                        <a href="{% url 'subscriptions:followers' username=profile_user.username %}" class="text-decoration-none">
                             <div class="profile-stat">
-                                <span class="stat-value">{{ profile_user.post_set.count }}</span>
-                                <span class="stat-label">Постов</span>
+                                <span class="stat-value" id="subscribers-count">{{ profile_user.subscribers.count }}</span>
+                                <span class="stat-label">Подписчиков</span>
                             </div>
-                            <a href="{% url 'subscriptions:followers' username=profile_user.username %}" class="text-decoration-none">
-                                <div class="profile-stat">
-                                    <span class="stat-value" id="subscribers-count">{{ profile_user.subscribers.count }}</span>
-                                    <span class="stat-label">Подписчиков</span>
-                                </div>
-                            </a>
-                            <a href="{% url 'subscriptions:following' username=profile_user.username %}" class="text-decoration-none">
-                                <div class="profile-stat">
-                                    <span class="stat-value">{{ profile_user.subscriptions.count }}</span>
-                                    <span class="stat-label">Подписок</span>
-                                </div>
-                            </a>
-                        </div>
-
-                        <!-- Кнопки действий - СДВИНУТА ВНИЗ -->
-                        <div class="profile-actions">
-                            {% if user.is_authenticated %}
-                                {% if user == profile_user %}
-                                    <a href="{% url 'users:profile-edit' pk=user.pk %}?from=profile"
-                                       class="btn btn-edit-profile">
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                        Редактировать профиль
-                                    </a>
-                                {% else %}
-                                    <!-- Кнопка подписки/отписки -->
-                                    <form action="{% url 'subscriptions:toggle' username=profile_user.username %}" method="post">
-                                        {% csrf_token %}
-                                        {% if is_subscribed %}
-                                            <button type="submit"
-                                                    class="btn btn-unfollow-profile subscription-toggle js-subscription-toggle"
-                                                    data-username="{{ profile_user.username }}">
-                                                <i class="fa-solid fa-user-minus"></i>
-                                                Отписаться
-                                            </button>
-                                        {% else %}
-                                            <button type="submit"
-                                                    class="btn btn-follow-profile subscription-toggle js-subscription-toggle"
-                                                    data-username="{{ profile_user.username }}">
-                                                <i class="fa-solid fa-user-plus"></i>
-                                                Подписаться
-                                            </button>
-                                        {% endif %}
-                                    </form>
-                                {% endif %}
-                            {% endif %}
-                        </div>
+                        </a>
+                        <a href="{% url 'subscriptions:following' username=profile_user.username %}" class="text-decoration-none">
+                            <div class="profile-stat">
+                                <span class="stat-value">{{ profile_user.subscriptions.count }}</span>
+                                <span class="stat-label">Подписок</span>
+                            </div>
+                        </a>
                     </div>
                 </div>
 
-                <!-- Нижняя часть: информация и посты -->
-                <div class="profile-content-section">
-                    <!-- Блок информации -->
-                    <div class="profile-info-card">
-                        <div class="profile-card">
-                            <h3 class="profile-card-title">
-                                <i class="fa-solid fa-circle-info profile-info-icon"></i>
-                                Информация
-                            </h3>
-                            <div class="profile-card-content">
-                                {% if profile_user.bio %}
-                                    <div class="profile-info-item">
-                                        <div class="profile-info-icon">
-                                            <i class="fa-solid fa-user"></i>
-                                        </div>
-                                        <div class="profile-info-text">
-                                            <span class="profile-info-label">О себе:</span>
-                                            <div class="profile-info-value">{{ profile_user.bio|linebreaksbr }}</div>
-                                        </div>
-                                    </div>
+                <!-- Кнопки действий -->
+                <!-- В profile.html замените блок с кнопками действий -->
+                <div class="profile-actions" style="margin-top: 40px;">
+                    {% if user.is_authenticated %}
+                        {% if user == profile_user %}
+                            <a href="{% url 'users:profile-edit' pk=user.pk %}?from=profile"
+                               class="btn btn-edit-profile">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                                Редактировать профиль
+                            </a>
+                        {% else %}
+                            <!-- Кнопка подписки/отписки -->
+                            <form action="{% url 'subscriptions:toggle' username=profile_user.username %}" method="post">
+                                {% csrf_token %}
+                                {% if is_subscribed %}
+                                    <button type="submit"
+                                            class="btn btn-unfollow-profile subscription-toggle js-subscription-toggle"
+                                            data-username="{{ profile_user.username }}">
+                                        <i class="fa-solid fa-user-minus"></i>
+                                        Отписаться
+                                    </button>
+                                {% else %}
+                                    <button type="submit"
+                                            class="btn btn-follow-profile subscription-toggle js-subscription-toggle"
+                                            data-username="{{ profile_user.username }}">
+                                        <i class="fa-solid fa-user-plus"></i>
+                                        Подписаться
+                                    </button>
                                 {% endif %}
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                </div>
 
-                                {% if profile_user.contacts %}
-                                    <div class="profile-info-item">
-                                        <div class="profile-info-icon">
-                                            <i class="fa-solid fa-address-book"></i>
-                                        </div>
-                                        <div class="profile-info-text">
-                                            <span class="profile-info-label">Контакты:</span>
-                                            <div class="profile-info-value">{{ profile_user.contacts }}</div>
-                                        </div>
-                                    </div>
-                                {% endif %}
-
+                <!-- Основной контент профиля -->
+                <div class="profile-content">
+                    <!-- Информация "О себе" и контакты -->
+                    <div class="profile-card">
+                        <h3 class="profile-card-title">
+                            <i class="fa-solid fa-circle-info profile-info-icon"></i>
+                            Информация
+                        </h3>
+                        <div class="profile-card-content">
+                            {% if profile_user.bio %}
                                 <div class="profile-info-item">
                                     <div class="profile-info-icon">
-                                        <i class="fa-solid fa-envelope"></i>
+                                        <i class="fa-solid fa-user"></i>
                                     </div>
                                     <div class="profile-info-text">
-                                        <span class="profile-info-label">Email:</span>
-                                        <div class="profile-info-value">{{ profile_user.email }}</div>
+                                        <span class="profile-info-label">О себе:</span>
+                                        <div class="profile-info-value">{{ profile_user.bio|linebreaksbr }}</div>
                                     </div>
+                                </div>
+                            {% endif %}
+
+                            {% if profile_user.contacts %}
+                                <div class="profile-info-item">
+                                    <div class="profile-info-icon">
+                                        <i class="fa-solid fa-address-book"></i>
+                                    </div>
+                                    <div class="profile-info-text">
+                                        <span class="profile-info-label">Контакты:</span>
+                                        <div class="profile-info-value">{{ profile_user.contacts }}</div>
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            <div class="profile-info-item">
+                                <div class="profile-info-icon">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </div>
+                                <div class="profile-info-text">
+                                    <span class="profile-info-label">Email:</span>
+                                    <div class="profile-info-value">{{ profile_user.email }}</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Блок постов -->
-                    <div class="profile-posts-card">
-                        <div class="profile-card">
-                            <h3 class="profile-card-title">
-                                <i class="fa-solid fa-newspaper profile-info-icon"></i>
-                                Последние посты
-                            </h3>
-                            <div class="profile-card-content p-3">
-                                {% if user_posts %}
-                                    <div class="row">
-                                        {% for post in user_posts %}
-                                            <div class="col-md-6 mb-3">
-                                                <div class="post-card h-100 {% if is_subscribed %}subscriber-post{% endif %}">
-                                                    {% if post.image %}
-                                                        <a href="{% url 'posts:post-detail' pk=post.pk %}?from=profile" class="d-block">
-                                                            <img src="{{ post.image.url }}" alt="{{ post.title }}?from=profile" class="card-img-top">
-                                                        </a>
-                                                    {% endif %}
-                                                    <div class="card-body">
-                                                        <h2 class="post-title">
-                                                            <a href="{% url 'posts:post-detail' pk=post.pk %}?from=profile">{{ post.title|highlight:search_terms }}</a>
-                                                        </h2>
-                                                        <div class="post-text">{{ post.text|highlight:search_terms|safe|truncatewords_html:30 }}</div>
-                                                        <p class="post-meta-compact"><small>{{ post.pub_date|date:"d.m.Y H:i" }}</small></p>
+                    <!-- Последние посты пользователя -->
+                    <div class="profile-card">
+                        <h3 class="profile-card-title">
+                            <i class="fa-solid fa-newspaper profile-info-icon"></i>
+                            Последние посты
+                        </h3>
+                        <div class="profile-card-content p-3">
+                            {% if user_posts %}
+                                <div class="row">
+                                    {% for post in user_posts %}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="post-card h-100 {% if is_subscribed %}subscriber-post{% endif %}" style="border: 2px solid #f97316; border-radius: 8px;">
+                                                {% if post.image %}
+                                                    <a href="{% url 'posts:post-detail' pk=post.pk %}?from=profile" class="d-block">
+                                                        <img src="{{ post.image.url }}" alt="{{ post.title }}?from=profile" class="card-img-top" style="height: 200px; object-fit: cover; border-radius: 6px 6px 0 0;">
+                                                    </a>
+                                                {% endif %}
+                                                <div class="card-body">
+                                                    <h2 class="post-title">
+                                                        <a href="{% url 'posts:post-detail' pk=post.pk %}?from=profile">{{ post.title|highlight:search_terms }}</a>
+                                                    </h2>
+                                                    <div class="post-text">{{ post.text|highlight:search_terms|safe|truncatewords_html:30 }}</div>
+                                                    <p class="post-meta-compact"><small>{{ post.pub_date|date:"d.m.Y H:i" }}</small></p>
 
-                                                        <!-- Блок взаимодействий -->
-                                                        <div class="post-footer">
-                                                            <div class="interaction-buttons">
-                                                                <!-- Кнопка лайка -->
-                                                                <button class="btn-interaction like-button {% if request.user in post.likes.all %}active{% endif %}"
+                                                    <!-- Добавляем блок взаимодействий (лайки и комментарии) -->
+                                                    <div class="post-footer">
+                                                        <div class="interaction-buttons">
+                                                            <!-- Кнопка лайка -->
+                                                            <button class="btn-interaction like-button {% if request.user in post.likes.all %}active{% endif %}"
+                                                                    data-post-id="{{ post.pk }}"
+                                                                    title="Нравится"
+                                                                    {% if not user.is_authenticated %}disabled{% endif %}>
+                                                                <i class="fa-thumbs-up {% if request.user in post.likes.all %}fa-solid{% else %}fa-regular{% endif %}"></i>
+                                                                <span class="interaction-count">{{ post.likes.count }}</span>
+                                                            </button>
+
+                                                            <!-- Кнопка дизлайка -->
+                                                            {% if user.is_authenticated %}
+                                                                <button class="btn-interaction dislike-button {% if request.user in post.dislikes.all %}active{% endif %}"
                                                                         data-post-id="{{ post.pk }}"
-                                                                        title="Нравится"
-                                                                        {% if not user.is_authenticated %}disabled{% endif %}>
-                                                                    <i class="fa-thumbs-up {% if request.user in post.likes.all %}fa-solid{% else %}fa-regular{% endif %}"></i>
-                                                                    <span class="interaction-count">{{ post.likes.count }}</span>
+                                                                        title="Не нравится">
+                                                                    <i class="fa-thumbs-down {% if request.user in post.dislikes.all %}fa-solid{% else %}fa-regular{% endif %}"></i>
+                                                                    <span class="interaction-count">{{ post.dislikes.count }}</span>
                                                                 </button>
+                                                            {% else %}
+                                                                <button class="btn-interaction"
+                                                                        title="Для дизлайков требуется войти"
+                                                                        onclick="showLoginAlert()">
+                                                                    <i class="fa-regular fa-thumbs-down"></i>
+                                                                    <span class="interaction-count">{{ post.dislikes.count }}</span>
+                                                                </button>
+                                                            {% endif %}
 
-                                                                <!-- Кнопка дизлайка -->
-                                                                {% if user.is_authenticated %}
-                                                                    <button class="btn-interaction dislike-button {% if request.user in post.dislikes.all %}active{% endif %}"
-                                                                            data-post-id="{{ post.pk }}"
-                                                                            title="Не нравится">
-                                                                        <i class="fa-thumbs-down {% if request.user in post.dislikes.all %}fa-solid{% else %}fa-regular{% endif %}"></i>
-                                                                        <span class="interaction-count">{{ post.dislikes.count }}</span>
-                                                                    </button>
-                                                                {% else %}
-                                                                    <button class="btn-interaction"
-                                                                            title="Для дизлайков требуется войти"
-                                                                            onclick="showLoginAlert()">
-                                                                        <i class="fa-regular fa-thumbs-down"></i>
-                                                                        <span class="interaction-count">{{ post.dislikes.count }}</span>
-                                                                    </button>
-                                                                {% endif %}
-
-                                                                <!-- Кнопка комментариев -->
-                                                                <a href="{% url 'posts:post-detail' pk=post.pk %}?from={{'profile'}}#comments" class="btn-interaction comment-button">
-                                                                    <i class="fa-regular fa-comment"></i>
-                                                                    <span class="interaction-count">{{ post.comments.count }}</span>
-                                                                </a>
-                                                            </div>
+                                                            <!-- Остальные элементы оставить без изменений -->
+                                                            <a href="{% url 'posts:post-detail' pk=post.pk %}?from={{'profile'}}#comments" class="btn-interaction comment-button">
+                                                                <i class="fa-regular fa-comment"></i>
+                                                                <span class="interaction-count">{{ post.comments.count }}</span>
+                                                            </a>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        {% endfor %}
-                                    </div>
-                                    {% if user_posts.count > 4 %}
-                                        <div class="text-center mt-3">
-                                            <a href="{% url 'posts:user-posts' username=profile_user.username %}?from={{ 'profile' }}" class="btn btn-outline-primary">
-                                                Все посты пользователя
-                                            </a>
                                         </div>
-                                    {% endif %}
-                                {% else %}
-                                    <div class="profile-gallery-empty">
-                                        <i class="fa-solid fa-newspaper fa-2x mb-2"></i>
-                                        <p>Пользователь пока не опубликовал ни одного поста.</p>
+                                    {% endfor %}
+                                </div>
+                                {% if user_posts.count > 4 %}
+                                    <div class="text-center mt-3">
+                                        <a href="{% url 'posts:user-posts' username=profile_user.username %}?from={{ 'profile' }}" class="btn btn-outline-primary">
+                                            Все посты пользователя
+                                        </a>
                                     </div>
                                 {% endif %}
-                            </div>
+                            {% else %}
+                                <div class="profile-gallery-empty">
+                                    <i class="fa-solid fa-newspaper fa-2x mb-2"></i>
+                                    <p>Пользователь пока не опубликовал ни одного поста.</p>
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

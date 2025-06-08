@@ -1,22 +1,20 @@
-/* profile.css */
-
 /* Оранжевое поле шапки */
 .profile-header {
     height: 180px;
     position: relative;
     overflow: hidden;
+    background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
 }
 
 .profile-cover {
     height: 100%;
-    background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
 }
 
 /* Основной контейнер профиля */
 .profile-info-container {
     position: relative;
-    margin-top: -60px; /* Поднимаем контейнер, чтобы аватар накладывался на шапку */
-    padding-top: 70px; /* Добавляем отступ для контента под шапкой */
+    margin-top: -60px;
+    padding-top: 100px; /* Увеличен отступ сверху */
     padding-bottom: 30px;
 }
 
@@ -28,14 +26,15 @@
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    margin-top: 20px; /* Отступ от верхнего края */
+    margin-top: 40px; /* Увеличен отступ сверху */
 }
 
 /* Аватар */
 .profile-avatar-container {
     margin-right: 25px;
     flex-shrink: 0;
-    margin-top: -80px; /* Поднимаем аватар на шапку */
+    margin-top: -80px;
+    z-index: 10; /* Добавлен z-index */
 }
 
 .profile-avatar {
@@ -44,6 +43,7 @@
     border-radius: 50%;
     border: 4px solid white;
     object-fit: cover;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Добавлена тень */
 }
 
 .profile-avatar-placeholder {
@@ -58,18 +58,20 @@
     font-size: 4rem;
     font-weight: bold;
     color: #777;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Добавлена тень */
 }
 
 /* Информация пользователя */
 .profile-info-section {
     flex-grow: 1;
     min-width: 300px;
-    padding-top: 20px; /* Отступ для выравнивания с аватаром */
+    padding-top: 20px;
 }
 
 .profile-name {
     font-size: 2rem;
     margin-bottom: 5px;
+    color: #333; /* Изменен цвет текста */
 }
 
 .profile-fullname {
@@ -94,6 +96,7 @@
     display: block;
     font-weight: bold;
     font-size: 1.3rem;
+    color: #f97316; /* Оранжевый цвет */
 }
 
 .stat-label {
@@ -103,7 +106,7 @@
 
 /* Кнопки действий */
 .profile-actions {
-    margin-top: 20px; /* Увеличенный отступ */
+    margin-top: 30px; /* Увеличен отступ */
     padding-top: 15px;
     border-top: 1px solid #eee;
 }
@@ -114,6 +117,8 @@
     font-weight: 500;
     transition: all 0.3s;
     font-size: 1rem;
+    display: inline-block; /* Исправлено отображение */
+    text-align: center;
 }
 
 .btn-edit-profile {
@@ -125,6 +130,7 @@
 .btn-edit-profile:hover {
     background-color: #ea580c;
     color: white;
+    transform: translateY(-2px);
 }
 
 .btn-follow-profile {
@@ -135,6 +141,7 @@
 
 .btn-follow-profile:hover {
     background-color: #2563eb;
+    transform: translateY(-2px);
 }
 
 .btn-unfollow-profile {
@@ -145,6 +152,7 @@
 
 .btn-unfollow-profile:hover {
     background-color: #dc2626;
+    transform: translateY(-2px);
 }
 
 /* Блоки информации */
@@ -181,6 +189,7 @@
     border-bottom: 1px solid #eee;
     display: flex;
     align-items: center;
+    color: #333; /* Изменен цвет текста */
 }
 
 .profile-info-icon {
@@ -209,6 +218,7 @@
 .profile-info-value {
     color: #555;
     line-height: 1.5;
+    padding-left: 10px; /* Добавлен отступ */
 }
 
 /* Посты */
@@ -220,6 +230,7 @@
     display: flex;
     flex-direction: column;
     transition: transform 0.3s;
+    background: #fff; /* Добавлен фон */
 }
 
 .post-card:hover {
@@ -231,6 +242,7 @@
     height: 200px;
     object-fit: cover;
     border-radius: 6px 6px 0 0;
+    width: 100%; /* Исправлена ширина */
 }
 
 .card-body {
@@ -248,6 +260,7 @@
 .post-title a {
     color: #333;
     text-decoration: none;
+    transition: color 0.3s;
 }
 
 .post-title a:hover {
@@ -260,6 +273,7 @@
     margin-bottom: 15px;
     color: #444;
     font-size: 0.95rem;
+    line-height: 1.6; /* Улучшена читаемость */
 }
 
 .post-meta-compact {
@@ -332,5 +346,14 @@
 
     .profile-info-section {
         padding-top: 0;
+    }
+
+    .profile-actions {
+        margin-top: 20px;
+    }
+
+    .btn-edit-profile, .subscription-toggle {
+        width: 100%;
+        padding: 12px;
     }
 }
