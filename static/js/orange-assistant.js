@@ -36,6 +36,57 @@ document.addEventListener('DOMContentLoaded', function() {
     let closeTourModalBtn = null;
     let nextButtonListenerAttached = false;
 
+    // ✅ НОВЫЕ ФУНКЦИИ ДЛЯ CSRF ЗАЩИТЫ
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function getCSRFToken() {
+        // Сначала пробуем получить токен из meta тега
+        const metaToken = document.querySelector('meta[name="csrf-token"]');
+        if (metaToken) {
+            return metaToken.getAttribute('content');
+        }
+
+        // Затем из скрытого поля формы
+        const hiddenToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (hiddenToken) {
+            return hiddenToken.value;
+        }
+
+        // В крайнем случае из cookie
+        return getCookie('csrftoken');
+    }
+
+    function createSecureHeaders() {
+        /**
+         * ✅ Создает безопасные заголовки для AJAX запросов
+         */
+        const csrfToken = getCSRFToken();
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+
+        if (csrfToken) {
+            headers['X-CSRFToken'] = csrfToken;
+        } else {
+            console.warn('CSRF токен не найден! Запрос может быть отклонен.');
+        }
+
+        return headers;
+    }
+
     function getTourStorageKey() {
         if (currentUsername && currentUsername !== 'Гость' && currentUsername.trim() !== '') {
             return `chattyOrangeTourCompleted_${currentUsername}`;
@@ -826,7 +877,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Отправка сообщений
+    // ✅ ИСПРАВЛЕННАЯ ФУНКЦИЯ sendChatMessage - с CSRF защитой
     async function sendChatMessage() {
         if (!aiChatMessageInput) return;
 
@@ -863,11 +914,10 @@ document.addEventListener('DOMContentLoaded', function() {
         aiChatBody.appendChild(thinkingMessage);
 
         try {
+            // ✅ ИСПОЛЬЗОВАНИЕ БЕЗОПАСНЫХ ЗАГОЛОВКОВ
             const response = await fetch('/assistant/api/chat/', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: createSecureHeaders(), // ✅ CSRF токен включен!
                 body: JSON.stringify(requestData)
             });
 
@@ -879,6 +929,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     const errorData = await response.json();
                     errorDetail = errorData.error || errorData.detail || errorDetail;
                 } catch (e) {}
+
+                // ✅ Специальная обработка CSRF ошибок
+                if (response.status === 403) {
+                    errorDetail = 'CSRF ошибка - перезагрузите страницу и попробуйте снова';
+                    console.error('CSRF token issue detected');
+                }
+
                 appendMessageToChat(`❌ Ошибка: ${errorDetail}`, 'ai');
                 return;
             }
@@ -987,6 +1044,64 @@ ${stats.lastUpdate ? `📅 Последнее обновление: ${stats.last
         appendMessageToChat('Очистка истории отменена! 👍', 'ai', true);
     }
 
+    // ✅ ИСПРАВЛЕННАЯ ФУНКЦИЯ showTourStep - с CSRF защитой
+    async function showTourStep(stepNumber) {
+        if (!interactiveTourModal || !tourModalBody) return;
+
+        tourModalBody.innerHTML = '<div class="text-center"><div class="spinner-border text-warning" role="status"></div></div>';
+        interactiveTourModal.show();
+
+        if (tourStepNumberSpan) {
+            tourStepNumberSpan.textContent = stepNumber;
+        }
+
+        const requestData = {
+            action_type: 'interactive_tour_step',
+            step_number: stepNumber,
+            user_info: {
+                username: assistantContainer?.dataset.username || 'Гость'
+            }
+        };
+
+        try {
+            // ✅ ИСПОЛЬЗОВАНИЕ БЕЗОПАСНЫХ ЗАГОЛОВКОВ
+            const response = await fetch('/assistant/api/chat/', {
+                method: 'POST',
+                headers: createSecureHeaders(), // ✅ CSRF токен включен!
+                body: JSON.stringify(requestData)
+            });
+
+            if (!response.ok) {
+                tourModalBody.innerHTML = '<p class="text-danger">Ошибка загрузки шага тура</p>';
+                return;
+            }
+
+            const responseData = await response.json();
+            tourModalBody.innerHTML = responseData.response;
+
+            if (typeof gsap !== 'undefined') {
+                gsap.from(tourModalBody.children, {
+                    opacity: 0,
+                    y: 30,
+                    stagger: 0.1,
+                    duration: 0.5
+                });
+            }
+
+            if (nextTourStepBtn) {
+                if (stepNumber >= MAX_TOUR_STEPS) {
+                    nextTourStepBtn.textContent = 'Завершить';
+                } else {
+                    nextTourStepBtn.textContent = 'Далее';
+                }
+            }
+
+        } catch (error) {
+            console.error('Ошибка:', error);
+            tourModalBody.innerHTML = '<p class="text-danger">Произошла ошибка</p>';
+        }
+    }
+
     // Interactive Tour Functions (остаются модальными)
     function initializeTourElements() {
         const modalElement = document.getElementById('interactiveTourModal');
@@ -1019,64 +1134,6 @@ ${stats.lastUpdate ? `📅 Последнее обновление: ${stats.last
         }
         if (closeTourModalBtn) {
             closeTourModalBtn.addEventListener('click', completeTour);
-        }
-    }
-
-    async function showTourStep(stepNumber) {
-        if (!interactiveTourModal || !tourModalBody) return;
-
-        tourModalBody.innerHTML = '<div class="text-center"><div class="spinner-border text-warning" role="status"></div></div>';
-        interactiveTourModal.show();
-
-        if (tourStepNumberSpan) {
-            tourStepNumberSpan.textContent = stepNumber;
-        }
-
-        const requestData = {
-            action_type: 'interactive_tour_step',
-            step_number: stepNumber,
-            user_info: {
-                username: assistantContainer?.dataset.username || 'Гость'
-            }
-        };
-
-        try {
-            const response = await fetch('/assistant/api/chat/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestData)
-            });
-
-            if (!response.ok) {
-                tourModalBody.innerHTML = '<p class="text-danger">Ошибка загрузки шага тура</p>';
-                return;
-            }
-
-            const responseData = await response.json();
-            tourModalBody.innerHTML = responseData.response;
-
-            if (typeof gsap !== 'undefined') {
-                gsap.from(tourModalBody.children, {
-                    opacity: 0,
-                    y: 30,
-                    stagger: 0.1,
-                    duration: 0.5
-                });
-            }
-
-            if (nextTourStepBtn) {
-                if (stepNumber >= MAX_TOUR_STEPS) {
-                    nextTourStepBtn.textContent = 'Завершить';
-                } else {
-                    nextTourStepBtn.textContent = 'Далее';
-                }
-            }
-
-        } catch (error) {
-            console.error('Ошибка:', error);
-            tourModalBody.innerHTML = '<p class="text-danger">Произошла ошибка</p>';
         }
     }
 
@@ -1211,7 +1268,7 @@ ${stats.lastUpdate ? `📅 Последнее обновление: ${stats.last
         }
     }
 
-    // Post Creation Helper
+    // ✅ ИСПРАВЛЕННАЯ ФУНКЦИЯ getPostSuggestionBtn - с CSRF защитой
     const getPostSuggestionBtn = document.getElementById('getPostSuggestionBtn');
     const postSuggestionArea = document.getElementById('postSuggestionArea');
 
@@ -1240,11 +1297,10 @@ ${stats.lastUpdate ? `📅 Последнее обновление: ${stats.last
             };
 
             try {
+                // ✅ ИСПОЛЬЗОВАНИЕ БЕЗОПАСНЫХ ЗАГОЛОВКОВ
                 const response = await fetch('/assistant/api/chat/', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: createSecureHeaders(), // ✅ CSRF токен включен!
                     body: JSON.stringify(requestData)
                 });
 
@@ -1278,7 +1334,7 @@ ${stats.lastUpdate ? `📅 Последнее обновление: ${stats.last
         });
     }
 
-    // Post Content Check
+    // ✅ ИСПРАВЛЕННАЯ ФУНКЦИЯ checkPostContentBtn - с CSRF защитой
     const checkPostContentBtn = document.getElementById('checkPostContentBtn');
     const postCheckResultArea = document.getElementById('postCheckResultArea');
 
@@ -1312,11 +1368,10 @@ ${stats.lastUpdate ? `📅 Последнее обновление: ${stats.last
             };
 
             try {
+                // ✅ ИСПОЛЬЗОВАНИЕ БЕЗОПАСНЫХ ЗАГОЛОВКОВ
                 const response = await fetch('/assistant/api/chat/', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: createSecureHeaders(), // ✅ CSRF токен включен!
                     body: JSON.stringify(requestData)
                 });
 

@@ -1,12 +1,14 @@
 import json
 import logging
 import re
+import time
 from django.http import JsonResponse
 from django.views import View
 from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+from django.core.cache import cache
 
 from .ai_services import (
     get_gemini_response,
@@ -28,12 +30,57 @@ from .ai_services import (
 logger = logging.getLogger(__name__)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
+def check_rate_limit(user_identifier, max_requests=15, window=60):
+    """
+     ЗАЩИТА ОТ СПАМА: Максимум 15 запросов в минуту на пользователя/IP
+    """
+    key = f"ai_requests_{user_identifier}"
+    requests = cache.get(key, [])
+    now = time.time()
+
+    # Очищаем старые запросы
+    requests = [req for req in requests if now - req < window]
+
+    # Проверяем лимит
+    if len(requests) >= max_requests:
+        return False, len(requests)
+
+    # Добавляем новый запрос
+    requests.append(now)
+    cache.set(key, requests, window)
+    return True, len(requests)
+
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')  #  БЕЗОПАСНО: требует CSRF токен
 class ChatWithAIView(View):
-    """Основной view для взаимодействия с ИИ-помощником."""
+    """
+     БЕЗОПАСНЫЙ view для взаимодействия с ИИ-помощником.
+    - Проверяет CSRF токен
+    - Ограничивает rate limiting
+    - Валидирует длину запросов
+    """
 
     def post(self, request, *args, **kwargs):
         try:
+            # ✅ ЗАЩИТА 1: Rate Limiting
+            if request.user.is_authenticated:
+                user_identifier = f"user_{request.user.id}"
+                username = request.user.username
+            else:
+                # Для анонимных пользователей используем IP
+                user_identifier = f"ip_{self.get_client_ip(request)}"
+                username = "Гость"
+
+            allowed, request_count = check_rate_limit(user_identifier)
+            if not allowed:
+                logger.warning(f"Rate limit exceeded for {user_identifier}")
+                return JsonResponse({
+                    'error': f'Слишком много запросов! Попробуйте через минуту. (Лимит: 15 запросов/мин)'
+                }, status=429)
+
+            # Логируем использование для мониторинга
+            logger.info(f"AI request {request_count}/15 from {username} ({user_identifier})")
+
             # Загружаем данные из запроса
             if request.content_type == 'application/json':
                 data = json.loads(request.body)
@@ -43,6 +90,28 @@ class ChatWithAIView(View):
             action_type = data.get('action_type')
             user_input = data.get('user_input', '')
             user_info = data.get('user_info', {})
+
+            # ✅ ЗАЩИТА 2: Ограничение длины запроса
+            if len(user_input) > 1000:
+                logger.warning(f"Too long request from {username}: {len(user_input)} chars")
+                return JsonResponse({
+                    'error': 'Слишком длинный запрос! Максимум 1000 символов.'
+                }, status=400)
+
+            # ✅ ЗАЩИТА 3: Базовая валидация action_type
+            allowed_actions = {
+                'faq', 'feature_explanation', 'general_chat', 'interactive_tour_step',
+                'post_creation_suggestion', 'subscription_recommendations', 'check_post_content',
+                'analyze_profile', 'generate_post_ideas', 'analyze_sentiment',
+                'find_post_by_keyword', 'get_post_details', 'find_user_by_username',
+                'get_user_activity'
+            }
+
+            if action_type and action_type not in allowed_actions:
+                logger.warning(f"Invalid action_type from {username}: {action_type}")
+                return JsonResponse({
+                    'error': 'Неизвестный тип действия'
+                }, status=400)
 
             # Добавляем информацию о текущем пользователе
             if request.user.is_authenticated:
@@ -58,9 +127,11 @@ class ChatWithAIView(View):
                     'is_authenticated': False
                 })
 
-            # Логируем запрос для статистики
+            # Логируем запрос для статистики (но не весь user_input для приватности)
             logger.info(
-                f"AI request: action={action_type}, user={user_info.get('username')}, input='{user_input[:50]}...'")
+                f"AI request: action={action_type}, user={user_info.get('username')}, "
+                f"input_length={len(user_input)}, chars='{user_input[:30]}...'"
+            )
 
             # Обработка различных типов действий
             try:
@@ -87,12 +158,16 @@ class ChatWithAIView(View):
                         return JsonResponse({'error': 'Не указан номер шага'}, status=400)
                     try:
                         step_number = int(step_number)
+                        if step_number < 1 or step_number > 10:  # ✅ Валидация диапазона
+                            return JsonResponse({'error': 'Номер шага должен быть от 1 до 10'}, status=400)
                     except ValueError:
                         return JsonResponse({'error': 'Номер шага должен быть числом'}, status=400)
                     ai_response = get_interactive_tour_step(step_number=step_number, user_info=user_info)
 
                 elif action_type == 'post_creation_suggestion':
                     current_text = data.get('current_text', '')
+                    if len(current_text) > 5000:  # ✅ Ограничение для текста поста
+                        return JsonResponse({'error': 'Слишком длинный текст поста'}, status=400)
                     ai_response = get_post_creation_suggestion(current_text=current_text, user_info=user_info)
 
                 elif action_type == 'subscription_recommendations':
@@ -102,6 +177,8 @@ class ChatWithAIView(View):
                 elif action_type == 'check_post_content':
                     if not user_input:
                         return JsonResponse({'error': 'Введите текст для проверки'}, status=400)
+                    if len(user_input) > 5000:  # ✅ Ограничение для проверки контента
+                        return JsonResponse({'error': 'Слишком длинный текст для проверки'}, status=400)
                     ai_response = check_post_content(post_text=user_input, user_info=user_info)
 
                 elif action_type == 'analyze_profile':
@@ -112,6 +189,8 @@ class ChatWithAIView(View):
 
                 elif action_type == 'generate_post_ideas':
                     tags = data.get('tags', [])
+                    if len(tags) > 10:  # ✅ Ограничение количества тегов
+                        return JsonResponse({'error': 'Слишком много тегов (максимум 10)'}, status=400)
                     ai_response = generate_post_ideas(user_info=user_info, tags=tags)
 
                 elif action_type == 'analyze_sentiment':
@@ -124,6 +203,8 @@ class ChatWithAIView(View):
                     keyword = self.extract_keyword_for_posts(user_input)
                     if not keyword:
                         return JsonResponse({'error': 'Не удалось извлечь ключевое слово для поиска'}, status=400)
+                    if len(keyword) > 100:  # ✅ Ограничение длины ключевого слова
+                        return JsonResponse({'error': 'Слишком длинное ключевое слово'}, status=400)
                     logger.info(f"Extracted keyword for post search: '{keyword}'")
                     ai_response = find_post_by_keyword(keyword=keyword, user_info=user_info)
 
@@ -138,17 +219,21 @@ class ChatWithAIView(View):
                             return JsonResponse({'error': 'Не указан ID поста'}, status=400)
                     try:
                         post_id = int(post_id)
+                        if post_id < 1 or post_id > 999999:  # ✅ Разумные ограничения
+                            return JsonResponse({'error': 'Некорректный ID поста'}, status=400)
                     except ValueError:
                         return JsonResponse({'error': 'ID поста должен быть числом'}, status=400)
                     ai_response = get_post_details(post_id=post_id, user_info=user_info)
 
                 elif action_type == 'find_user_by_username':
                     # Извлекаем имя пользователя из user_input
-                    username = self.extract_username(user_input)
-                    if not username:
+                    username_search = self.extract_username(user_input)
+                    if not username_search:
                         return JsonResponse({'error': 'Не удалось извлечь имя пользователя'}, status=400)
-                    logger.info(f"Extracted username: '{username}'")
-                    ai_response = find_user_by_username(username=username, user_info=user_info)
+                    if len(username_search) > 150:  # ✅ Ограничение длины имени пользователя
+                        return JsonResponse({'error': 'Слишком длинное имя пользователя'}, status=400)
+                    logger.info(f"Extracted username: '{username_search}'")
+                    ai_response = find_user_by_username(username=username_search, user_info=user_info)
 
                 elif action_type == 'get_user_activity':
                     user_id_target = data.get('user_id_target')
@@ -161,6 +246,8 @@ class ChatWithAIView(View):
                             return JsonResponse({'error': 'Не указан ID целевого пользователя'}, status=400)
                     try:
                         user_id_target = int(user_id_target)
+                        if user_id_target < 1 or user_id_target > 999999:  # ✅ Разумные ограничения
+                            return JsonResponse({'error': 'Некорректный ID пользователя'}, status=400)
                     except ValueError:
                         return JsonResponse({'error': 'ID целевого пользователя должен быть числом'}, status=400)
                     ai_response = get_user_activity(user_id=user_id_target, user_info=user_info)
@@ -171,12 +258,16 @@ class ChatWithAIView(View):
 
             except Exception as action_error:
                 logger.error(f"Ошибка при выполнении действия {action_type}: {action_error}")
-                ai_response = f"Произошла ошибка при выполнении запроса: {str(action_error)} 🍊"
+                ai_response = f"Произошла ошибка при выполнении запроса. Попробуйте позже! 🍊"
 
             # Сохраняем статистику использования (опционально)
-            self.save_usage_stats(action_type, user_info)
+            self.save_usage_stats(action_type, user_info, user_identifier)
 
-            logger.info(f"AI response length: {len(ai_response)} chars")
+            # ✅ Ограничиваем длину ответа
+            if len(ai_response) > 5000:
+                ai_response = ai_response[:4900] + "\n\n... (ответ сокращен)"
+
+            logger.info(f"AI response length: {len(ai_response)} chars for {username}")
 
             return JsonResponse({
                 'response': ai_response,
@@ -189,6 +280,15 @@ class ChatWithAIView(View):
         except Exception as e:
             logger.error(f"Unexpected error in ChatWithAIView: {e}")
             return JsonResponse({'error': 'Внутренняя ошибка сервера'}, status=500)
+
+    def get_client_ip(self, request):
+        """✅ Получает IP адрес клиента для rate limiting анонимных пользователей"""
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
 
     def extract_username(self, user_input: str) -> str:
         """Извлекает имя пользователя из текста."""
@@ -280,6 +380,7 @@ class ChatWithAIView(View):
 
     def handle_natural_language_query(self, user_input: str, user_info: dict) -> str:
         """Обрабатывает запросы на естественном языке."""
+
         lower_input = user_input.lower().strip()
 
         logger.info(f"Processing natural language query: '{user_input}' from {user_info.get('username', 'anonymous')}")
@@ -533,8 +634,10 @@ class ChatWithAIView(View):
         """Информация об API."""
         return JsonResponse({
             'message': 'Chatty Orange AI Assistant API',
-            'version': '2.1',
+            'version': '2.2',  # ✅ Обновили версию
             'status': 'active',
+            'security': 'CSRF + Rate Limiting enabled',  # ✅ Показываем что защищено
+            'rate_limit': '15 requests per minute',
             'endpoints': {
                 'faq': 'Ответы на вопросы о сайте',
                 'feature_explanation': 'Объяснение функций',
@@ -561,10 +664,19 @@ class ChatWithAIView(View):
             ]
         })
 
-    def save_usage_stats(self, action_type, user_info):
-        """Сохраняет статистику использования ИИ (для будущей аналитики)."""
+    def save_usage_stats(self, action_type, user_info, user_identifier):
+        """✅ УЛУЧШЕННАЯ статистика использования ИИ"""
         try:
-            # Здесь можно сохранять в БД или отправлять в аналитику
-            logger.info(f"Usage stat: {action_type} by {user_info.get('username', 'anonymous')}")
+            # Логируем более подробную статистику
+            logger.info(
+                f"AI usage: action={action_type}, "
+                f"user={user_info.get('username', 'anonymous')}, "
+                f"identifier={user_identifier}, "
+                f"auth={user_info.get('is_authenticated', False)}"
+            )
+
+            # Здесь можно добавить сохранение в БД для детальной аналитики
+            # Например: AIUsageLog.objects.create(...)
+
         except Exception as e:
             logger.warning(f"Ошибка при сохранении статистики: {e}")
