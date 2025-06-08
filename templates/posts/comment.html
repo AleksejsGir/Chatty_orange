@@ -1,132 +1,127 @@
 {% load django_bootstrap5 %}
 
-<div class="comment-block {% if level > 0 %}nested-comment{% endif %}" data-comment-id="{{ comment.id }}">
-    <div class="d-flex mb-3 pb-3">
-        <div class="flex-shrink-0 me-3">
-            {% if comment.author.avatar %}
-                <img src="{{ comment.author.avatar.url }}"
-                     alt="{{ comment.author.username }}"
-                     class="post-avatar"
-                     style="width: 40px; height: 40px;">
-            {% else %}
-                <div class="avatar-placeholder"
-                     style="width: 40px; height: 40px; font-size: 1rem;">
-                    <span>{{ comment.author.username|first|upper }}</span>
+<div class="comment-block card mb-3 {% if level > 0 %}nested-comment{% endif %}" data-comment-id="{{ comment.id }}">
+    <div class="card-body">
+        <div class="d-flex">
+            <!-- Аватар и метаданные остаются без изменений -->
+            <div class="flex-shrink-0 me-3">
+                {% if comment.author.avatar %}
+                    <img src="{{ comment.author.avatar.url }}"
+                         alt="{{ comment.author.username }}"
+                         class="post-avatar"
+                         style="width: 40px; height: 40px;">
+                {% else %}
+                    <div class="avatar-placeholder"
+                         style="width: 40px; height: 40px; font-size: 1rem;">
+                        <span>{{ comment.author.username|first|upper }}</span>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="flex-grow-1 position-relative">
+                <!-- Заголовок комментария -->
+                <div class="comment-header mb-2">
+                    <h6 class="mt-0 mb-1 d-inline-block">
+                        <a href="{% url 'users:profile' comment.author.username %}"
+                           class="post-author-name">{{ comment.author.username }}</a>
+                        <small class="text-muted ms-2">{{ comment.created_at|date:"d.m.Y H:i" }}</small>
+                    </h6>
                 </div>
+
+                {% if not comment.is_active and user.is_staff %}
+                    <div class="alert alert-warning py-2 px-3 mb-2 d-inline-block">
+                        <i class="fa-solid fa-eye-slash me-1"></i> Комментарий скрыт
+                    </div>
+                {% endif %}
+
+                <!-- Текст комментария -->
+                <div class="comment-content mb-3">
+                    <p>{{ comment.text|linebreaksbr }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Блок реакций (перенесен вниз) -->
+        <div class="emoji-reactions mb-2">
+            {% for reaction in comment.reactions.all %}
+                <span class="badge reaction-badge"
+                      data-emoji="{{ reaction.emoji }}"
+                      data-comment-id="{{ comment.id }}">
+                    {{ reaction.emoji }} {{ reaction.count }}
+                </span>
+            {% endfor %}
+        </div>
+
+        <!-- Панель действий (под реакциями) -->
+        <div class="comment-actions mt-2 d-flex align-items-center gap-1">
+            <!-- Реакции -->
+            <button class="btn-action text-muted"
+                    data-bs-toggle="modal"
+                    data-bs-target="#emojiModal"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="Реакция">
+                <i class="fa-regular fa-face-smile"></i>
+            </button>
+
+            <!-- Ответ -->
+            <button class="btn-action text-muted btn-reply"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="Ответить">
+                <i class="fa-regular fa-comment-dots"></i>
+            </button>
+
+            <!-- Редактирование -->
+            {% if user == comment.author or user.is_staff %}
+                <a href="{% url 'posts:comment-edit' pk=comment.pk %}"
+                   class="btn-action text-primary"
+                   data-bs-toggle="tooltip"
+                   data-bs-placement="top"
+                   title="Редактировать">
+                    <i class="fa-regular fa-pen-to-square"></i>
+                </a>
+            {% endif %}
+
+            <!-- Удаление -->
+            {% if user == comment.author or user.is_staff %}
+                <form method="post"
+                      action="{% url 'posts:comment-delete' pk=comment.pk %}"
+                      class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="btn-action text-danger"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="Удалить"
+                            onclick="return confirm('Удалить этот комментарий?')">
+                        <i class="fa-regular fa-trash-can"></i>
+                    </button>
+                </form>
             {% endif %}
         </div>
-        <div class="flex-grow-1 position-relative">
-            <div class="comment-header mb-2">
-                <h6 class="mt-0 mb-1 d-inline-block">
-                    <a href="{% url 'users:profile' comment.author.username %}"
-                       class="post-author-name">{{ comment.author.username }}</a>
-                    <small class="text-muted ms-2">{{ comment.created_at|date:"d.m.Y H:i" }}</small>
-                </h6>
-            </div>
 
-            {% if not comment.is_active and user.is_staff %}
-                <div class="alert alert-warning py-2 px-3 mb-2 d-inline-block">
-                    <i class="fa-solid fa-eye-slash me-1"></i> Комментарий скрыт
+        <!-- Форма ответа -->
+        <div class="reply-form mt-3 d-none">
+            <form method="post"
+                  action="{% url 'posts:comment-reply' parent_id=comment.id %}"
+                  class="mt-2">
+                {% csrf_token %}
+                {% bootstrap_form comment_form %}
+                <div class="mt-2">
+                    <button type="submit" class="btn btn-primary btn-sm">Отправить</button>
+                    <button type="button" class="btn btn-secondary btn-sm cancel-reply">Отмена</button>
                 </div>
-            {% endif %}
-
-            <div class="comment-content">
-                <p>{{ comment.text|linebreaksbr }}</p>
-
-                <!-- Блок реакций -->
-                <div class="reactions-section mt-2">
-                    <div class="emoji-reactions">
-                        {% for reaction in comment.aggregated_reactions %}
-                            <span class="reaction-badge"
-                                  data-emoji="{{ reaction.emoji }}"
-                                  data-comment-id="{{ comment.id }}">
-                                {{ reaction.emoji }} {{ reaction.count }}
-                            </span>
-                        {% endfor %}
-                    </div>
-
-                    <div class="quick-reactions d-flex gap-1 mt-1">
-                        <button class="btn-reaction-quick" data-emoji="👍">👍</button>
-                        <button class="btn-reaction-quick" data-emoji="❤️">❤️</button>
-                        <button class="btn-reaction-quick" data-emoji="😂">😂</button>
-                        <button class="btn-reaction-quick" data-emoji="😮">😮</button>
-                        <button class="btn-reaction-quick" data-emoji="😢">😢</button>
-                        <button class="btn-reaction-quick" data-emoji="😠">😠</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Панель действий -->
-            <div class="comment-actions mt-2 d-flex align-items-center gap-1">
-                <!-- Реакции -->
-                <button class="btn-action text-muted"
-                        data-bs-toggle="modal"
-                        data-bs-target="#emojiModal"
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title="Реакция">
-                    <i class="fa-regular fa-face-smile"></i>
-                </button>
-
-                <!-- Ответ -->
-                <button class="btn-action text-muted btn-reply"
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title="Ответить">
-                    <i class="fa-regular fa-comment-dots"></i>
-                </button>
-
-                <!-- Редактирование -->
-                {% if user == comment.author or user.is_staff %}
-                    <a href="{% url 'posts:comment-edit' pk=comment.pk %}"
-                       class="btn-action text-primary"
-                       data-bs-toggle="tooltip"
-                       data-bs-placement="top"
-                       title="Редактировать">
-                        <i class="fa-regular fa-pen-to-square"></i>
-                    </a>
-                {% endif %}
-
-                <!-- Удаление -->
-                {% if user == comment.author or user.is_staff %}
-                    <form method="post"
-                          action="{% url 'posts:comment-delete' pk=comment.pk %}"
-                          class="d-inline">
-                        {% csrf_token %}
-                        <button type="submit"
-                                class="btn-action text-danger"
-                                data-bs-toggle="tooltip"
-                                data-bs-placement="top"
-                                title="Удалить"
-                                onclick="return confirm('Удалить этот комментарий?')">
-                            <i class="fa-regular fa-trash-can"></i>
-                        </button>
-                    </form>
-                {% endif %}
-            </div>
-
-            <!-- Форма ответа -->
-            <div class="reply-form mt-3 d-none">
-                <form method="post"
-                      action="{% url 'posts:comment-reply' parent_id=comment.id %}"
-                      class="mt-2">
-                    {% csrf_token %}
-                    {% bootstrap_form comment_form %}
-                    <div class="mt-2">
-                        <button type="submit" class="btn btn-primary btn-sm">Отправить</button>
-                        <button type="button" class="btn btn-secondary btn-sm cancel-reply">Отмена</button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Вложенные комментарии -->
-            {% if comment.replies.all %}
-                <div class="replies mt-3">
-                    {% for reply in comment.replies.all %}
-                        {% include 'posts/comment.html' with comment=reply level=level|add:1 %}
-                    {% endfor %}
-                </div>
-            {% endif %}
+            </form>
         </div>
     </div>
+
+    <!-- Вложенные комментарии -->
+    {% if comment.replies.all %}
+        <div class="replies mt-3">
+            {% for reply in comment.replies.all %}
+                {% include 'posts/comment.html' with comment=reply level=level|add:1 %}
+            {% endfor %}
+        </div>
+    {% endif %}
 </div>

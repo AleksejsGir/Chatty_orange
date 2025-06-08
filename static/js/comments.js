@@ -4,71 +4,91 @@ document.addEventListener('DOMContentLoaded', function() {
     const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl, {trigger: 'hover'});
     });
-    // Обработчик удаления комментария
-    document.querySelectorAll('.btn-delete-comment').forEach(button => {
+
+    // Обработчик кнопки "Ответить"
+    document.querySelectorAll('.btn-reply').forEach(button => {
         button.addEventListener('click', function() {
-            const commentId = this.dataset.commentId;
-            if (confirm('Удалить этот комментарий?')) {
-                deleteComment(commentId);
+            const commentBlock = this.closest('.comment-block');
+            const commentId = commentBlock.dataset.commentId;
+            const replyForm = commentBlock.querySelector('.reply-form');
+
+            if (replyForm) {
+                replyForm.classList.toggle('d-none');
             }
         });
     });
 
-    // Обработчик редактирования комментария
-    document.querySelectorAll('.btn-edit-comment').forEach(button => {
-        button.addEventListener('click', function() {
-            const commentId = this.dataset.commentId;
-            toggleEditForm(commentId);
-        });
-    });
-
-    // Обработчик ответа на комментарий
-    document.querySelectorAll('.btn-reply-comment').forEach(button => {
-        button.addEventListener('click', function() {
-            const commentId = this.dataset.commentId;
-            toggleReplyForm(commentId);
-        });
-    });
-
-    // Обработчик реакции
-    document.querySelectorAll('.btn-reaction').forEach(button => {
-        button.addEventListener('click', function() {
-            const commentId = this.dataset.commentId;
-            addReaction(commentId, '👍'); // Пока используем 👍 как пример
-        });
-    });
-
-    // Обработчик отправки формы редактирования
-    document.querySelectorAll('.edit-comment-form').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const commentId = this.dataset.commentId;
-            updateComment(commentId, this);
-        });
-    });
-
-    // Обработчик отмены редактирования
-    document.querySelectorAll('.cancel-edit').forEach(button => {
-        button.addEventListener('click', function() {
-            const form = this.closest('.edit-comment-form');
-            if (form) {
-                const commentId = form.dataset.commentId;
-                toggleEditForm(commentId);
-            }
-        });
-    });
-
-    // Обработчик отмены ответа
+    // Обработчик кнопки отмены ответа
     document.querySelectorAll('.cancel-reply').forEach(button => {
         button.addEventListener('click', function() {
-            const form = this.closest('.reply-form');
-            if (form) {
-                const commentId = form.dataset.commentId;
-                toggleReplyForm(commentId);
+            const replyForm = this.closest('.reply-form');
+            if (replyForm) {
+                replyForm.classList.add('d-none');
+            }
+        });
+    });
+
+    // Обработчик реакции (кнопка смайлика)
+    document.querySelectorAll('.btn-action.text-muted').forEach(button => {
+        button.addEventListener('click', function() {
+            if (this.getAttribute('title') === 'Реакция') {
+                const commentBlock = this.closest('.comment-block');
+                const commentId = commentBlock.dataset.commentId;
+                // Здесь будет логика для открытия выбора эмодзи
+                // Пока просто пример: добавим реакцию "👍"
+                addReaction(commentId, '👍');
+            }
+        });
+    });
+
+    // Обработчик эмодзи-пикера (если используется)
+    const picker = document.querySelector('emoji-picker');
+    if (picker) {
+        picker.addEventListener('emoji-click', event => {
+            const emoji = event.detail.unicode;
+            const activeComment = document.querySelector('.comment-block:hover');
+
+            if (activeComment) {
+                const commentId = activeComment.dataset.commentId;
+                addReaction(commentId, emoji);
+            }
+        });
+    }
+
+    // Обработчик удаления комментария (теперь кнопка удаления имеет классы 'btn-action text-danger')
+    document.querySelectorAll('.btn-action.text-danger').forEach(button => {
+        button.addEventListener('click', function(e) {
+            if (!confirm('Удалить этот комментарий?')) {
+                e.preventDefault();
             }
         });
     });
 });
+
+// Функция добавления реакции (адаптирована под новую структуру)
+function addReaction(commentId, emoji) {
+    const container = document.querySelector(`.comment-block[data-comment-id="${commentId}"] .emoji-reactions`);
+    if (!container) return;
+
+    let badge = container.querySelector(`.reaction-badge[data-emoji="${emoji}"]`);
+
+    if (badge) {
+        const count = parseInt(badge.textContent.match(/\d+/)[0]) + 1;
+        badge.textContent = `${emoji} ${count}`;
+    } else {
+        const newBadge = document.createElement('span');
+        newBadge.className = 'badge reaction-badge me-1';
+        newBadge.dataset.emoji = emoji;
+        newBadge.dataset.commentId = commentId;
+        newBadge.textContent = `${emoji} 1`;
+        container.appendChild(newBadge);
+    }
+
+    // Здесь будет вызов на сервер для сохранения реакции
+    console.log(`Added ${emoji} to comment ${commentId}`);
+}
+
+// Остальные функции (deleteComment, updateComment и т.д.) остаются без изменений
 
 // Функция удаления комментария через AJAX
 function deleteComment(commentId) {
@@ -147,26 +167,6 @@ function toggleReplyForm(commentId) {
     if (container) {
         container.classList.toggle('active');
     }
-}
-
-// Функция добавления реакции
-function addReaction(commentId, emoji) {
-    const container = document.querySelector(`.reactions-container[data-comment-id="${commentId}"]`);
-    let badge = container.querySelector(`.reaction-badge[data-emoji="${emoji}"]`);
-
-    if (badge) {
-        const countElement = badge.querySelector('.count');
-        countElement.textContent = parseInt(countElement.textContent) + 1;
-    } else {
-        container.innerHTML += `
-            <span class="reaction-badge" data-emoji="${emoji}">
-                ${emoji} <span class="count">1</span>
-            </span>
-        `;
-    }
-
-    // Здесь будет вызов на сервер для сохранения реакции
-    console.log(`Added ${emoji} to comment ${commentId}`);
 }
 
 // Функция для получения CSRF токена
