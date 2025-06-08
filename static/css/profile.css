@@ -1,0 +1,336 @@
+/* profile.css */
+
+/* Оранжевое поле шапки */
+.profile-header {
+    height: 180px;
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-cover {
+    height: 100%;
+    background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
+}
+
+/* Основной контейнер профиля */
+.profile-info-container {
+    position: relative;
+    margin-top: -60px; /* Поднимаем контейнер, чтобы аватар накладывался на шапку */
+    padding-top: 70px; /* Добавляем отступ для контента под шапкой */
+    padding-bottom: 30px;
+}
+
+.profile-header-section {
+    display: flex;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-top: 20px; /* Отступ от верхнего края */
+}
+
+/* Аватар */
+.profile-avatar-container {
+    margin-right: 25px;
+    flex-shrink: 0;
+    margin-top: -80px; /* Поднимаем аватар на шапку */
+}
+
+.profile-avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 4px solid white;
+    object-fit: cover;
+}
+
+.profile-avatar-placeholder {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid white;
+    font-size: 4rem;
+    font-weight: bold;
+    color: #777;
+}
+
+/* Информация пользователя */
+.profile-info-section {
+    flex-grow: 1;
+    min-width: 300px;
+    padding-top: 20px; /* Отступ для выравнивания с аватаром */
+}
+
+.profile-name {
+    font-size: 2rem;
+    margin-bottom: 5px;
+}
+
+.profile-fullname {
+    font-size: 1.2rem;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+/* Статистика профиля */
+.profile-stats {
+    display: flex;
+    gap: 20px;
+    margin: 15px 0;
+}
+
+.profile-stat {
+    text-align: center;
+    min-width: 80px;
+}
+
+.stat-value {
+    display: block;
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Кнопки действий */
+.profile-actions {
+    margin-top: 20px; /* Увеличенный отступ */
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.btn-edit-profile, .subscription-toggle {
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: 500;
+    transition: all 0.3s;
+    font-size: 1rem;
+}
+
+.btn-edit-profile {
+    background-color: #f97316;
+    color: white;
+    border: none;
+}
+
+.btn-edit-profile:hover {
+    background-color: #ea580c;
+    color: white;
+}
+
+.btn-follow-profile {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+}
+
+.btn-follow-profile:hover {
+    background-color: #2563eb;
+}
+
+.btn-unfollow-profile {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+}
+
+.btn-unfollow-profile:hover {
+    background-color: #dc2626;
+}
+
+/* Блоки информации */
+.profile-content-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    margin-top: 60px;
+}
+
+.profile-info-card {
+    flex: 1;
+    min-width: 300px;
+    max-width: 500px;
+}
+
+.profile-posts-card {
+    flex: 2;
+    min-width: 300px;
+}
+
+.profile-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.profile-card-title {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+}
+
+.profile-info-icon {
+    margin-right: 10px;
+    color: #f97316;
+}
+
+/* Информация о пользователе */
+.profile-info-item {
+    display: flex;
+    margin-bottom: 15px;
+    align-items: flex-start;
+}
+
+.profile-info-text {
+    flex-grow: 1;
+}
+
+.profile-info-label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 3px;
+    color: #333;
+}
+
+.profile-info-value {
+    color: #555;
+    line-height: 1.5;
+}
+
+/* Посты */
+.post-card {
+    border: 2px solid #f97316;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s;
+}
+
+.post-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-img-top {
+    height: 200px;
+    object-fit: cover;
+    border-radius: 6px 6px 0 0;
+}
+
+.card-body {
+    padding: 15px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.post-title {
+    font-size: 1.25rem;
+    margin-bottom: 10px;
+}
+
+.post-title a {
+    color: #333;
+    text-decoration: none;
+}
+
+.post-title a:hover {
+    color: #f97316;
+    text-decoration: underline;
+}
+
+.post-text {
+    flex-grow: 1;
+    margin-bottom: 15px;
+    color: #444;
+    font-size: 0.95rem;
+}
+
+.post-meta-compact {
+    color: #666;
+    font-size: 0.85rem;
+    margin-bottom: 15px;
+}
+
+/* Блок взаимодействий */
+.interaction-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.btn-interaction {
+    background: none;
+    border: none;
+    color: #666;
+    padding: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: color 0.3s;
+}
+
+.btn-interaction:hover {
+    color: #f97316;
+}
+
+.btn-interaction.active {
+    color: #3b82f6;
+}
+
+.btn-interaction:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.interaction-count {
+    margin-left: 5px;
+    font-size: 0.9rem;
+}
+
+/* Адаптивность */
+@media (max-width: 992px) {
+    .profile-content-section {
+        flex-direction: column;
+    }
+
+    .profile-info-card,
+    .profile-posts-card {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .profile-header-section {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .profile-avatar-container {
+        margin: -80px auto 20px;
+        margin-right: 0;
+    }
+
+    .profile-stats {
+        justify-content: center;
+    }
+
+    .profile-info-section {
+        padding-top: 0;
+    }
+}
