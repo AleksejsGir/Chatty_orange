@@ -527,21 +527,21 @@ body.resizing-chat * {
 }
 
 /* Области для помощи в создании поста */
-#postSuggestionArea,
-#postCheckResultArea {
-    animation: fadeIn 0.3s ease;
-}
+/*#postSuggestionArea,*/
+/*#postCheckResultArea {*/
+/*    animation: fadeIn 0.3s ease;*/
+/*}*/
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+/*@keyframes fadeIn {*/
+/*    from {*/
+/*        opacity: 0;*/
+/*        transform: translateY(10px);*/
+/*    }*/
+/*    to {*/
+/*        opacity: 1;*/
+/*        transform: translateY(0);*/
+/*    }*/
+/*}*/
 
 /* ========== АДАПТИВНОСТЬ ========== */
 @media (max-width: 768px) {
@@ -764,24 +764,6 @@ body.resizing-chat * {
     text-decoration: none;
     background-color: rgba(255, 107, 53, 0.1);
 }
-
-/*.post-link {*/
-/*    color: #007bff !important;*/
-/*    text-decoration: none;*/
-/*    font-weight: 500;*/
-/*    padding: 2px 6px;*/
-/*    background: rgba(0, 123, 255, 0.1);*/
-/*    border-radius: 4px;*/
-/*    transition: all 0.2s ease;*/
-/*    border-bottom: 1px dashed #007bff;*/
-/*}*/
-
-/*.post-link:hover {*/
-/*    background: rgba(0, 123, 255, 0.2);*/
-/*    text-decoration: none;*/
-/*    color: #0056b3 !important;*/
-/*    border-bottom: 1px solid #0056b3;*/
-/*}*/
 
 .chat-link {
     cursor: pointer;

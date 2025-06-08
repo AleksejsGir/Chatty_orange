@@ -36,6 +36,46 @@
         max-height: 150px;
         margin-bottom: 10px;
     }
+
+    /* НОВЫЕ СТИЛИ для областей ИИ */
+    #postSuggestionArea,
+    #postCheckResultArea {
+        min-height: auto !important;
+        height: auto !important;
+        max-height: 400px;
+        overflow-y: auto;
+        word-wrap: break-word;
+        word-break: break-word;
+        white-space: pre-wrap;
+        transition: all 0.3s ease-in-out;
+    }
+
+    #postSuggestionArea {
+        resize: vertical;
+    }
+
+    #postSuggestionArea p,
+    #postCheckResultArea p {
+        margin-bottom: 0.5rem;
+        line-height: 1.5;
+    }
+
+    #postSuggestionArea p:last-child,
+    #postCheckResultArea p:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Улучшение для длинного контента */
+    #postSuggestionArea ul,
+    #postCheckResultArea ul {
+        padding-left: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    #postSuggestionArea li,
+    #postCheckResultArea li {
+        margin-bottom: 0.25rem;
+    }
 </style>
 <style>
     /* Дополнительные стили для CKEditor */

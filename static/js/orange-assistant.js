@@ -936,7 +936,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 ${stats.lastUpdate ? `📅 Последнее обновление: ${stats.lastUpdate.toLocaleDateString()} в ${stats.lastUpdate.toLocaleTimeString()}` : ''}
 
-💡 История автоматически сохраняется и восстанавливается при переходах между страницами!`;
+💡 История автоматически сохраняется для вашего удобства!`;
 
         appendMessageToChat(statsMessage, 'ai', true);
     }
@@ -1253,6 +1253,12 @@ ${stats.lastUpdate ? `📅 Последнее обновление: ${stats.last
                 } else {
                     const responseData = await response.json();
                     postSuggestionArea.innerHTML = formatMessage(responseData.response);
+
+                    // Автоматическая подстройка высоты под контент
+                    setTimeout(() => {
+                        postSuggestionArea.style.height = 'auto';
+                        postSuggestionArea.scrollTop = 0;
+                    }, 100);
                 }
             } catch (error) {
                 postSuggestionArea.innerHTML = '<p class="text-danger">Ошибка сети</p>';
@@ -1264,7 +1270,7 @@ ${stats.lastUpdate ? `📅 Последнее обновление: ${stats.last
                 if (typeof gsap !== 'undefined') {
                     gsap.from(postSuggestionArea, {
                         opacity: 0,
-                        height: 0,
+                        y: -20,  // Анимация сдвига вместо высоты
                         duration: 0.3
                     });
                 }
