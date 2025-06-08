@@ -244,6 +244,20 @@ document.addEventListener('DOMContentLoaded', function() {
     function detectCommandType(messageText) {
         const lowerText = messageText.toLowerCase().trim();
 
+        // ВАЖНО: Сначала проверяем запросы постов пользователя
+        const userPostsPatterns = [
+            /статьи у \w+/i, /посты у \w+/i, /какие статьи у/i, /какие посты у/i,
+            /что писал \w+/i, /посты пользователя/i, /статьи пользователя/i,
+            /статьи от \w+/i, /посты от \w+/i
+        ];
+
+        // Проверяем, является ли это запросом постов конкретного пользователя
+        if (userPostsPatterns.some(pattern => pattern.test(lowerText))) {
+            // НЕ возвращаем find_post_by_keyword для таких запросов
+            // Пусть обрабатывается в general_chat, где правильная логика
+            return 'general_chat';
+        }
+
         const userSearchPatterns = [
             /найди пользователя/i, /найти пользователя/i, /ищи пользователя/i, /искать пользователя/i,
             /найди юзера/i, /пользователь \w+/i, /профиль \w+/i, /кто такой \w+/i, /в профиле \w+/i, /@\w+/i
@@ -259,15 +273,6 @@ document.addEventListener('DOMContentLoaded', function() {
         ];
 
         if (postSearchPatterns.some(pattern => pattern.test(lowerText))) {
-            return 'find_post_by_keyword';
-        }
-
-        const userPostsPatterns = [
-            /статьи у \w+/i, /посты у \w+/i, /какие статьи у/i, /какие посты у/i,
-            /что писал \w+/i, /посты пользователя/i, /статьи пользователя/i
-        ];
-
-        if (userPostsPatterns.some(pattern => pattern.test(lowerText))) {
             return 'find_post_by_keyword';
         }
 
