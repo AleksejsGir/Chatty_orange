@@ -685,3 +685,65 @@ body.resizing-chat * {
     color: white;
     transform: scale(1.05);
 }
+
+/* Индикатор восстановления истории */
+.restore-indicator {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Кнопки подтверждения очистки истории */
+.confirm-clear-history {
+    text-align: center;
+    padding: 10px;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.confirm-clear-history .btn {
+    font-size: 12px;
+    padding: 6px 12px;
+}
+
+/* Стили для статистики в сообщениях */
+.ai-message strong {
+    color: #f97316;
+}
+
+/* Дополнительные кнопки быстрых действий */
+.quick-action[data-action="history-stats"] {
+    background-color: #fff;
+    border-color: #6c757d;
+    color: #6c757d;
+}
+
+.quick-action[data-action="history-stats"]:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+.quick-action[data-action="clear-history"] {
+    background-color: #fff;
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+.quick-action[data-action="clear-history"]:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+/* Анимация для новых элементов */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

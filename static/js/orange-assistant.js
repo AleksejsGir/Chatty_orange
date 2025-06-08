@@ -21,6 +21,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let currentActionType = 'general_chat';
 
+    // НОВЫЕ КОНСТАНТЫ ДЛЯ ИСТОРИИ ЧАТА
+    const CHAT_HISTORY_KEY = 'chattyOrangeChatHistory';
+    const MAX_MESSAGES = 100; // Максимум сообщений в истории
+
     // Interactive Tour Elements
     let currentTourStep = 1;
     const MAX_TOUR_STEPS = 4;
@@ -37,6 +41,203 @@ document.addEventListener('DOMContentLoaded', function() {
             return `chattyOrangeTourCompleted_${currentUsername}`;
         }
         return 'chattyOrangeTourCompleted_guest';
+    }
+
+    // =========================
+    // ФУНКЦИИ ДЛЯ РАБОТЫ С ИСТОРИЕЙ ЧАТА
+    // =========================
+
+    /**
+     * Генерирует уникальный ID для сообщения
+     */
+    function generateMessageId() {
+        return Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    /**
+     * Получает ключ для истории чата конкретного пользователя
+     */
+    function getChatHistoryKey() {
+        const username = assistantContainer?.dataset.username || 'guest';
+        return `${CHAT_HISTORY_KEY}_${username}`;
+    }
+
+    /**
+     * Загружает историю чата из localStorage
+     */
+    function loadChatHistory() {
+        try {
+            const historyKey = getChatHistoryKey();
+            const savedHistory = localStorage.getItem(historyKey);
+
+            if (savedHistory) {
+                const history = JSON.parse(savedHistory);
+
+                // Проверяем структуру данных
+                if (history && Array.isArray(history.messages)) {
+                    console.log(`Загружена история чата: ${history.messages.length} сообщений`);
+                    return history;
+                }
+            }
+
+            // Возвращаем пустую историю, если ничего не найдено
+            return {
+                messages: [],
+                lastUpdate: Date.now()
+            };
+
+        } catch (error) {
+            console.error('Ошибка при загрузке истории чата:', error);
+            return {
+                messages: [],
+                lastUpdate: Date.now()
+            };
+        }
+    }
+
+    /**
+     * Сохраняет историю чата в localStorage
+     */
+    function saveChatHistory(history) {
+        try {
+            const historyKey = getChatHistoryKey();
+
+            // Обновляем время последнего изменения
+            history.lastUpdate = Date.now();
+
+            // Ограничиваем количество сообщений
+            if (history.messages.length > MAX_MESSAGES) {
+                history.messages = history.messages.slice(-MAX_MESSAGES);
+                console.log(`История чата обрезана до ${MAX_MESSAGES} сообщений`);
+            }
+
+            localStorage.setItem(historyKey, JSON.stringify(history));
+            console.log(`История чата сохранена: ${history.messages.length} сообщений`);
+
+        } catch (error) {
+            console.error('Ошибка при сохранении истории чата:', error);
+
+            // Если места не хватает, пробуем очистить старые сообщения
+            if (error.name === 'QuotaExceededError') {
+                console.log('Превышен лимит localStorage, очищаем старые сообщения...');
+                history.messages = history.messages.slice(-50); // Оставляем только 50 последних
+                try {
+                    localStorage.setItem(historyKey, JSON.stringify(history));
+                    console.log('История чата сохранена после очистки');
+                } catch (secondError) {
+                    console.error('Не удалось сохранить даже после очистки:', secondError);
+                }
+            }
+        }
+    }
+
+    /**
+     * Добавляет новое сообщение в историю
+     */
+    function addMessageToHistory(messageText, sender, messageId = null) {
+        const history = loadChatHistory();
+
+        const newMessage = {
+            id: messageId || generateMessageId(),
+            text: messageText,
+            sender: sender,
+            timestamp: Date.now()
+        };
+
+        history.messages.push(newMessage);
+        saveChatHistory(history);
+
+        return newMessage;
+    }
+
+    /**
+     * Восстанавливает историю чата в интерфейсе
+     */
+    function restoreChatHistory() {
+        if (!aiChatBody) {
+            console.log('aiChatBody не найден, пропускаем восстановление истории');
+            return;
+        }
+
+        const history = loadChatHistory();
+
+        if (history.messages.length === 0) {
+            console.log('История чата пуста, показываем приветствие');
+            // Показываем обычное приветствие для нового чата
+            appendMessageToChat('Привет! 👋 Я твой Апельсиновый Помощник! Чем могу помочь сегодня?', 'ai', false, false);
+            appendQuickActions();
+            return;
+        }
+
+        console.log(`Восстанавливаем ${history.messages.length} сообщений из истории`);
+
+        // Очищаем текущий чат
+        aiChatBody.innerHTML = '';
+
+        // Добавляем индикатор восстановления
+        const restoreIndicator = document.createElement('div');
+        restoreIndicator.className = 'restore-indicator';
+        restoreIndicator.innerHTML = `
+            <div style="text-align: center; padding: 10px; color: #f97316; font-size: 12px; border-bottom: 1px solid #eee; margin-bottom: 10px;">
+                <i class="fas fa-history"></i> История чата восстановлена (${history.messages.length} сообщений)
+            </div>
+        `;
+        aiChatBody.appendChild(restoreIndicator);
+
+        // Восстанавливаем все сообщения
+        history.messages.forEach(message => {
+            appendMessageToChat(message.text, message.sender, false, false); // Не сохраняем в историю повторно
+        });
+
+        // Добавляем быстрые действия в конце, если последнее сообщение от ИИ
+        const lastMessage = history.messages[history.messages.length - 1];
+        if (lastMessage && lastMessage.sender === 'ai') {
+            appendQuickActions();
+        }
+
+        // Прокручиваем в самый низ
+        setTimeout(() => {
+            aiChatBody.scrollTop = aiChatBody.scrollHeight;
+        }, 100);
+    }
+
+    /**
+     * Очищает историю чата
+     */
+    function clearChatHistory() {
+        try {
+            const historyKey = getChatHistoryKey();
+            localStorage.removeItem(historyKey);
+
+            if (aiChatBody) {
+                aiChatBody.innerHTML = '';
+                appendMessageToChat('История чата очищена! 🗑️', 'ai', false, false);
+                appendMessageToChat('Привет! 👋 Я твой Апельсиновый Помощник! Чем могу помочь?', 'ai', false, false);
+                appendQuickActions();
+            }
+
+            console.log('История чата очищена');
+
+        } catch (error) {
+            console.error('Ошибка при очистке истории чата:', error);
+        }
+    }
+
+    /**
+     * Получает статистику по истории чата
+     */
+    function getChatHistoryStats() {
+        const history = loadChatHistory();
+
+        const userMessages = history.messages.filter(m => m.sender === 'user').length;
+        const aiMessages = history.messages.filter(m => m.sender === 'ai').length;
+
+        return {
+            totalMessages: history.messages.length,
+            userMessages: userMessages,
+            aiMessages: aiMessages,
+            lastUpdate: history.lastUpdate ? new Date(history.lastUpdate) : null
+        };
     }
 
     // Автоматическое определение типа команды
@@ -381,7 +582,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     height >= minHeight && height <= maxHeight) {
 
                     chatWidget.style.width = width + 'px';
-                    chatWidget.style.height = height + 'px'; // ИЗМЕНЕНО: используем height
+                    chatWidget.style.height = height + 'px';
 
                     console.log(`Восстановлены размеры чата: ${width}x${height}`);
                 }
@@ -398,15 +599,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Функции управления чатом
+    // ИЗМЕНЕННАЯ ФУНКЦИЯ showAIAssistant - теперь восстанавливает историю
     window.showAIAssistant = function() {
         createChatWidget();
 
         if (!isChatOpen) {
             if (aiChatBody && !isChatMinimized) {
                 aiChatBody.innerHTML = '';
-                appendMessageToChat('Привет! 👋 Я твой Апельсиновый Помощник! Чем могу помочь сегодня?', 'ai');
-                appendQuickActions();
+
+                // НОВОЕ: Восстанавливаем историю вместо показа приветствия
+                restoreChatHistory();
             }
 
             chatWidget.style.display = 'flex';
@@ -458,7 +660,7 @@ document.addEventListener('DOMContentLoaded', function() {
         isChatMinimized = false;
     }
 
-    // Быстрые действия
+    // РАСШИРЕННАЯ ФУНКЦИЯ appendQuickActions - добавлены новые кнопки
     function appendQuickActions() {
         const quickActionsDiv = document.createElement('div');
         quickActionsDiv.className = 'quick-actions mt-3';
@@ -471,12 +673,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     <i class="fas fa-route"></i> Тур по сайту
                 </button>
             </div>
-            <div class="d-flex flex-wrap gap-2">
+            <div class="d-flex flex-wrap gap-2 mb-2">
                 <button class="btn btn-sm btn-outline-success quick-action" data-action="ideas">
                     <i class="fas fa-lightbulb"></i> Идеи для постов
                 </button>
                 <button class="btn btn-sm btn-outline-primary quick-action" data-action="stats">
                     <i class="fas fa-chart-line"></i> Моя статистика
+                </button>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-sm btn-outline-secondary quick-action" data-action="history-stats">
+                    <i class="fas fa-history"></i> Статистика чата
+                </button>
+                <button class="btn btn-sm btn-outline-danger quick-action" data-action="clear-history">
+                    <i class="fas fa-trash"></i> Очистить историю
                 </button>
             </div>
         `;
@@ -490,6 +700,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // РАСШИРЕННАЯ ФУНКЦИЯ handleQuickAction - добавлены новые действия
     function handleQuickAction(action) {
         switch(action) {
             case 'help':
@@ -510,10 +721,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 appendMessageToChat("Анализирую твою статистику...", 'user');
                 sendChatMessage();
                 break;
+            // НОВЫЕ ДЕЙСТВИЯ:
+            case 'history-stats':
+                showChatHistoryStats();
+                break;
+            case 'clear-history':
+                confirmClearHistory();
+                break;
         }
     }
 
-    function appendMessageToChat(message, sender, scrollToMessage = false) {
+    // ИЗМЕНЕННАЯ ФУНКЦИЯ appendMessageToChat - добавлен параметр saveToHistory
+    function appendMessageToChat(message, sender, scrollToMessage = false, saveToHistory = true) {
         if (!aiChatBody) return;
 
         const messageDiv = document.createElement('div');
@@ -533,6 +752,11 @@ document.addEventListener('DOMContentLoaded', function() {
         messageDiv.innerHTML = formattedMessage;
 
         aiChatBody.appendChild(messageDiv);
+
+        // НОВОЕ: Сохраняем в историю (если не восстанавливаем из истории)
+        if (saveToHistory && (sender === 'user' || sender === 'ai')) {
+            addMessageToHistory(message, sender);
+        }
 
         if (sender === 'user') {
             aiChatBody.scrollTop = aiChatBody.scrollHeight;
@@ -679,6 +903,69 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.action-btn').forEach(btn => {
             btn.classList.remove('active');
         });
+    }
+
+    // НОВЫЕ ФУНКЦИИ ДЛЯ УПРАВЛЕНИЯ ИСТОРИЕЙ
+    function showChatHistoryStats() {
+        const stats = getChatHistoryStats();
+
+        const statsMessage = `📊 **Статистика вашего чата:**
+
+💬 Всего сообщений: ${stats.totalMessages}
+👤 Ваших сообщений: ${stats.userMessages}  
+🍊 Ответов помощника: ${stats.aiMessages}
+
+${stats.lastUpdate ? `📅 Последнее обновление: ${stats.lastUpdate.toLocaleDateString()} в ${stats.lastUpdate.toLocaleTimeString()}` : ''}
+
+💡 История автоматически сохраняется и восстанавливается при переходах между страницами!`;
+
+        appendMessageToChat(statsMessage, 'ai', true);
+    }
+
+    function confirmClearHistory() {
+        const confirmMessage = `🗑️ **Очистка истории чата**
+
+Вы уверены, что хотите удалить всю историю переписки? Это действие нельзя отменить.
+
+Нажмите "Очистить историю" еще раз, чтобы подтвердить, или напишите что-нибудь другое, чтобы отменить.`;
+
+        appendMessageToChat(confirmMessage, 'ai', true);
+
+        // Добавляем специальную кнопку подтверждения
+        const confirmDiv = document.createElement('div');
+        confirmDiv.className = 'confirm-clear-history mt-2';
+        confirmDiv.innerHTML = `
+            <button class="btn btn-sm btn-danger me-2" onclick="executeClearHistory()">
+                <i class="fas fa-trash"></i> Да, очистить историю
+            </button>
+            <button class="btn btn-sm btn-secondary" onclick="cancelClearHistory()">
+                <i class="fas fa-times"></i> Отмена
+            </button>
+        `;
+        aiChatBody.appendChild(confirmDiv);
+
+        aiChatBody.scrollTop = aiChatBody.scrollHeight;
+    }
+
+    // Глобальные функции для подтверждения очистки
+    window.executeClearHistory = function() {
+        // Удаляем кнопки подтверждения
+        const confirmDiv = document.querySelector('.confirm-clear-history');
+        if (confirmDiv) {
+            confirmDiv.remove();
+        }
+
+        clearChatHistory();
+    }
+
+    window.cancelClearHistory = function() {
+        // Удаляем кнопки подтверждения
+        const confirmDiv = document.querySelector('.confirm-clear-history');
+        if (confirmDiv) {
+            confirmDiv.remove();
+        }
+
+        appendMessageToChat('Очистка истории отменена! 👍', 'ai', true);
     }
 
     // Interactive Tour Functions (остаются модальными)
