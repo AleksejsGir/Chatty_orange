@@ -457,6 +457,7 @@ class CommentReplyView(LoginRequiredMixin, CreateView):
 
 
 # Обработчик реакций
+@require_POST
 def comment_react(request, pk):
     comment = get_object_or_404(Comment, pk=pk)
     emoji = request.POST.get('emoji')
@@ -543,4 +544,26 @@ def toggle_reaction(request, comment_id):
         'status': 'success',
         'action': action,
         'reactions': list(reactions)
+    })
+
+# Редактирование комментария
+@require_POST
+def comment_update(request, pk):
+    comment = get_object_or_404(Comment, pk=pk)
+
+    if request.user != comment.author and not request.user.is_staff:
+        return JsonResponse({'success': False}, status=403)
+
+    # Получаем текст из POST-данных
+    new_text = request.POST.get('text', '').strip()
+
+    if not new_text:
+        return JsonResponse({'success': False, 'error': 'Текст не может быть пустым'}, status=400)
+
+    comment.text = new_text
+    comment.save()
+
+    return JsonResponse({
+        'success': True,
+        'new_text': new_text
     })

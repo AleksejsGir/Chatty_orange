@@ -3,7 +3,6 @@
 <div class="comment-block card mb-3 {% if level > 0 %}nested-comment{% endif %}" data-comment-id="{{ comment.id }}">
     <div class="card-body">
         <div class="d-flex">
-            <!-- Аватар и метаданные остаются без изменений -->
             <div class="flex-shrink-0 me-3">
                 {% if comment.author.avatar %}
                     <img src="{{ comment.author.avatar.url }}"
@@ -19,7 +18,6 @@
             </div>
 
             <div class="flex-grow-1 position-relative">
-                <!-- Заголовок комментария -->
                 <div class="comment-header mb-2">
                     <h6 class="mt-0 mb-1 d-inline-block">
                         <a href="{% url 'users:profile' comment.author.username %}"
@@ -34,37 +32,52 @@
                     </div>
                 {% endif %}
 
-                <!-- Текст комментария -->
                 <div class="comment-content mb-3">
                     <p>{{ comment.text|linebreaksbr }}</p>
                 </div>
             </div>
         </div>
 
-        <!-- Блок реакций (перенесен вниз) -->
+        <!-- Блок быстрых реакций -->
+        {% if user.is_authenticated %}
+        <div class="quick-reactions">
+            <button class="btn-reaction-quick" data-emoji="👍">👍</button>
+            <button class="btn-reaction-quick" data-emoji="❤️">❤️</button>
+            <button class="btn-reaction-quick" data-emoji="😂">😂</button>
+            <button class="btn-reaction-quick" data-emoji="😮">😮</button>
+            <button class="btn-reaction-quick" data-emoji="😢">😢</button>
+            <button class="btn-reaction-quick" data-emoji="🔥">🔥</button>
+        </div>
+        {% endif %}
+
+        <!-- Блок реакций (теперь кликабельный) -->
         <div class="emoji-reactions mb-2">
             {% for reaction in comment.reactions.all %}
-                <span class="badge reaction-badge"
+                <span class="badge reaction-badge me-1 {% if request.user in reaction.users.all %}user-reaction{% endif %}"
                       data-emoji="{{ reaction.emoji }}"
                       data-comment-id="{{ comment.id }}">
-                    {{ reaction.emoji }} {{ reaction.count }}
+                    {{ reaction.emoji }} {{ reaction.users.count }}
                 </span>
             {% endfor %}
         </div>
 
-        <!-- Панель действий (под реакциями) -->
         <div class="comment-actions mt-2 d-flex align-items-center gap-1">
-            <!-- Реакции -->
-            <button class="btn-action text-muted"
-                    data-bs-toggle="modal"
-                    data-bs-target="#emojiModal"
+{#            <button class="btn-action text-muted"#}
+{#                    data-bs-toggle="modal"#}
+{#                    data-bs-target="#emojiModal"#}
+{#                    data-bs-toggle="tooltip"#}
+{#                    data-bs-placement="top"#}
+{#                    title="Реакция">#}
+{#                <i class="fa-regular fa-face-smile"></i>#}
+{#            </button>#}
+            <button class="btn-action text-muted btn-reaction"
+                    data-comment-id="{{ comment.id }}"
                     data-bs-toggle="tooltip"
                     data-bs-placement="top"
                     title="Реакция">
                 <i class="fa-regular fa-face-smile"></i>
             </button>
 
-            <!-- Ответ -->
             <button class="btn-action text-muted btn-reply"
                     data-bs-toggle="tooltip"
                     data-bs-placement="top"
@@ -72,18 +85,21 @@
                 <i class="fa-regular fa-comment-dots"></i>
             </button>
 
-            <!-- Редактирование -->
             {% if user == comment.author or user.is_staff %}
-                <a href="{% url 'posts:comment-edit' pk=comment.pk %}"
-                   class="btn-action text-primary"
-                   data-bs-toggle="tooltip"
-                   data-bs-placement="top"
-                   title="Редактировать">
+{#                <a href="{% url 'posts:comment-edit' pk=comment.pk %}"#}
+{#                   class="btn-action text-primary"#}
+{#                   data-bs-toggle="tooltip"#}
+{#                   data-bs-placement="top"#}
+{#                   title="Редактировать">#}
+{#                    <i class="fa-regular fa-pen-to-square"></i>#}
+{#                </a>#}
+                <button class="btn-action text-primary btn-edit-comment"
+                        data-comment-id="{{ comment.id }}"
+                        data-original-text="{{ comment.text|escape }}">
                     <i class="fa-regular fa-pen-to-square"></i>
-                </a>
+                </button>
             {% endif %}
 
-            <!-- Удаление -->
             {% if user == comment.author or user.is_staff %}
                 <form method="post"
                       action="{% url 'posts:comment-delete' pk=comment.pk %}"
@@ -101,7 +117,21 @@
             {% endif %}
         </div>
 
-        <!-- Форма ответа -->
+        <!-- Форма редактирования -->
+        <div class="edit-form mt-3 d-none">
+            <form method="post"
+                  action="{% url 'posts:comment-update' pk=comment.pk %}"
+                  class="edit-comment-form"
+                  data-comment-id="{{ comment.id }}">
+                {% csrf_token %}
+                <textarea name="text" class="form-control mb-2">{{ comment.text }}</textarea>
+                <div class="mt-2">
+                    <button type="submit" class="btn btn-primary btn-sm">Сохранить</button>
+                    <button type="button" class="btn btn-secondary btn-sm cancel-edit">Отмена</button>
+                </div>
+            </form>
+        </div>
+
         <div class="reply-form mt-3 d-none">
             <form method="post"
                   action="{% url 'posts:comment-reply' parent_id=comment.id %}"
@@ -116,7 +146,6 @@
         </div>
     </div>
 
-    <!-- Вложенные комментарии -->
     {% if comment.replies.all %}
         <div class="replies mt-3">
             {% for reply in comment.replies.all %}
