@@ -30,11 +30,9 @@
                     </a>
                 </li>
                 <li>
-                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to=Chattyorangeeu@gmail.com&su=Советы разработчикам"
-                       target="_blank"
-                       rel="noopener noreferrer">
+                        <button type="button" class="btn btn-link p-0 text-decoration-none" data-bs-toggle="modal" data-bs-target="#adviceModal">
                         Советы разработчикам
-                    </a>
+                        </button>
                 </li>
             </ul>
         </div>
@@ -54,3 +52,60 @@
         </div>
     </div>
 </div>
+
+<!-- Модальное окно для советов разработчикам -->
+<div class="modal fade" id="adviceModal" tabindex="-1" aria-labelledby="adviceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="adviceModalLabel">Совет разработчикам</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="adviceForm" method="post" action="{% url 'submit_advice' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Ваше имя</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="message" class="form-label">Ваш совет</label>
+                        <textarea class="form-control" id="message" name="message" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    <button type="submit" class="btn btn-primary">Отправить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+document.getElementById('adviceForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = e.target;
+    fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Спасибо за ваш совет!');
+            bootstrap.Modal.getInstance(document.getElementById('adviceModal')).hide();
+        } else {
+            alert('Произошла ошибка при отправке.');
+        }
+    })
+    .catch(error => {
+        alert('Произошла ошибка при отправке.');
+    });
+});

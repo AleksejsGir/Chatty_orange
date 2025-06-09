@@ -12,6 +12,7 @@ from django.http import JsonResponse
 from django.db.models import Count, Q
 from django.views.generic.detail import SingleObjectMixin
 from django.views import View
+from django.core.mail import send_mail
 
 from .models import Post, Comment, Tag, PostImage
 from .forms import PostForm, CommentForm, PostImageFormSet
@@ -441,3 +442,28 @@ def feed_view(request):
         total_dislikes=Count('dislikes', distinct=True),
         num_comments=Count('comments', distinct=True)
     )
+
+@csrf_exempt
+def submit_advice(request):
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        message = request.POST.get('message', '').strip()
+
+        if not all([name, email, message]):
+            return JsonResponse({'status': 'error', 'message': 'Все поля обязательны для заполнения'}, status=400)
+
+        try:
+            # Отправка email
+            send_mail(
+                f'Новый совет от {name}',
+                f'Имя: {name}\nEmail: {email}\n\nСообщение:\n{message}',
+                'noreply@chatty.com',  # Замените на ваш email отправителя
+                ['chattyorangeeu@gmail.com'],  # Email получателя
+                fail_silently=False,
+            )
+            return JsonResponse({'status': 'success', 'message': 'Спасибо за ваш совет!'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': f'Ошибка при отправке: {str(e)}'}, status=500)
+
+    return JsonResponse({'status': 'error', 'message': 'Неверный метод запроса'}, status=400)
