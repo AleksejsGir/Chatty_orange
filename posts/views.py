@@ -12,6 +12,7 @@ from django.http import JsonResponse
 from django.db.models import Count, Q
 from django.views.generic.detail import SingleObjectMixin
 from django.views import View
+from django.core.mail import send_mail
 
 from .models import Post, Comment, Tag, PostImage
 from .forms import PostForm, CommentForm, PostImageFormSet
@@ -441,3 +442,47 @@ def feed_view(request):
         total_dislikes=Count('dislikes', distinct=True),
         num_comments=Count('comments', distinct=True)
     )
+
+@csrf_exempt
+def submit_advice(request):
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        message = request.POST.get('message', '').strip()
+
+        if not all([name, email, message]):
+            return JsonResponse({
+                'status': 'error',
+                'title': 'Ошибка',
+                'message': 'Пожалуйста, заполните все поля',
+                'icon': 'error'
+            }, status=400)
+
+        try:
+            send_mail(
+                f'Новый совет от {name}',
+                f'Имя: {name}\nEmail: {email}\n\nСообщение:\n{message}',
+                'noreply@chatty.com',
+                ['chattyorangeeu@gmail.com'],
+                fail_silently=False,
+            )
+            return JsonResponse({
+                'status': 'success',
+                'title': 'Успешно!',
+                'message': 'Спасибо за ваш совет! Мы ценим ваше мнение.',
+                'icon': 'success'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'title': 'Ошибка',
+                'message': f'Произошла ошибка при отправке: {str(e)}',
+                'icon': 'error'
+            }, status=500)
+
+    return JsonResponse({
+        'status': 'error',
+        'title': 'Ошибка',
+        'message': 'Неверный метод запроса',
+        'icon': 'error'
+    }, status=400)
