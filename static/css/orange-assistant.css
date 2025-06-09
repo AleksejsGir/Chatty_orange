@@ -243,45 +243,6 @@
     display: none !important;
 }
 
-/* Для мобильных устройств */
-@media (max-width: 768px) {
-    .chat-widget-quick-actions {
-        padding: 12px;
-        max-height: 120px;
-    }
-
-    .chat-widget-quick-actions .d-flex {
-        gap: 6px;
-    }
-
-    .chat-widget-quick-actions .quick-action {
-        font-size: 10px !important;
-        padding: 5px 10px !important;
-        min-width: 115px !important; /* Увеличиваем для мобильных */
-        max-width: 135px !important;
-    }
-
-    .chat-widget-quick-actions .quick-action i {
-        font-size: 10px;
-        margin-right: 4px;
-    }
-}
-
-/* Для очень узких экранов */
-@media (max-width: 480px) {
-    .chat-widget-quick-actions .quick-action {
-        font-size: 9px !important;
-        padding: 4px 8px !important;
-        min-width: 100px !important;
-        max-width: 120px !important;
-    }
-
-    .chat-widget-quick-actions .quick-action i {
-        font-size: 9px;
-        margin-right: 3px;
-    }
-}
-
 /* ИСПРАВЛЕННЫЙ ресайзер в левом верхнем углу */
 .chat-widget-resizer {
     position: absolute;
@@ -639,104 +600,175 @@ body.resizing-chat * {
     border: 2px solid #f97316;
 }
 
-/* Области для помощи в создании поста */
-/*#postSuggestionArea,*/
-/*#postCheckResultArea {*/
-/*    animation: fadeIn 0.3s ease;*/
-/*}*/
-
-/*@keyframes fadeIn {*/
-/*    from {*/
-/*        opacity: 0;*/
-/*        transform: translateY(10px);*/
-/*    }*/
-/*    to {*/
-/*        opacity: 1;*/
-/*        transform: translateY(0);*/
-/*    }*/
-/*}*/
-
-/* ========== АДАПТИВНОСТЬ ========== */
+/* ========== УЛУЧШЕННАЯ АДАПТИВНОСТЬ ДЛЯ МОБИЛЬНЫХ ========== */
 @media (max-width: 768px) {
-    /* Помощник на мобильных */
+    /* Помощник на мобильных - УЛУЧШЕНО */
     .assistant-container {
         top: auto;
-        bottom: 100px;
+        bottom: 120px; /* Поднимаем выше, чтобы не перекрывался с чатом */
         right: 15px;
+        z-index: 999; /* Ниже чата */
     }
 
     .assistant-image {
-        width: 70px;
-        height: 70px;
+        width: 60px; /* Уменьшаем для мобильных */
+        height: 60px;
+        left: -20px;
     }
 
     .assistant-menu {
-        width: 200px;
-        right: -15px;
-        bottom: 90px;
+        width: 220px;
+        right: -10px;
+        bottom: 80px;
         top: auto;
+        font-size: 14px;
     }
 
-    /* Чат на мобильных */
+    /* ЧАТ НА МОБИЛЬНЫХ - ПОЛНОСТЬЮ ПЕРЕРАБОТАНО */
     .chat-widget {
+        /* Занимаем почти весь экран */
         bottom: 10px;
         right: 10px;
         left: 10px;
+        top: 10px; /* ДОБАВЛЕНО: занимаем высоту экрана */
         width: auto;
+        height: auto; /* ИЗМЕНЕНО: автоматическая высота */
         max-width: none;
+        max-height: none; /* ИЗМЕНЕНО: убираем ограничение высоты */
+        border-radius: 16px;
     }
 
+    /* Заголовок чата на мобильных */
     .chat-widget-header {
-        padding: 10px 12px;
-        min-height: 50px;
+        padding: 12px 16px;
+        min-height: 56px; /* УВЕЛИЧЕНО для лучшего касания */
+        border-radius: 14px 14px 0 0;
     }
 
     .chat-widget-title {
-        font-size: 13px;
+        font-size: 16px; /* УВЕЛИЧЕНО */
+        font-weight: 600;
     }
 
     .chat-widget-title img {
-        width: 20px;
-        height: 20px;
-        margin-right: 6px;
+        width: 28px; /* УВЕЛИЧЕНО */
+        height: 28px;
+        margin-right: 8px;
     }
 
+    /* Кнопки управления чатом - УВЕЛИЧЕНЫ для касания */
     .chat-btn {
-        min-width: 20px;
-        height: 20px;
-        font-size: 10px;
+        min-width: 32px; /* УВЕЛИЧЕНО */
+        height: 32px;
+        font-size: 12px;
+        padding: 6px;
     }
 
+    /* Тело чата на мобильных - УЛУЧШЕНО */
     .chat-widget-body {
-        max-height: 250px;
-        padding: 12px;
+        padding: 16px;
+        /* ИЗМЕНЕНО: используем calc для точного расчета высоты */
+        max-height: calc(100vh - 220px); /* Вычитаем место для header + footer + отступы */
+        flex: 1;
+        overflow-y: auto;
+        /* ДОБАВЛЕНО: улучшенный скроллинг на мобильных */
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
     }
 
+    /* Зона быстрых действий - ОПТИМИЗИРОВАНА */
+    .chat-widget-quick-actions {
+        padding: 12px 16px;
+        max-height: 100px; /* УМЕНЬШЕНО для мобильных */
+        overflow-y: auto;
+    }
+
+    /* НОВОЕ: Быстрые действия в 2 колонки на мобильных */
+    .chat-widget-quick-actions .d-flex {
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+    }
+
+    .chat-widget-quick-actions .quick-action {
+        font-size: 10px !important;
+        padding: 6px 8px !important;
+        /* НОВОЕ: 2 кнопки в ряд на мобильных */
+        min-width: calc(50% - 4px) !important;
+        max-width: calc(50% - 4px) !important;
+        flex: 0 0 calc(50% - 4px);
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        /* ДОБАВЛЕНО: оптимизация для касания */
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .chat-widget-quick-actions .quick-action i {
+        font-size: 10px;
+        margin-right: 4px;
+    }
+
+    /* Подвал чата на мобильных - УЛУЧШЕН */
     .chat-widget-footer {
-        padding: 8px 12px;
+        padding: 12px 16px;
+        border-radius: 0 0 14px 14px;
+        flex-shrink: 0;
     }
 
     .chat-input {
-        font-size: 13px;
-        padding: 6px 10px;
+        font-size: 16px; /* УВЕЛИЧЕНО: чтобы iOS не зумил */
+        padding: 12px 16px; /* УВЕЛИЧЕНО */
+        border-radius: 20px; /* БОЛЕЕ ОКРУГЛЫЙ */
+        max-height: 80px;
+        resize: none;
+        line-height: 1.4;
+        /* ДОБАВЛЕНО: убираем outline на мобильных */
+        outline: none;
+    }
+
+    .chat-input:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.3);
     }
 
     .chat-send-btn {
-        min-width: 35px;
-        height: 35px;
-        padding: 6px 10px;
+        min-width: 44px; /* УВЕЛИЧЕНО для удобства касания */
+        height: 44px;
+        padding: 8px;
+        border-radius: 50%; /* КРУГЛАЯ кнопка */
+        flex-shrink: 0;
+        /* ДОБАВЛЕНО: оптимизация для касания */
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
     }
 
+    /* Сообщения в чате на мобильных - УЛУЧШЕНЫ */
     .user-message,
     .ai-message {
-        font-size: 13px;
-        padding: 8px 12px;
+        font-size: 14px; /* УВЕЛИЧЕНО */
+        padding: 12px 16px; /* УВЕЛИЧЕНО */
         max-width: 85%;
+        margin-bottom: 8px;
+        word-break: break-word; /* ДОБАВЛЕНО: переносим длинные слова */
     }
 
-    .quick-action {
-        font-size: 11px;
-        padding: 3px 6px;
+    /* Свернутое состояние на мобильных */
+    .chat-widget.minimized {
+        height: 60px !important;
+        top: auto;
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        width: auto;
+    }
+
+    /* НОВОЕ: Отключаем ресайзер на мобильных */
+    .chat-widget-resizer {
+        display: none;
     }
 
     /* Приветственное окно на мобильных */
@@ -748,40 +780,111 @@ body.resizing-chat * {
     }
 }
 
+/* НОВОЕ: Экстра-мелкие экраны (iPhone SE и подобные) */
 @media (max-width: 480px) {
     .chat-widget {
         bottom: 5px;
         right: 5px;
         left: 5px;
+        top: 5px; /* ДОБАВЛЕНО */
+        border-radius: 12px;
+    }
+
+    .chat-widget-header {
+        padding: 10px 12px;
+        min-height: 48px;
+    }
+
+    .chat-widget-title {
+        font-size: 14px;
+    }
+
+    .chat-widget-title img {
+        width: 24px;
+        height: 24px;
+        margin-right: 6px;
+    }
+
+    .chat-btn {
+        min-width: 28px;
+        height: 28px;
+        font-size: 11px;
     }
 
     .chat-widget-body {
-        max-height: 200px;
-        padding: 10px;
+        padding: 12px;
+        max-height: calc(100vh - 180px); /* ИЗМЕНЕНО */
+    }
+
+    .chat-widget-quick-actions {
+        padding: 8px 12px;
+        max-height: 80px;
+    }
+
+    .chat-widget-quick-actions .quick-action {
+        font-size: 9px !important;
+        padding: 4px 6px !important;
+    }
+
+    .chat-widget-footer {
+        padding: 8px 12px;
+    }
+
+    .chat-input {
+        font-size: 16px;
+        padding: 10px 14px;
+        max-height: 60px;
+    }
+
+    .chat-send-btn {
+        min-width: 40px;
+        height: 40px;
     }
 
     .user-message,
     .ai-message {
-        font-size: 12px;
+        font-size: 13px;
+        padding: 10px 14px;
         max-width: 90%;
+    }
+
+    /* Свернутое состояние на очень маленьких экранах */
+    .chat-widget.minimized {
+        height: 50px !important;
     }
 }
 
-/* Анимации появления чата */
-/*.chat-widget {*/
-/*    animation: slideInUp 0.3s ease-out;*/
-/*}*/
+/* НОВОЕ: Ландшафтная ориентация на мобильных */
+@media (max-width: 768px) and (orientation: landscape) {
+    .chat-widget {
+        top: 5px;
+        bottom: 5px;
+        max-height: calc(100vh - 10px);
+    }
 
-/*@keyframes slideInUp {*/
-/*    from {*/
-/*        transform: translateY(100%);*/
-/*        opacity: 0;*/
-/*    }*/
-/*    to {*/
-/*        transform: translateY(0);*/
-/*        opacity: 1;*/
-/*    }*/
-/*}*/
+    .chat-widget-body {
+        max-height: calc(100vh - 160px);
+    }
+
+    .chat-widget-quick-actions {
+        max-height: 70px;
+    }
+}
+
+/* НОВОЕ: Исправления для iOS Safari */
+@supports (-webkit-touch-callout: none) {
+    @media (max-width: 768px) {
+        .chat-widget {
+            /* Исправляем баг с viewport height на iOS */
+            height: calc(100vh - 20px);
+            max-height: calc(100vh - 20px);
+        }
+
+        .chat-widget-body {
+            max-height: calc(100vh - 200px);
+        }
+    }
+}
 
 /* Hover эффекты */
 .chat-widget:hover {
@@ -860,6 +963,7 @@ body.resizing-chat * {
         transform: translateY(0);
     }
 }
+
 /* Стили для кликабельных ссылок в чате */
 .username-link {
     color: #ff6b35 !important;
@@ -895,4 +999,10 @@ body.resizing-chat * {
 
 .ai-message .post-link {
     font-weight: 600;
+}
+/* ========== ИСПРАВЛЕНИЕ БЛОКА БЫСТРЫХ ДЕЙСТВИЙ НА МОБИЛЬНЫХ ========== */
+@media (max-width: 768px) {
+    .chat-widget-quick-actions {
+        display: none !important;
+    }
 }

@@ -624,7 +624,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Восстанавливаем сохраненные размеры чата
         restoreChatSize();
     }
-    
+
     // Функция восстановления размеров чата
     function restoreChatSize() {
         try {
@@ -740,6 +740,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ИЗМЕНЕННАЯ ФУНКЦИЯ appendQuickActions - теперь по 3 кнопки в ряду
     function appendQuickActions() {
+        // 📱 НОВОЕ: Не показываем быстрые действия на мобильных
+        if (window.innerWidth <= 768) {
+            console.log('Мобильное устройство - быстрые действия скрыты');
+            return;
+        }
+
         // Ищем зону для быстрых действий
         const quickActionsZone = chatWidget.querySelector('.chat-widget-quick-actions');
         if (!quickActionsZone) {
