@@ -57,9 +57,9 @@
 <div class="modal fade" id="adviceModal" tabindex="-1" aria-labelledby="adviceModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="adviceModalLabel">Совет разработчикам</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="adviceForm" method="post" action="{% url 'submit_advice' %}">
                 {% csrf_token %}
@@ -74,21 +74,26 @@
                     </div>
                     <div class="mb-3">
                         <label for="message" class="form-label">Ваш совет</label>
-                        <textarea class="form-control" id="message" name="message" rows="3" required></textarea>
+                        <textarea class="form-control" id="message" name="message" rows="4" required></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                    <button type="submit" class="btn btn-primary">Отправить</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-2"></i> Отправить
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
+<!-- Подключение SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
 document.getElementById('adviceForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const form = e.target;
+
     fetch(form.action, {
         method: 'POST',
         body: new FormData(form),
@@ -99,13 +104,58 @@ document.getElementById('adviceForm').addEventListener('submit', function(e) {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            alert('Спасибо за ваш совет!');
-            bootstrap.Modal.getInstance(document.getElementById('adviceModal')).hide();
+            // Красивое уведомление об успехе
+            Swal.fire({
+                title: data.title,
+                text: data.message,
+                icon: data.icon,
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                // Закрываем модальное окно и очищаем форму
+                bootstrap.Modal.getInstance(document.getElementById('adviceModal')).hide();
+                form.reset();
+            });
         } else {
-            alert('Произошла ошибка при отправке.');
+            // Уведомление об ошибке
+            Swal.fire({
+                title: data.title,
+                text: data.message,
+                icon: data.icon,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Понятно'
+            });
         }
     })
     .catch(error => {
-        alert('Произошла ошибка при отправке.');
+        Swal.fire({
+            title: 'Ошибка',
+            text: 'Произошла непредвиденная ошибка',
+            icon: 'error',
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Понятно'
+        });
     });
 });
+</script>
+
+<style>
+.swal2-popup {
+    font-family: 'Arial', sans-serif;
+    border-radius: 10px;
+}
+
+.swal2-success {
+    color: #28a745;
+}
+
+.swal2-error {
+    color: #dc3545;
+}
+
+.swal2-confirm {
+    padding: 8px 20px;
+    border-radius: 5px;
+    font-weight: 500;
+}
+</style>

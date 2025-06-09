@@ -451,19 +451,38 @@ def submit_advice(request):
         message = request.POST.get('message', '').strip()
 
         if not all([name, email, message]):
-            return JsonResponse({'status': 'error', 'message': 'Все поля обязательны для заполнения'}, status=400)
+            return JsonResponse({
+                'status': 'error',
+                'title': 'Ошибка',
+                'message': 'Пожалуйста, заполните все поля',
+                'icon': 'error'
+            }, status=400)
 
         try:
-            # Отправка email
             send_mail(
                 f'Новый совет от {name}',
                 f'Имя: {name}\nEmail: {email}\n\nСообщение:\n{message}',
-                'noreply@chatty.com',  # Замените на ваш email отправителя
-                ['chattyorangeeu@gmail.com'],  # Email получателя
+                'noreply@chatty.com',
+                ['chattyorangeeu@gmail.com'],
                 fail_silently=False,
             )
-            return JsonResponse({'status': 'success', 'message': 'Спасибо за ваш совет!'})
+            return JsonResponse({
+                'status': 'success',
+                'title': 'Успешно!',
+                'message': 'Спасибо за ваш совет! Мы ценим ваше мнение.',
+                'icon': 'success'
+            })
         except Exception as e:
-            return JsonResponse({'status': 'error', 'message': f'Ошибка при отправке: {str(e)}'}, status=500)
+            return JsonResponse({
+                'status': 'error',
+                'title': 'Ошибка',
+                'message': f'Произошла ошибка при отправке: {str(e)}',
+                'icon': 'error'
+            }, status=500)
 
-    return JsonResponse({'status': 'error', 'message': 'Неверный метод запроса'}, status=400)
+    return JsonResponse({
+        'status': 'error',
+        'title': 'Ошибка',
+        'message': 'Неверный метод запроса',
+        'icon': 'error'
+    }, status=400)
