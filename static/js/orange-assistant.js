@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     const CHAT_OPEN_STATE_KEY = 'chattyOrangeChatOpen';
+    const CHAT_MINIMIZED_STATE_KEY = 'chattyOrangeChatMinimized';
 
     const assistant = document.querySelector('.assistant-container');
     const assistantImage = document.querySelector('.assistant-image');
@@ -678,8 +679,13 @@ document.addEventListener('DOMContentLoaded', function() {
             isChatOpen = true;
             localStorage.setItem(CHAT_OPEN_STATE_KEY, 'true');
 
-            if (isChatMinimized) {
-                expandChat();
+            //  ИСПРАВЛЕНО: Восстанавливаем состояние минимизации
+            const wasMinimized = localStorage.getItem(CHAT_MINIMIZED_STATE_KEY) === 'true';
+            if (wasMinimized) {
+                isChatMinimized = true;
+                minimizeChat(); // Применяем минимизацию
+            } else {
+                expandChat(); // Убеждаемся что развернут
             }
         }
 
@@ -688,7 +694,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     window.minimizeChat = function() {
-        console.log('minimizeChat вызвана'); // Для отладки
+        console.log('minimizeChat вызвана');
 
         if (!chatWidget) {
             console.log('chatWidget не найден');
@@ -696,7 +702,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         isChatMinimized = true;
+
+        //  ИСПРАВЛЕНО: Сохраняем состояние минимизации отдельно
         localStorage.setItem(CHAT_OPEN_STATE_KEY, 'true');
+        localStorage.setItem(CHAT_MINIMIZED_STATE_KEY, 'true'); // НОВОЕ!
 
         // Добавляем класс с анимацией
         chatWidget.classList.add('minimized');
@@ -720,6 +729,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!chatWidget) return;
 
         isChatMinimized = false;
+
+        // ✅ ИСПРАВЛЕНО: Обновляем состояние в localStorage
+        localStorage.setItem(CHAT_MINIMIZED_STATE_KEY, 'false'); // НОВОЕ!
+
         chatWidget.classList.remove('minimized');
 
         const minimizeBtn = chatWidget.querySelector('.chat-btn-minimize');
@@ -734,8 +747,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         chatWidget.style.display = 'none';
         isChatOpen = false;
+        isChatMinimized = false; //  Сбрасываем состояние минимизации
+
+        //  ИСПРАВЛЕНО: Обновляем оба состояния
         localStorage.setItem(CHAT_OPEN_STATE_KEY, 'false');
-        isChatMinimized = false;
+        localStorage.setItem(CHAT_MINIMIZED_STATE_KEY, 'false'); // НОВОЕ!
     }
 
     // ИЗМЕНЕННАЯ ФУНКЦИЯ appendQuickActions - теперь по 3 кнопки в ряду
