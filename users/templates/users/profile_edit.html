@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% load django_bootstrap5 %}
+{% load highlight_tags %}
 
 {% block title %}Редактирование профиля - {{ user.username }}{% endblock %}
 
@@ -18,6 +19,17 @@
     }
     .form-label {
         font-weight: 500; /* Делаем метки полей полужирными */
+    }
+    /* Единые стили для кнопки .btn-search */
+    .btn-search {
+        background-color: #FFB74D !important;
+        border-color: #FFB74D !important;
+        color: #333 !important;
+        transition: all 0.3s;
+    }
+    .btn-search:hover {
+        background-color: #F57C00 !important;
+        border-color: #F57C00 !important;
     }
 </style>
 {% endblock %}

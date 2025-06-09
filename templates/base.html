@@ -2,7 +2,6 @@
 {% load static %}
 <html lang="ru" class="h-100">
 <head>
-{#    <script src="{% static 'js/orange-assistant.js' %}"></script>#}
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Chatty - Социальная сеть Team Orange">
@@ -23,8 +22,88 @@
     <link rel="stylesheet" href="{% static 'css/unified-styles.css' %}">
     <link rel="stylesheet" href="{% static 'css/orange-assistant.css' %}">
 
-    {% block extra_css %}{% endblock %}
+    {% block extra_css %}
+        <style>
+    .image-overlay {
+        position: absolute;
+        bottom: 10px;
+        left: 0;
+        right: 0;
+        z-index: 10;
+    }
 
+    .image-nav-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        cursor: pointer;
+    }
+
+    .prev-btn {
+        left: 15px;
+    }
+
+    .next-btn {
+        right: 15px;
+    }
+
+    .main-image {
+        position: relative;
+    }
+
+    .img-thumbnail.active {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+</style>
+         <style>
+            /* Единые стили для кнопки .btn-search */
+            .btn-search {
+                background-color: #FFB74D !important;
+                border-color: #FFB74D !important;
+                color: #333 !important;
+                transition: all 0.3s;
+            }
+            .btn-search:hover {
+                background-color: #F57C00 !important;
+                border-color: #F57C00 !important;
+            }
+            .btn-edit-profile {
+                background-color: #FFB74D !important;
+                border-color: #FFB74D !important;
+                color: #333 !important;
+                transition: all 0.3s;
+            }
+            /* Общие стили для кнопок поиска и редактирования */
+            .btn-edit-profile:hover {
+                background-color: #F57C00 !important;
+                border-color: #F57C00 !important;
+            }
+            /* Стили для строки поиска */
+            .search-input {
+                border: 2px solid #f97316 !important;
+                border-radius: 8px !important;
+                transition: all 0.3s;
+            }
+
+            /* Стиль при фокусе */
+            .search-input:focus {
+                border-color: #f97316 !important;
+                box-shadow: 0 0 8px rgba(249, 115, 22, 0.3) !important;
+            }
+    </style>
+        </style>
+    {% endblock %}
     <title>{% block title %}Chatty{% endblock %}</title>
 </head>
 
@@ -68,6 +147,66 @@
     {% block extra_js %}
         <script src="{% static 'js/likes.js' %}"></script>
 {#        <script src="{% static 'js/orange-assistant.js' %}"></script>#}
+       <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mainImage = document.getElementById('mainImage');
+            const thumbnails = document.querySelectorAll('.image-thumbnails .img-thumbnail');
+            const currentImageCounter = document.getElementById('currentImage');
+            const prevBtn = document.getElementById('prevImage');
+            const nextBtn = document.getElementById('nextImage');
+            const enlargeBtn = document.getElementById('enlargeImage');
+
+            let currentIndex = 0;
+            const images = [
+                {% for image in post.images.all %}
+                    '{{ image.image.url }}',
+                {% endfor %}
+            ];
+
+            // Обработчики для миниатюр
+            thumbnails.forEach(thumb => {
+                thumb.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    updateMainImage(index);
+                });
+            });
+
+            // Кнопки навигации
+            prevBtn.addEventListener('click', prevImage);
+            nextBtn.addEventListener('click', nextImage);
+
+            // Увеличение изображения
+            enlargeBtn.addEventListener('click', function() {
+                window.open(images[currentIndex], '_blank');
+            });
+
+            function updateMainImage(index) {
+                currentIndex = index;
+                mainImage.src = images[index];
+                currentImageCounter.textContent = index + 1;
+
+                // Обновление активной миниатюры
+                thumbnails.forEach(thumb => thumb.classList.remove('active'));
+                thumbnails[index].classList.add('active');
+            }
+
+            function prevImage() {
+                const newIndex = (currentIndex - 1 + images.length) % images.length;
+                updateMainImage(newIndex);
+            }
+
+            function nextImage() {
+                const newIndex = (currentIndex + 1) % images.length;
+                updateMainImage(newIndex);
+            }
+
+            // Обработчики клавиатуры
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowLeft') prevImage();
+                if (e.key === 'ArrowRight') nextImage();
+            });
+        });
+    </script>
     {% endblock %}
     <div class="modal fade" id="rulesModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">

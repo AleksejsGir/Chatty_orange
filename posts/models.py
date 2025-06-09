@@ -15,12 +15,6 @@ class Post(models.Model):
     )
     title = models.CharField(max_length=200, verbose_name="Заголовок")
     text = RichTextField(verbose_name="Текст")  # Заменяем TextField на RichTextField
-    image = models.ImageField(
-        upload_to="posts_images/",
-        blank=True,
-        null=True,
-        verbose_name="Изображение"
-    )
     pub_date = models.DateTimeField(
         default=timezone.now,
         verbose_name="Дата публикации"
@@ -42,6 +36,11 @@ class Post(models.Model):
         related_name='posts',
         blank=True,
         verbose_name="Теги"
+    )
+    image = models.ImageField(
+        upload_to='posts_images/',  # Путь для сохранения изображений
+        blank=True,                 # Разрешить пустое значение
+        null=True                   # Разрешить NULL в базе данных
     )
 
     def total_likes(self):
@@ -90,6 +89,29 @@ class Post(models.Model):
     def total_dislikes(self):
         return self.dislikes.count()
 
+class PostImage(models.Model):
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name='images',
+        verbose_name="Пост"
+    )
+    image = models.ImageField(
+        upload_to="posts_images/",
+        verbose_name="Изображение"
+    )
+    order = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Порядок"
+    )
+
+    class Meta:
+        verbose_name = "Изображение поста"
+        verbose_name_plural = "Изображения постов"
+        ordering = ['order']
+
+    def __str__(self):
+        return f"Изображение для поста {self.post.title}"
 
 class Comment(models.Model):
     post = models.ForeignKey(

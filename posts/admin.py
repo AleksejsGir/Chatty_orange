@@ -53,10 +53,13 @@ class PostAdmin(admin.ModelAdmin):
 
     tag_list.short_description = "Теги"
 
+    # def has_image(self, obj):
+    #     if obj.image:
+    #         return format_html('<img src="{}" width="50" height="50" style="object-fit: cover;" />', obj.image.url)
+    #     return "Нет"
     def has_image(self, obj):
-        if obj.image:
-            return format_html('<img src="{}" width="50" height="50" style="object-fit: cover;" />', obj.image.url)
-        return "Нет"
+        # Проверяем наличие изображения
+        return obj.image is not None  # Используйте obj.image, если поле называется 'image'
 
     has_image.short_description = "Изображение"
 
