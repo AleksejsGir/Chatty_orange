@@ -521,6 +521,9 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="chat-widget-body">
                 <!-- Чат контент будет добавлен сюда -->
             </div>
+            <div class="chat-widget-quick-actions">
+                <!-- Быстрые действия будут здесь -->
+            </div>
             <div class="chat-widget-footer">
                 <textarea class="chat-input" placeholder="Спроси меня что-нибудь..." rows="2"></textarea>
                 <button class="chat-send-btn">
@@ -535,6 +538,10 @@ document.addEventListener('DOMContentLoaded', function() {
         aiChatBody = chatWidget.querySelector('.chat-widget-body');
         aiChatMessageInput = chatWidget.querySelector('.chat-input');
         aiSendMessageBtn = chatWidget.querySelector('.chat-send-btn');
+
+        // Получаем зону быстрых действий
+        const quickActionsZone = chatWidget.querySelector('.chat-widget-quick-actions');
+        console.log('Зона быстрых действий найдена:', quickActionsZone ? 'да' : 'нет');
 
         // Обработчики событий
         if (aiSendMessageBtn) {
@@ -565,7 +572,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const initialRight = parseInt(computedStyle.right, 10) || 20;
                 const initialBottom = parseInt(computedStyle.bottom, 10) || 20;
 
-                const minWidth = 300;
+                const minWidth = 500;
                 const minHeight = 200;
                 const maxWidth = window.innerWidth - initialRight - 50;
                 const maxHeight = window.innerHeight - initialBottom - 50;
@@ -617,7 +624,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Восстанавливаем сохраненные размеры чата
         restoreChatSize();
     }
-
+    
     // Функция восстановления размеров чата
     function restoreChatSize() {
         try {
@@ -629,7 +636,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const height = parseInt(savedHeight, 10);
 
                 // Проверяем, что размеры корректные
-                const minWidth = 300;
+                const minWidth = 500;
                 const minHeight = 200;
                 const maxWidth = window.innerWidth - 50;
                 const maxHeight = window.innerHeight - 50;
@@ -644,13 +651,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } else {
                 // Устанавливаем размеры по умолчанию
-                chatWidget.style.width = '380px';
+                chatWidget.style.width = '500px';
                 chatWidget.style.height = '600px';
             }
         } catch (e) {
             console.log('Не удалось восстановить размеры чата:', e);
             // Устанавливаем размеры по умолчанию при ошибке
-            chatWidget.style.width = '380px';
+            chatWidget.style.width = '500px';
             chatWidget.style.height = '600px';
         }
     }
@@ -731,28 +738,36 @@ document.addEventListener('DOMContentLoaded', function() {
         isChatMinimized = false;
     }
 
-    // РАСШИРЕННАЯ ФУНКЦИЯ appendQuickActions - добавлены новые кнопки
+    // ИЗМЕНЕННАЯ ФУНКЦИЯ appendQuickActions - теперь по 3 кнопки в ряду
     function appendQuickActions() {
+        // Ищем зону для быстрых действий
+        const quickActionsZone = chatWidget.querySelector('.chat-widget-quick-actions');
+        if (!quickActionsZone) {
+            console.log('Зона быстрых действий не найдена');
+            return;
+        }
+
+        // Очищаем зону перед добавлением новых кнопок
+        quickActionsZone.innerHTML = '';
+
         const quickActionsDiv = document.createElement('div');
-        quickActionsDiv.className = 'quick-actions mt-3';
+        quickActionsDiv.className = 'quick-actions';
         quickActionsDiv.innerHTML = `
-            <div class="d-flex flex-wrap gap-2 mb-2">
+            <div class="d-flex justify-content-center gap-2 mb-2">
                 <button class="btn btn-sm btn-outline-warning quick-action" data-action="help">
                     <i class="fas fa-question-circle"></i> Что ты умеешь?
                 </button>
                 <button class="btn btn-sm btn-outline-info quick-action" data-action="tour">
                     <i class="fas fa-route"></i> Тур по сайту
                 </button>
-            </div>
-            <div class="d-flex flex-wrap gap-2 mb-2">
                 <button class="btn btn-sm btn-outline-success quick-action" data-action="ideas">
                     <i class="fas fa-lightbulb"></i> Идеи для постов
                 </button>
+            </div>
+            <div class="d-flex justify-content-center gap-2">
                 <button class="btn btn-sm btn-outline-primary quick-action" data-action="stats">
                     <i class="fas fa-chart-line"></i> Моя статистика
                 </button>
-            </div>
-            <div class="d-flex flex-wrap gap-2">
                 <button class="btn btn-sm btn-outline-secondary quick-action" data-action="history-stats">
                     <i class="fas fa-history"></i> Статистика чата
                 </button>
@@ -761,7 +776,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 </button>
             </div>
         `;
-        aiChatBody.appendChild(quickActionsDiv);
+
+        quickActionsZone.appendChild(quickActionsDiv);
 
         quickActionsDiv.querySelectorAll('.quick-action').forEach(btn => {
             btn.addEventListener('click', function() {

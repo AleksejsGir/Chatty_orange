@@ -177,6 +177,111 @@
     height: auto; /* Автоматическая высота по содержимому */
 }
 
+/* Зона быстрых действий - ФИКСИРОВАННАЯ между body и footer */
+.chat-widget-quick-actions {
+    padding: 16px;
+    background: #fdfdfd;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    flex-shrink: 0;
+    min-height: auto;
+    max-height: 140px;
+    overflow-y: auto;
+}
+
+/* Адаптивные стили для быстрых действий */
+.chat-widget-quick-actions .quick-actions {
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+}
+
+/* Контейнеры для рядов кнопок */
+.chat-widget-quick-actions .d-flex {
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.chat-widget-quick-actions .d-flex:last-child {
+    margin-bottom: 0;
+}
+
+/* ФИКСИРОВАННЫЙ размер кнопок для ВСЕХ размеров экрана */
+.chat-widget-quick-actions .quick-action {
+    font-size: 11px !important;
+    padding: 6px 12px !important; /* Увеличиваем боковые отступы */
+    min-width: 140px !important; /* УВЕЛИЧИВАЕМ минимальную ширину */
+    max-width: 160px !important; /* УВЕЛИЧИВАЕМ максимальную ширину */
+    width: auto !important;
+    flex: 0 0 auto !important;
+    white-space: nowrap;
+    border-radius: 6px;
+    font-weight: 500;
+    line-height: 1.2;
+    transition: all 0.2s ease;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chat-widget-quick-actions .quick-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Иконки в кнопках */
+.chat-widget-quick-actions .quick-action i {
+    margin-right: 5px; /* Увеличиваем отступ после иконки */
+    font-size: 11px;
+}
+
+/* Скрытие зоны при минимизации */
+.chat-widget.minimized .chat-widget-quick-actions {
+    display: none !important;
+}
+
+/* Для мобильных устройств */
+@media (max-width: 768px) {
+    .chat-widget-quick-actions {
+        padding: 12px;
+        max-height: 120px;
+    }
+
+    .chat-widget-quick-actions .d-flex {
+        gap: 6px;
+    }
+
+    .chat-widget-quick-actions .quick-action {
+        font-size: 10px !important;
+        padding: 5px 10px !important;
+        min-width: 115px !important; /* Увеличиваем для мобильных */
+        max-width: 135px !important;
+    }
+
+    .chat-widget-quick-actions .quick-action i {
+        font-size: 10px;
+        margin-right: 4px;
+    }
+}
+
+/* Для очень узких экранов */
+@media (max-width: 480px) {
+    .chat-widget-quick-actions .quick-action {
+        font-size: 9px !important;
+        padding: 4px 8px !important;
+        min-width: 100px !important;
+        max-width: 120px !important;
+    }
+
+    .chat-widget-quick-actions .quick-action i {
+        font-size: 9px;
+        margin-right: 3px;
+    }
+}
+
 /* ИСПРАВЛЕННЫЙ ресайзер в левом верхнем углу */
 .chat-widget-resizer {
     position: absolute;
