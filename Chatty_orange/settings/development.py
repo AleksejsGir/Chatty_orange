@@ -10,6 +10,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
+GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
+
 # Database
 DB_ENGINE = os.getenv('DB_ENGINE')
 DB_NAME = os.getenv('DB_NAME')

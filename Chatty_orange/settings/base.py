@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
     'posts.apps.PostsConfig',
     'subscriptions.apps.SubscriptionsConfig',
+    'orange_assistant.apps.OrangeAssistantConfig',
     # --- Сторонние приложения ---
     'allauth',
     'allauth.account',

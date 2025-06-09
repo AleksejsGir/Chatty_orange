@@ -1,80 +1,113 @@
+# subscriptions/views.py
+
 from django.views.generic import ListView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
-from django.db.models import Count, Exists, OuterRef  # Добавляем недостающие импорты
+from django.db.models import Count, Exists, OuterRef
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.utils.decorators import method_decorator
+import logging
+
 from posts.models import Post
 from .models import Subscription
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')  # ✅ CSRF защита
 class SubscriptionToggleView(LoginRequiredMixin, View):
     """
     Представление для подписки/отписки от пользователя.
-    Поддерживает AJAX и обычные запросы.
+    Поддерживает AJAX и обычные запросы с полной CSRF защитой.
     """
 
     def post(self, request, username):
-        # Получаем автора, на которого подписываемся или от которого отписываемся
-        author = get_object_or_404(User, username=username)
+        try:
+            # Получаем автора, на которого подписываемся или от которого отписываемся
+            author = get_object_or_404(User, username=username)
 
-        # Проверяем, не пытается ли пользователь подписаться на самого себя
-        if request.user == author:
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'status': 'error',
-                    'message': 'Вы не можете подписаться на самого себя'
-                }, status=400)
-            else:
-                # Для обычного запроса перенаправляем обратно на профиль
-                return redirect('users:profile', username=username)
+            # ✅ Логируем запрос для мониторинга
+            logger.info(f"Subscription toggle: {request.user.username} -> {username}")
 
-        # Проверяем, подписан ли уже пользователь
-        subscription = Subscription.objects.filter(
-            subscriber=request.user,
-            author=author
-        ).first()
+            # Проверяем, не пытается ли пользователь подписаться на самого себя
+            if request.user == author:
+                error_msg = 'Вы не можете подписаться на самого себя'
 
-        if subscription:
-            # Если подписка существует, удаляем её (отписываемся)
-            subscription.delete()
-            is_subscribed = False
-            message = f'Вы отписались от {author.username}'
-        else:
-            # Если подписки нет, создаём её (подписываемся)
-            try:
-                Subscription.objects.create(subscriber=request.user, author=author)
-                is_subscribed = True
-                message = f'Вы подписались на {author.username}'
-            except IntegrityError:
-                # Обработка редкого случая одновременного создания подписки
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                     return JsonResponse({
                         'status': 'error',
-                        'message': 'Подписка уже существует'
+                        'message': error_msg
                     }, status=400)
                 else:
                     return redirect('users:profile', username=username)
 
-        # Получаем URL для перенаправления после завершения операции
-        next_url = request.POST.get('next')
+            # Проверяем, подписан ли уже пользователь
+            subscription = Subscription.objects.filter(
+                subscriber=request.user,
+                author=author
+            ).first()
 
-        # Возвращаем ответ в зависимости от типа запроса (AJAX или обычный)
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            # Формируем JSON-ответ для AJAX-запроса
-            return JsonResponse({
-                'status': 'success',
-                'is_subscribed': is_subscribed,
-                'message': message,
-                'subscribers_count': author.subscribers.count()
-            })
-        else:
-            # Для обычного запроса перенаправляем на URL из параметра next или на профиль
-            if next_url:
-                return redirect(next_url)
+            if subscription:
+                # Если подписка существует, удаляем её (отписываемся)
+                subscription.delete()
+                is_subscribed = False
+                message = f'Вы отписались от @{author.username}'
+                logger.info(f"Unsubscribed: {request.user.username} from {username}")
+            else:
+                # Если подписки нет, создаём её (подписываемся)
+                try:
+                    Subscription.objects.create(subscriber=request.user, author=author)
+                    is_subscribed = True
+                    message = f'Вы подписались на @{author.username}'
+                    logger.info(f"Subscribed: {request.user.username} to {username}")
+                except IntegrityError:
+                    # Обработка редкого случая одновременного создания подписки
+                    error_msg = 'Подписка уже существует'
+                    logger.warning(f"IntegrityError during subscription: {request.user.username} -> {username}")
+
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'status': 'error',
+                            'message': error_msg
+                        }, status=400)
+                    else:
+                        return redirect('users:profile', username=username)
+
+            # Получаем URL для перенаправления после завершения операции
+            next_url = request.POST.get('next')
+
+            # Возвращаем ответ в зависимости от типа запроса (AJAX или обычный)
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                # ✅ ИСПРАВЛЕННЫЙ JSON-ответ для совместимости с JavaScript
+                subscribers_count = author.subscribers.count()
+
+                return JsonResponse({
+                    'status': 'success',
+                    'subscribed': is_subscribed,  # ✅ ИЗМЕНЕНО: 'subscribed' вместо 'is_subscribed'
+                    'message': message,
+                    'subscribers_count': subscribers_count,
+                    'username': username  # ✅ ДОБАВЛЕНО: для дополнительной проверки в JS
+                })
+            else:
+                # Для обычного запроса перенаправляем на URL из параметра next или на профиль
+                if next_url:
+                    return redirect(next_url)
+                else:
+                    return redirect('users:profile', username=username)
+
+        except Exception as e:
+            # ✅ УЛУЧШЕННАЯ обработка ошибок
+            logger.error(f"Subscription toggle error for {request.user.username} -> {username}: {e}")
+
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Произошла ошибка при обработке запроса'
+                }, status=500)
             else:
                 return redirect('users:profile', username=username)
 
@@ -154,10 +187,10 @@ class FeedView(LoginRequiredMixin, ListView):
         ).select_related(
             'author'  # Загружаем информацию об авторе одним запросом
         ).prefetch_related(
-            'images',     # ВАЖНО! Загружаем все изображения для постов
-            'likes',      # Загружаем лайки для проверки, лайкнул ли текущий пользователь
-            'tags',       # Загружаем теги, если они отображаются в ленте
-            'comments'    # Загружаем комментарии для подсчета
+            'images',  # ВАЖНО! Загружаем все изображения для постов
+            'likes',  # Загружаем лайки для проверки, лайкнул ли текущий пользователь
+            'tags',  # Загружаем теги, если они отображаются в ленте
+            'comments'  # Загружаем комментарии для подсчета
         ).annotate(
             num_comments=Count('comments', distinct=True),
             num_likes=Count('likes', distinct=True)
