@@ -6,14 +6,15 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.contrib.auth import get_user_model
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.db.models import Count, Q
 from django.views.generic.detail import SingleObjectMixin
 from django.views import View
+from django.core.mail import send_mail
 
-from .models import Post, Comment, Tag
+from .models import Post, Comment, Tag, PostImage
 from .forms import PostForm, CommentForm, PostImageFormSet
 from subscriptions.models import Subscription  # Добавляем импорт модели подписок
 
@@ -221,6 +222,33 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return self.request.user == post.author
 
 
+# class PostCommentView(LoginRequiredMixin, SingleObjectMixin, View):
+#     model = Post
+#     form_class = CommentForm
+#
+#     def post(self, request, *args, **kwargs):
+#         self.object = self.get_object()
+#         form = self.form_class(request.POST)
+#
+#         if form.is_valid():
+#             comment = form.save(commit=False)
+#             comment.post = self.object
+#             comment.author = request.user
+#             comment.save()
+#
+#             # Сначала пытаемся взять параметр из POST (hidden input)
+#             from_param = request.POST.get('from') or request.GET.get('from')
+#             if from_param:
+#                 return redirect(f"{self.object.get_absolute_url()}?from={from_param}#comments")
+#
+#             # Иначе просто возвращаем на пост с якорем #comments
+#             return redirect(self.object.get_absolute_url() + '#comments')
+#
+#             # Если форма невалидна, возвращаем обратно с ошибками
+#         return self.render_to_response(
+#             self.get_context_data(post=self.object, comment_form=form)
+#         )
+
 class PostCommentView(LoginRequiredMixin, SingleObjectMixin, View):
     model = Post
     form_class = CommentForm
@@ -260,8 +288,6 @@ class PostDetailWithComments(View):
 
 
 
-
-
 class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Comment
     template_name = 'posts/comment_confirm_delete.html'
@@ -270,11 +296,6 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         comment = self.get_object()
         return self.request.user == comment.author or self.request.user.is_staff
 
-    # def get_success_url(self):
-    #     from_param = self.request.POST.get('from') or self.request.GET.get('from')
-    #     if from_param:
-    #         return f"{self.object.post.get_absolute_url()}?from={from_param}#comments"
-    #     return self.object.post.get_absolute_url() + '#comments'
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -414,3 +435,47 @@ def feed_view(request):
         total_dislikes=Count('dislikes', distinct=True),
         num_comments=Count('comments', distinct=True)
     )
+
+@csrf_exempt
+def submit_advice(request):
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        message = request.POST.get('message', '').strip()
+
+        if not all([name, email, message]):
+            return JsonResponse({
+                'status': 'error',
+                'title': 'Ошибка',
+                'message': 'Пожалуйста, заполните все поля',
+                'icon': 'error'
+            }, status=400)
+
+        try:
+            send_mail(
+                f'Новый совет от {name}',
+                f'Имя: {name}\nEmail: {email}\n\nСообщение:\n{message}',
+                'noreply@chatty.com',
+                ['chattyorangeeu@gmail.com'],
+                fail_silently=False,
+            )
+            return JsonResponse({
+                'status': 'success',
+                'title': 'Успешно!',
+                'message': 'Спасибо за ваш совет! Мы ценим ваше мнение.',
+                'icon': 'success'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'title': 'Ошибка',
+                'message': f'Произошла ошибка при отправке: {str(e)}',
+                'icon': 'error'
+            }, status=500)
+
+    return JsonResponse({
+        'status': 'error',
+        'title': 'Ошибка',
+        'message': 'Неверный метод запроса',
+        'icon': 'error'
+    }, status=400)
