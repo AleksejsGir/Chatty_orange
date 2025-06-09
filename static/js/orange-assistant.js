@@ -681,17 +681,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     window.minimizeChat = function() {
-        if (!chatWidget) return;
+        console.log('minimizeChat вызвана'); // Для отладки
+
+        if (!chatWidget) {
+            console.log('chatWidget не найден');
+            return;
+        }
 
         isChatMinimized = true;
-        localStorage.setItem(CHAT_OPEN_STATE_KEY, 'true'); // Keep chat "open" conceptually
+        localStorage.setItem(CHAT_OPEN_STATE_KEY, 'true');
+
+        // Добавляем класс с анимацией
         chatWidget.classList.add('minimized');
 
         const minimizeBtn = chatWidget.querySelector('.chat-btn-minimize');
         const expandBtn = chatWidget.querySelector('.chat-btn-expand');
 
-        if (minimizeBtn) minimizeBtn.style.display = 'none';
-        if (expandBtn) expandBtn.style.display = 'inline-block';
+        if (minimizeBtn) {
+            minimizeBtn.style.display = 'none';
+            console.log('Кнопка минимизации скрыта');
+        }
+        if (expandBtn) {
+            expandBtn.style.display = 'inline-block';
+            console.log('Кнопка разворачивания показана');
+        }
+
+        console.log('Чат минимизирован');
     }
 
     window.expandChat = function() {

@@ -121,12 +121,20 @@
     display: none;
     flex-direction: column; /* ВАЖНО: колонка */
     z-index: 1050;
-    transition: all 0.3s ease;
+    transition: height 0.3s ease; /* ИЗМЕНЕНО: только высота */
 }
 
 .chat-widget.minimized {
-    height: 60px; /* ИЗМЕНЕНО: используем height вместо max-height */
+    height: 60px !important; /* ИЗМЕНЕНО: добавлен !important */
+    min-height: 60px !important;
+    max-height: 60px !important;
     overflow: hidden;
+}
+
+/* ДОБАВЛЕНО: скрытие элементов при минимизации */
+.chat-widget.minimized .chat-widget-body,
+.chat-widget.minimized .chat-widget-footer {
+    display: none !important;
 }
 
 /* Заголовок чата - ФИКСИРОВАННЫЙ размер */
@@ -655,20 +663,20 @@ body.resizing-chat * {
 }
 
 /* Анимации появления чата */
-.chat-widget {
-    animation: slideInUp 0.3s ease-out;
-}
+/*.chat-widget {*/
+/*    animation: slideInUp 0.3s ease-out;*/
+/*}*/
 
-@keyframes slideInUp {
-    from {
-        transform: translateY(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
+/*@keyframes slideInUp {*/
+/*    from {*/
+/*        transform: translateY(100%);*/
+/*        opacity: 0;*/
+/*    }*/
+/*    to {*/
+/*        transform: translateY(0);*/
+/*        opacity: 1;*/
+/*    }*/
+/*}*/
 
 /* Hover эффекты */
 .chat-widget:hover {
