@@ -5,13 +5,22 @@ document.addEventListener('DOMContentLoaded', function() {
         return new bootstrap.Tooltip(tooltipTriggerEl, {trigger: 'hover'});
     });
 
+    // Обработчик кнопки "Реакция"
+    document.querySelectorAll('.btn-reaction').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const container = this.closest('.reactions-container');
+            if (container) {
+                container.classList.toggle('active');
+            }
+        });
+    });
+
     // Обработчик кнопки "Ответить"
     document.querySelectorAll('.btn-reply').forEach(button => {
         button.addEventListener('click', function() {
             const commentBlock = this.closest('.comment-block');
-            const commentId = commentBlock.dataset.commentId;
             const replyForm = commentBlock.querySelector('.reply-form');
-
             if (replyForm) {
                 replyForm.classList.toggle('d-none');
             }
@@ -32,9 +41,14 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.btn-reaction-quick').forEach(button => {
         button.addEventListener('click', function() {
             const emoji = this.dataset.emoji;
-            const commentBlock = this.closest('.comment-block');
-            const commentId = commentBlock.dataset.commentId;
+            const commentId = this.dataset.commentId;
             toggleReaction(commentId, emoji);
+
+            // Закрываем панель после выбора
+            const container = this.closest('.reactions-container');
+            if (container) {
+                container.classList.remove('active');
+            }
         });
     });
 
@@ -47,33 +61,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Обработчик реакции (кнопка смайлика)
-    document.querySelectorAll('.btn-action.text-muted').forEach(button => {
-        button.addEventListener('click', function() {
-            if (this.getAttribute('title') === 'Реакция') {
-                const commentBlock = this.closest('.comment-block');
-                const commentId = commentBlock.dataset.commentId;
-                // Здесь будет логика для открытия выбора эмодзи
-                // Пока просто пример: добавим реакцию "👍"
-                toggleReaction(commentId, '👍');
-            }
-        });
-    });
-
-    // Обработчик эмодзи-пикера (если используется)
-    const picker = document.querySelector('emoji-picker');
-    if (picker) {
-        picker.addEventListener('emoji-click', event => {
-            const emoji = event.detail.unicode;
-            const activeComment = document.querySelector('.comment-block:hover');
-
-            if (activeComment) {
-                const commentId = activeComment.dataset.commentId;
-                toggleReaction(commentId, emoji);
-            }
-        });
-    }
-
     // Обработчик удаления комментария
     document.querySelectorAll('.btn-action.text-danger').forEach(button => {
         button.addEventListener('click', function(e) {
@@ -82,12 +69,70 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Закрытие панели при клике вне её
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.reactions-container')) {
+            document.querySelectorAll('.reactions-container').forEach(container => {
+                container.classList.remove('active');
+            });
+        }
+    });
+
+    // Обработчик кнопки "Редактировать"
+    document.querySelectorAll('.btn-edit-comment').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const commentBlock = this.closest('.comment-block');
+            commentBlock.querySelector('.comment-content').classList.add('d-none');
+            commentBlock.querySelector('.edit-form').classList.remove('d-none');
+        });
+    });
+
+    // Обработчик отмены редактирования
+    document.querySelectorAll('.cancel-edit').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const form = this.closest('.edit-form');
+            const commentBlock = form.closest('.comment-block');
+            commentBlock.querySelector('.comment-content').classList.remove('d-none');
+            form.classList.add('d-none');
+        });
+    });
+
+    // Обработчик отправки формы редактирования
+    document.querySelectorAll('.edit-comment-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const commentId = this.dataset.commentId;
+
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const contentBlock = document.querySelector(
+                        `.comment-block[data-comment-id="${commentId}"] .comment-content p`
+                    );
+                    contentBlock.textContent = data.new_text;
+                    this.closest('.edit-form').classList.add('d-none');
+                    contentBlock.parentElement.classList.remove('d-none');
+                } else {
+                    console.error('Error updating comment:', data.error);
+                }
+            })
+            .catch(error => console.error('Error editing comment:', error));
+        });
+    });
 });
 
 // Функция переключения реакции (добавить/удалить)
 function toggleReaction(commentId, emoji) {
-    // Отправляем запрос на сервер
-    fetch(`/posts/comment/${commentId}/toggle-reaction/`, {
+    fetch(`/posts/comments/${commentId}/react/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -96,146 +141,77 @@ function toggleReaction(commentId, emoji) {
         },
         body: JSON.stringify({ emoji: emoji })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.status === 'success') {
-            updateReactionUI(commentId, emoji, data.action);
+            updateReactionUI(commentId, emoji, data.action, data.reactions);
+        } else {
+            console.error('Error:', data.message);
         }
     })
-    .catch(error => console.error('Error:', error));
+    .catch(error => console.error('Error toggling reaction:', error));
 }
 
 // Обновление UI после изменения реакции
-function updateReactionUI(commentId, emoji, action) {
+function updateReactionUI(commentId, emoji, action, reactions) {
     const container = document.querySelector(`.comment-block[data-comment-id="${commentId}"] .emoji-reactions`);
     if (!container) return;
 
-    // Поиск существующей реакции
-    let badge = container.querySelector(`.reaction-badge[data-emoji="${emoji}"]`);
+    // Очищаем текущие реакции
+    container.innerHTML = '';
 
-    if (action === 'added') {
-        if (badge) {
-            // Увеличиваем счетчик
-            const count = parseInt(badge.textContent.match(/\d+/)[0]) + 1;
-            badge.textContent = `${emoji} ${count}`;
-            badge.classList.add('user-reaction', 'added');
-
-            // Анимация
-            setTimeout(() => badge.classList.remove('added'), 300);
-        } else {
-            // Создаем новый бейдж
-            const newBadge = document.createElement('span');
-            newBadge.className = 'badge reaction-badge me-1 user-reaction added';
-            newBadge.dataset.emoji = emoji;
-            newBadge.dataset.commentId = commentId;
-            newBadge.textContent = `${emoji} 1`;
-            container.prepend(newBadge);
-
-            // Добавляем обработчик
-            newBadge.addEventListener('click', function() {
-                toggleReaction(commentId, emoji);
-            });
-
-            // Анимация
-            setTimeout(() => newBadge.classList.remove('added'), 300);
-        }
-    } else if (action === 'removed' && badge) {
-        // Уменьшаем счетчик или удаляем
-        const count = parseInt(badge.textContent.match(/\d+/)[0]) - 1;
-
-        if (count > 0) {
-            badge.textContent = `${emoji} ${count}`;
-            badge.classList.remove('user-reaction');
-        } else {
-            badge.remove();
-        }
-    }
-
-    // Удаляем реакцию пользователя из других эмодзи
-    container.querySelectorAll('.reaction-badge.user-reaction').forEach(b => {
-        if (b.dataset.emoji !== emoji) {
-            b.classList.remove('user-reaction');
-        }
-    });
-}
-
-// Функция удаления комментария через AJAX
-function deleteComment(commentId) {
-    const url = `/posts/comment/${commentId}/delete/`;
-    const formData = new FormData();
-    formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
-
-    fetch(url, {
-        method: 'POST',
-        body: formData,
-        credentials: 'same-origin',
+    // Получаем список эмодзи, на которые пользователь уже отреагировал
+    fetch(`/posts/comment/${commentId}/user-reactions/`, {
+        method: 'GET',
         headers: {
             'X-Requested-With': 'XMLHttpRequest'
         }
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            const commentElement = document.querySelector(`.comment-block[data-comment-id="${commentId}"]`);
-            if (commentElement) {
-                commentElement.remove();
-            }
+    .then(response => {
+        if (response.status === 401) {
+            return []; // Пользователь не авторизован
         }
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
     })
-    .catch(error => console.error('Error:', error));
-}
+    .then(userReactions => {
+        // Обновляем реакции на основе данных от сервера
+        reactions.forEach(reaction => {
+            if (reaction.count > 0) {
+                const badge = document.createElement('span');
+                badge.className = 'badge reaction-badge me-1';
+                badge.dataset.emoji = reaction.emoji;
+                badge.dataset.commentId = commentId;
+                badge.textContent = `${reaction.emoji} ${reaction.count}`;
 
-// Функция обновления комментария
-function updateComment(commentId, formElement) {
-    const formData = new FormData(formElement);
+                // Добавляем класс user-reaction, если пользователь поставил эту реакцию
+                if (userReactions.includes(reaction.emoji)) {
+                    badge.classList.add('user-reaction');
+                }
 
-    fetch(`/posts/comment/${commentId}/update/`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'same-origin',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            const content = document.querySelector(`.comment-content[data-comment-id="${commentId}"] p`);
-            if (content) {
-                content.textContent = data.new_text;
+                // Анимация для добавленной реакции
+                if (action === 'added' && reaction.emoji === emoji) {
+                    badge.classList.add('added');
+                    setTimeout(() => badge.classList.remove('added'), 300);
+                }
+
+                container.appendChild(badge);
+
+                // Добавляем обработчик для новой реакции
+                badge.addEventListener('click', function() {
+                    toggleReaction(commentId, reaction.emoji);
+                });
             }
-            toggleEditForm(commentId);
-        }
+        });
     })
-    .catch(error => console.error('Error:', error));
-}
-
-// Функция переключения формы редактирования
-function toggleEditForm(commentId) {
-    const container = document.querySelector(`.edit-form-container[data-comment-id="${commentId}"]`);
-    const content = document.querySelector(`.comment-content[data-comment-id="${commentId}"]`);
-
-    if (container && content) {
-        container.classList.toggle('active');
-        content.style.display = content.style.display === 'none' ? 'block' : 'none';
-
-        // Автофокус на текстовом поле
-        if (container.classList.contains('active')) {
-            const textarea = container.querySelector('textarea');
-            if (textarea) {
-                textarea.focus();
-                textarea.setSelectionRange(textarea.value.length, textarea.value.length);
-            }
-        }
-    }
-}
-
-// Функция переключения формы ответа
-function toggleReplyForm(commentId) {
-    const container = document.querySelector(`.reply-form[data-comment-id="${commentId}"]`);
-    if (container) {
-        container.classList.toggle('active');
-    }
+    .catch(error => console.error('Error fetching user reactions:', error));
 }
 
 // Функция для получения CSRF токена
@@ -253,62 +229,3 @@ function getCookie(name) {
     }
     return cookieValue;
 }
-
-// Обработчик кнопки "Редактировать"
-document.querySelectorAll('.btn-edit-comment').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const commentBlock = this.closest('.comment-block');
-        const commentId = commentBlock.dataset.commentId;
-
-        // Скрываем основной контент
-        commentBlock.querySelector('.comment-content').classList.add('d-none');
-
-        // Показываем форму редактирования
-        commentBlock.querySelector('.edit-form').classList.remove('d-none');
-    });
-});
-
-// Обработчик отмены редактирования
-document.querySelectorAll('.cancel-edit').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const form = this.closest('.edit-form');
-        const commentBlock = form.closest('.comment-block');
-
-        // Показываем основной контент
-        commentBlock.querySelector('.comment-content').classList.remove('d-none');
-
-        // Скрываем форму
-        form.classList.add('d-none');
-    });
-});
-
-// Обработчик отправки формы редактирования
-document.querySelectorAll('.edit-comment-form').forEach(form => {
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        const commentId = this.dataset.commentId;
-
-        fetch(this.action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Обновляем текст комментария
-                const contentBlock = document.querySelector(
-                    `.comment-block[data-comment-id="${commentId}"] .comment-content p`
-                );
-                contentBlock.textContent = data.new_text;
-
-                // Восстанавливаем оригинальный вид
-                this.closest('.edit-form').classList.add('d-none');
-                contentBlock.parentElement.classList.remove('d-none');
-            }
-        });
-    });
-});

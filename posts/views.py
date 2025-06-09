@@ -1,4 +1,3 @@
-# posts/views.py
 from django.db import transaction
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -9,7 +8,7 @@ from django.urls import reverse_lazy
 from django.contrib.auth import get_user_model
 from django.shortcuts import redirect, get_object_or_404
 from django.core.paginator import Paginator
-from django.http import JsonResponse, request
+from django.http import JsonResponse
 from django.db.models import Count, Q
 from django.views.generic.detail import SingleObjectMixin
 from django.views import View
@@ -17,14 +16,12 @@ import json
 
 from .models import Post, Comment, Tag, CommentReaction
 from .forms import PostForm, CommentForm, PostImageFormSet
-from subscriptions.models import Subscription  # Добавляем импорт модели подписок
+from subscriptions.models import Subscription
 
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
-
-User = get_user_model()  # Получаем модель пользователя
-
+User = get_user_model()
 
 class PostListView(ListView):
     model = Post
@@ -33,45 +30,32 @@ class PostListView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        # Инициализация атрибутов для поиска по умолчанию
         self.search_query = self.request.GET.get('q', '').strip()
         self.search_terms = []
 
-        # Базовый запрос с предварительной загрузкой автора и аннотациями
         queryset = Post.objects.select_related('author').annotate(
-            num_comments=Count('comments', filter=Q(comments__is_active=True) | Q(comments__isnull=True),
-                               distinct=True),  # Скорректировано для корректного подсчета
+            num_comments=Count('comments', filter=Q(comments__is_active=True) | Q(comments__isnull=True), distinct=True),
             num_likes=Count('likes', distinct=True),
             num_dislikes=Count('dislikes', distinct=True)
         )
 
-        # Логика поиска
         if self.search_query:
             if self.search_query.isdigit():
-                # Поиск по ID, если введены только цифры
-                # Этот результат является окончательным, остальные фильтры не применяются
-                self.search_terms = []  # ID поиск не использует search_terms в шаблоне
+                self.search_terms = []
                 return queryset.filter(pk=int(self.search_query))
             else:
-                # Текстовый поиск
                 self.search_terms = self.search_query.split()
                 search_query_obj = Q()
-                # Поиск по целой фразе
                 search_query_obj |= Q(title__icontains=self.search_query)
                 search_query_obj |= Q(text__icontains=self.search_query)
 
-                # Поиск по отдельным словам (если фраза не дала результатов или для расширения)
-                # Можно добавить более сложную логику, как была ранее, если потребуется
-                # Например, поиск по всем словам, или по части слов.
-                # Текущая реализация ищет фразу целиком ИЛИ отдельные слова.
                 for term in self.search_terms:
-                    if len(term) > 1:  # Игнорируем слишком короткие слова
+                    if len(term) > 1:
                         search_query_obj |= Q(title__icontains=term)
                         search_query_obj |= Q(text__icontains=term)
 
                 queryset = queryset.filter(search_query_obj).distinct()
 
-        # Логика фильтрации (применяется к результатам поиска или ко всем постам)
         filter_param = self.request.GET.get('filter', 'latest')
 
         if filter_param == 'subscriptions':
@@ -84,7 +68,7 @@ class PostListView(ListView):
                 queryset = Post.objects.none()
         elif filter_param == 'popular':
             queryset = queryset.order_by('-num_likes', '-pub_date')
-        else:  # 'latest' или любой другой/не указанный параметр
+        else:
             queryset = queryset.order_by('-pub_date')
 
         return queryset
@@ -100,30 +84,26 @@ class PostListView(ListView):
 
         if self.request.user.is_authenticated:
             try:
-                # Получаем ID пользователей, на которых подписан текущий пользователь
                 subscribed_to = Subscription.objects.filter(
                     subscriber=self.request.user
                 ).values_list('author_id', flat=True)
 
-                # Получаем рекомендуемых пользователей (не включая тех, на кого уже подписан, и себя)
                 context['suggested_users'] = User.objects.exclude(
                     id__in=list(subscribed_to) + [self.request.user.id]
                 ).annotate(
                     subscribers_count=Count('subscribers')
-                ).order_by('-subscribers_count')[:3]  # Показываем 3 самых популярных пользователя
+                ).order_by('-subscribers_count')[:3]
             except Exception as e:
-                # В случае ошибки просто не добавляем рекомендации
                 context['suggested_users'] = []
                 print(f"Error getting suggested users: {e}")
 
         return context
 
-
 class PostDetailView(DetailView):
     model = Post
     template_name = 'posts/post_detail.html'
     context_object_name = 'post'
-    paginate_comments_by = 10  # Количество комментариев на странице
+    paginate_comments_by = 10
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -135,16 +115,13 @@ class PostDetailView(DetailView):
         else:
             comments_qs = self.object.comments.filter(is_active=True).order_by('-created_at')
 
-        # Пагинация комментариев
         paginator = Paginator(comments_qs, self.paginate_comments_by)
         page_number = self.request.GET.get('comment_page')
         context['comments'] = paginator.get_page(page_number)
 
-        # Добавляем популярные теги
         context['popular_tags'] = Tag.get_popular_tags()
 
         return context
-
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
@@ -175,7 +152,6 @@ class PostCreateView(LoginRequiredMixin, CreateView):
         else:
             return self.form_invalid(form)
 
-
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
     form_class = PostForm
@@ -202,7 +178,6 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
             image_formset.instance = self.object
             image_formset.save()
 
-            # ✅ Сохраняем `from` и делаем редирект на пост с этим параметром
             from_param = self.request.GET.get('from') or self.request.POST.get('from')
             if from_param:
                 return redirect(f"{self.object.get_absolute_url()}?from={from_param}")
@@ -214,7 +189,6 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         post = self.get_object()
         return self.request.user == post.author
 
-
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
     template_name = 'posts/post_confirm_delete.html'
@@ -224,13 +198,12 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         post = self.get_object()
         return self.request.user == post.author
 
-
 class PostCommentView(LoginRequiredMixin, SingleObjectMixin, View):
     model = Post
     form_class = CommentForm
 
     def post(self, request, *args, **kwargs):
-        self.object = self.get_object()            # пост, к которому добавляем комментарий
+        self.object = self.get_object()
         form = self.form_class(request.POST)
 
         if form.is_valid():
@@ -239,19 +212,15 @@ class PostCommentView(LoginRequiredMixin, SingleObjectMixin, View):
             comment.author = request.user
             comment.save()
 
-            # Сначала смотрим в POST, потом в GET
             from_param = request.POST.get('from') or request.GET.get('from')
             if from_param:
                 return redirect(f"{self.object.get_absolute_url()}?from={from_param}#comments")
 
-            # Если from не передан, просто возвращаем на якорь #comments
             return redirect(self.object.get_absolute_url() + '#comments')
 
-        # Если форма невалидна, показываем страницу с ошибками
         return self.render_to_response(
             self.get_context_data(post=self.object, comment_form=form)
         )
-
 
 class PostDetailWithComments(View):
     def get(self, request, *args, **kwargs):
@@ -261,10 +230,6 @@ class PostDetailWithComments(View):
     def post(self, request, *args, **kwargs):
         view = PostCommentView.as_view()
         return view(request, *args, **kwargs)
-
-
-
-
 
 class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Comment
@@ -293,8 +258,6 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
         return redirect(self.get_success_url())
 
-
-# posts/views.py (PostLikeView)
 @method_decorator(csrf_exempt, name='dispatch')
 class PostLikeView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
@@ -302,14 +265,12 @@ class PostLikeView(LoginRequiredMixin, View):
         user = request.user
 
         with transaction.atomic():
-            # Удаляем дизлайк если есть
             if post.dislikes.filter(id=user.id).exists():
                 post.dislikes.remove(user)
                 removed_dislike = True
             else:
                 removed_dislike = False
 
-            # Обрабатываем лайк
             if post.likes.filter(id=user.id).exists():
                 post.likes.remove(user)
                 liked = False
@@ -325,8 +286,6 @@ class PostLikeView(LoginRequiredMixin, View):
             'total_dislikes': post.dislikes.count()
         })
 
-
-# posts/views.py (PostDislikeView)
 @method_decorator(csrf_exempt, name='dispatch')
 class PostDislikeView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
@@ -334,14 +293,12 @@ class PostDislikeView(LoginRequiredMixin, View):
         user = request.user
 
         with transaction.atomic():
-            # Удаляем лайк если есть
             if post.likes.filter(id=user.id).exists():
                 post.likes.remove(user)
                 removed_like = True
             else:
                 removed_like = False
 
-            # Обрабатываем дизлайк
             if post.dislikes.filter(id=user.id).exists():
                 post.dislikes.remove(user)
                 disliked = False
@@ -356,7 +313,6 @@ class PostDislikeView(LoginRequiredMixin, View):
             'total_dislikes': post.dislikes.count(),
             'total_likes': post.likes.count()
         })
-
 
 class TagPostListView(ListView):
     model = Post
@@ -378,7 +334,6 @@ class TagPostListView(ListView):
         context['current_tag'] = self.tag
         context['page_title'] = f'#{self.tag.name}'
 
-        # Рекомендуемые пользователи как в PostListView
         if self.request.user.is_authenticated:
             try:
                 subscribed_to = Subscription.objects.filter(
@@ -394,36 +349,21 @@ class TagPostListView(ListView):
                 context['suggested_users'] = []
                 print(f"Error getting suggested users: {e}")
 
-        # Добавляем популярные теги
         context['popular_tags'] = Tag.get_popular_tags()
         return context
-
 
 def terms_of_use(request):
     return render(request, 'posts/terms_of_use.html')
 
-
 def privacy_policy(request):
     return render(request, 'posts/privacy_policy.html')
-
 
 class TermsOfUseView(TemplateView):
     template_name = 'terms_of_use.html'
 
-
 class PrivacyPolicyView(TemplateView):
     template_name = 'privacy_policy.html'
 
-
-def feed_view(request):
-    posts = Post.objects.annotate(
-        num_likes=Count('likes', distinct=True),
-        total_dislikes=Count('dislikes', distinct=True),
-        num_comments=Count('comments', distinct=True)
-    )
-
-
-# Представление для редактирования комментария
 class CommentUpdateView(LoginRequiredMixin, UpdateView):
     model = Comment
     fields = ['text']
@@ -432,16 +372,6 @@ class CommentUpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return self.object.post.get_absolute_url()
 
-
-# Представление для удаления комментария
-# class CommentDeleteView(LoginRequiredMixin, DeleteView):
-#     model = Comment
-#
-#     def get_success_url(self):
-#         return self.object.post.get_absolute_url()
-
-
-# Представление для ответа на комментарий
 class CommentReplyView(LoginRequiredMixin, CreateView):
     model = Comment
     fields = ['text']
@@ -455,37 +385,45 @@ class CommentReplyView(LoginRequiredMixin, CreateView):
         comment.save()
         return redirect(comment.post.get_absolute_url())
 
-
-# Обработчик реакций
 @require_POST
 def comment_react(request, pk):
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'error', 'message': 'Authentication required'}, status=401)
+
     comment = get_object_or_404(Comment, pk=pk)
     emoji = request.POST.get('emoji')
+    user = request.user
 
-    # Логика добавления/удаления реакции
+    if not emoji:
+        return JsonResponse({'status': 'error', 'message': 'Emoji not provided'}, status=400)
+
     reaction, created = CommentReaction.objects.get_or_create(
         comment=comment,
         emoji=emoji,
         defaults={'count': 0}
     )
 
-    if request.user in reaction.users.all():
-        reaction.users.remove(request.user)
-        reaction.count -= 1
+    if user in reaction.users.all():
+        reaction.users.remove(user)
+        reaction.count = max(0, reaction.count - 1)
+        action = 'removed'
     else:
-        reaction.users.add(request.user)
+        reaction.users.add(user)
         reaction.count += 1
+        action = 'added'
 
     reaction.save()
 
+    if reaction.count == 0:
+        reaction.delete()
+
+    reactions = comment.reactions.values('emoji').annotate(count=Count('users')).order_by('-count')
+
     return JsonResponse({
         'status': 'success',
-        'reactions': [
-            {'emoji': r.emoji, 'count': r.count}
-            for r in comment.reactions.all()
-        ]
+        'action': action,
+        'reactions': [{'emoji': r['emoji'], 'count': r['count']} for r in reactions]
     })
-
 
 @require_POST
 def edit_comment(request, pk):
@@ -507,46 +445,15 @@ def edit_comment(request, pk):
     except Comment.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Комментарий не найден'}, status=404)
 
-
 @login_required
-@require_POST
-def toggle_reaction(request, comment_id):
+def user_reactions(request, comment_id):
     comment = get_object_or_404(Comment, id=comment_id)
-    emoji = request.POST.get('emoji')
-
-    if not emoji:
-        return JsonResponse({'status': 'error', 'message': 'Emoji not provided'})
-
-    # Проверяем существующую реакцию
-    reaction = CommentReaction.objects.filter(
+    user_reactions = CommentReaction.objects.filter(
         comment=comment,
-        user=request.user,
-        emoji=emoji
-    ).first()
+        users=request.user
+    ).values_list('emoji', flat=True)
+    return JsonResponse(list(user_reactions))
 
-    if reaction:
-        # Удаляем реакцию, если она уже существует
-        reaction.delete()
-        action = 'removed'
-    else:
-        # Создаем новую реакцию
-        CommentReaction.objects.create(
-            comment=comment,
-            user=request.user,
-            emoji=emoji
-        )
-        action = 'added'
-
-    # Получаем обновленные реакции
-    reactions = comment.aggregated_reactions
-
-    return JsonResponse({
-        'status': 'success',
-        'action': action,
-        'reactions': list(reactions)
-    })
-
-# Редактирование комментария
 @require_POST
 def comment_update(request, pk):
     comment = get_object_or_404(Comment, pk=pk)
@@ -554,7 +461,6 @@ def comment_update(request, pk):
     if request.user != comment.author and not request.user.is_staff:
         return JsonResponse({'success': False}, status=403)
 
-    # Получаем текст из POST-данных
     new_text = request.POST.get('text', '').strip()
 
     if not new_text:
