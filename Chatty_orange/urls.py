@@ -31,6 +31,8 @@ urlpatterns = [
 
     # Debug Toolbar (если используется, подключаем в конце и только в DEBUG)
     # Эта часть будет добавлена ниже, внутри if settings.DEBUG
+
+    path('submit-advice/', post_views.submit_advice, name='submit_advice'),
 ]
 
 if settings.DEBUG:
