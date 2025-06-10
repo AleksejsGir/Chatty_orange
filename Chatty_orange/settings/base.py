@@ -199,8 +199,11 @@ CKEDITOR_CONFIGS = {
         'height': 300,
         'removePlugins': 'stylesheetparser',
         'allowedContent': True,
+        # ✅ ДОБАВЬТЕ ЭТУ СТРОКУ для отключения предупреждения
+        'versionCheck': False,
     },
 }
+
 JAZZMIN_SETTINGS = {
     "site_title": "Chatty orange",  # Заголовок административной панели
     "site_header": "Chatty orange: Admin",  # Заголовок окна браузера
