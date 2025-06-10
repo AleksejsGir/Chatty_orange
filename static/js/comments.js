@@ -159,7 +159,7 @@ function toggleReaction(commentId, emoji) {
 
 // Обновление UI после изменения реакции
 function updateReactionUI(commentId, emoji, action, reactions) {
-    const container = document.querySelector(`.comment-block[data-comment-id="${commentId}"] .emoji-reactions`);
+const container = document.querySelector(`.comment-block[data-comment-id="${commentId}"] .emoji-reactions`);
     if (!container) return;
 
     // Очищаем текущие реакции

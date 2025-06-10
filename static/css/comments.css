@@ -2,9 +2,36 @@
 
 /* Стили для кнопок действий с комментариями */
 .comment-actions {
+    margin-top: auto; /* Автоматический отступ сверху */
+    padding-top: 12px; /* Отступ от контента */
     opacity: 0.7;
     transition: opacity 0.3s ease;
-    border-top: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+/* Реакции под текстом */
+.emoji-reactions {
+    position: static;
+    bottom: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    padding: 0;
+    margin-top: 2.5rem; /* Добавлен отступ сверху */
+    margin-bottom: 0.05rem; /* Уменьшен отступ снизу */
+}
+
+/* Уменьшаем отступы для вложенных комментариев */
+.nested-comment {
+    margin-left: 40px;
+    border-left: 2px solid #e9ecef;
+    padding-left: 15px;
+}
+
+/* Формы редактирования/ответа */
+.edit-form,
+.reply-form {
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .comment-block:hover .comment-actions {
@@ -57,8 +84,8 @@
 .reaction-badge {
     background-color: var(--bs-gray-100);
     border-radius: 1rem;
-    padding: 0.25rem 0.5rem;
-    font-size: 0.85rem;
+    padding: 0.35rem 0.6rem;
+    font-size: 1rem;
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
@@ -73,7 +100,7 @@
 
 .reaction-badge .count {
     font-weight: 500;
-    font-size: 0.9rem;
+    /*font-size: 0.9rem;*/
 }
 
 /* Индикатор собственной реакции */
@@ -123,8 +150,8 @@
 }
 
 .btn-action:hover {
-    background: rgba(0, 0, 0, 0.08);
-    transform: scale(1.1);
+    /*background: rgba(0, 0, 0, 0.08);*/
+    transform: scale(1.15);
 }
 
 .btn-action.text-muted:hover { color: #6c757d; }
@@ -133,7 +160,7 @@
 
 .btn-action i {
     transition: transform 0.2s, color 0.2s;
-    font-size: 0.9rem;
+    font-size: 1.2rem;
 }
 
 .btn-action:hover i {
@@ -159,20 +186,11 @@
     padding-top: 0.5rem;
 }
 
-.emoji-reactions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-    padding: 0;
-    margin-top: 0.5rem; /* Добавлен отступ сверху */
-    margin-bottom: 0; /* Уменьшен отступ снизу */
-}
-
 /* Стили для панели быстрых реакций */
 .btn-reaction-quick {
     background: none;
     border: none;
-    font-size: 1.4rem;
+    font-size: 1.6rem;
     cursor: pointer;
     transition: transform 0.2s;
     padding: 0;
@@ -245,11 +263,11 @@
 }
 
 /* Стили для вложенных комментариев */
-.nested-comment {
-    margin-left: 40px;
-    border-left: 2px solid #e9ecef;
-    padding-left: 15px;
-}
+/*.nested-comment {*/
+/*    margin-left: 40px;*/
+/*    border-left: 2px solid #e9ecef;*/
+/*    padding-left: 15px;*/
+/*}*/
 
 /* Стили для форм */
 .edit-form {

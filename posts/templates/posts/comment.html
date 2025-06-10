@@ -36,6 +36,17 @@
                     <p>{{ comment.text|linebreaksbr }}</p>
                 </div>
 
+                <!-- Блок реакций (перемещён сюда) -->
+                <div class="emoji-reactions mb-2">
+                    {% for reaction in comment.reactions.all %}
+                        <span class="badge reaction-badge me-1 {% if request.user in reaction.users.all %}user-reaction{% endif %}"
+                              data-emoji="{{ reaction.emoji }}"
+                              data-comment-id="{{ comment.id }}">
+                            {{ reaction.emoji }} {{ reaction.users.count }}
+                        </span>
+                    {% endfor %}
+                </div>
+
                 <div class="comment-actions mt-2 d-flex align-items-center gap-1">
                     {% if user.is_authenticated %}
                     <!-- Реакции -->
@@ -98,15 +109,15 @@
                 </div>
 
                 <!-- Блок реакций (перемещён сюда) -->
-                <div class="emoji-reactions mb-2">
-                    {% for reaction in comment.reactions.all %}
-                        <span class="badge reaction-badge me-1 {% if request.user in reaction.users.all %}user-reaction{% endif %}"
-                              data-emoji="{{ reaction.emoji }}"
-                              data-comment-id="{{ comment.id }}">
-                            {{ reaction.emoji }} {{ reaction.users.count }}
-                        </span>
-                    {% endfor %}
-                </div>
+{#                <div class="emoji-reactions mb-2">#}
+{#                    {% for reaction in comment.reactions.all %}#}
+{#                        <span class="badge reaction-badge me-1 {% if request.user in reaction.users.all %}user-reaction{% endif %}"#}
+{#                              data-emoji="{{ reaction.emoji }}"#}
+{#                              data-comment-id="{{ comment.id }}">#}
+{#                            {{ reaction.emoji }} {{ reaction.users.count }}#}
+{#                        </span>#}
+{#                    {% endfor %}#}
+{#                </div>#}
 
                 <!-- Форма редактирования -->
                 <div class="edit-form mt-3 d-none">
