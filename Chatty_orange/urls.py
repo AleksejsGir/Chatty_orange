@@ -21,6 +21,7 @@ urlpatterns = [
     path('users/', include('users.urls', namespace='users')),
     path('posts/', include('posts.urls', namespace='posts')),
     path('subscriptions/', include('subscriptions.urls', namespace='subscriptions')),
+    path('assistant/', include('orange_assistant.urls', namespace='orange_assistant')),
     path('accounts/', include('allauth.urls')), # allauth сам управляет своими пространствами имен
 
     # Статические страницы (условия использования и политика конфиденциальности)

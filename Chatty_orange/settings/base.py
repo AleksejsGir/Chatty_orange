@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
     'posts.apps.PostsConfig',
     'subscriptions.apps.SubscriptionsConfig',
+    'orange_assistant.apps.OrangeAssistantConfig',
     # --- Сторонние приложения ---
     'allauth',
     'allauth.account',
@@ -39,8 +40,10 @@ INSTALLED_APPS = [
     'ckeditor',  # Добавляем CKEditor
 ]
 
+# ✅ ИСПРАВЛЕНО: Добавлен WhiteNoise middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # ← ДОБАВЛЕНО для статических файлов
     'django.contrib.sessions.middleware.SessionMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -168,9 +171,7 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-
-
-     #CKEditor
+#CKEditor
 CKEDITOR_JQUERY_URL = 'https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js'
 CKEDITOR_UPLOAD_PATH = 'uploads/'
 CKEDITOR_IMAGE_BACKEND = 'pillow'
@@ -198,8 +199,11 @@ CKEDITOR_CONFIGS = {
         'height': 300,
         'removePlugins': 'stylesheetparser',
         'allowedContent': True,
+        # ✅ ДОБАВЬТЕ ЭТУ СТРОКУ для отключения предупреждения
+        'versionCheck': False,
     },
 }
+
 JAZZMIN_SETTINGS = {
     "site_title": "Chatty orange",  # Заголовок административной панели
     "site_header": "Chatty orange: Admin",  # Заголовок окна браузера

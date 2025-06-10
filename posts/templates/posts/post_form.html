@@ -3,6 +3,7 @@
 {% load django_bootstrap5 %}
 {% load i18n %}
 
+
 {% block title %}
     {% if form.instance.pk %}
         Редактирование поста
@@ -35,6 +36,46 @@
         max-height: 150px;
         margin-bottom: 10px;
     }
+
+    /* НОВЫЕ СТИЛИ для областей ИИ */
+    #postSuggestionArea,
+    #postCheckResultArea {
+        min-height: auto !important;
+        height: auto !important;
+        max-height: 400px;
+        overflow-y: auto;
+        word-wrap: break-word;
+        word-break: break-word;
+        white-space: pre-wrap;
+        transition: all 0.3s ease-in-out;
+    }
+
+    #postSuggestionArea {
+        resize: vertical;
+    }
+
+    #postSuggestionArea p,
+    #postCheckResultArea p {
+        margin-bottom: 0.5rem;
+        line-height: 1.5;
+    }
+
+    #postSuggestionArea p:last-child,
+    #postCheckResultArea p:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Улучшение для длинного контента */
+    #postSuggestionArea ul,
+    #postCheckResultArea ul {
+        padding-left: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    #postSuggestionArea li,
+    #postCheckResultArea li {
+        margin-bottom: 0.25rem;
+    }
 </style>
 <style>
     /* Дополнительные стили для CKEditor */
@@ -58,6 +99,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="orange-background">
 <div class="container mt-4 mb-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
@@ -87,6 +129,22 @@
                                     {{ form.text.errors }}
                                 </div>
                             {% endif %}
+
+                            <!-- Кнопка и область для ИИ-помощника -->
+                            <div class="d-flex flex-wrap mt-2">
+                                <button type="button" class="btn btn-primary btn-sm btn-sm me-2 mb-2" id="getPostSuggestionBtn">
+                                    <i class="fas fa-lightbulb me-1"></i> Помощь ИИ с постом
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm mb-2" id="checkPostContentBtn">
+                                    <i class="fas fa-shield-alt me-1"></i> Проверить текст по правилам
+                                </button>
+                            </div>
+                            <div id="postSuggestionArea" class="mt-2 p-3 border rounded bg-light" style="display: none;">
+                                <!-- Сюда будут загружаться подсказки ИИ -->
+                            </div>
+                            <div id="postCheckResultArea" class="mt-2 p-3 border rounded" style="display: none; border-color: #f77216 !important;">
+                                <!-- Сюда будут загружаться результаты проверки ИИ -->
+                            </div>
                         </div>
 
                         <!-- Теги -->

@@ -14,7 +14,7 @@ class UserFactory(DjangoModelFactory):
         model = User
 
     username = factory.Sequence(lambda n: f'user{n}')
-    email = factory.Faker('email')
+    email = factory.Sequence(lambda n: f'user{n}@example.com')
     first_name = factory.Faker('first_name')
     last_name = factory.Faker('last_name')
     bio = factory.Faker('text', max_nb_chars=200)
@@ -27,9 +27,9 @@ class PostFactory(DjangoModelFactory):
         model = Post
 
     author = factory.SubFactory(UserFactory)
-    title = factory.Faker('sentence', nb_words=5)
+    title = factory.Sequence(lambda n: f'Test Post {n}')
     text = factory.Faker('text')
-    slug = factory.Faker('slug')
+    slug = factory.Sequence(lambda n: f'test-post-{n}')
 
 
 class CommentFactory(DjangoModelFactory):
@@ -49,5 +49,5 @@ class TagFactory(DjangoModelFactory):
     class Meta:
         model = Tag
 
-    name = factory.Faker('word')
-    slug = factory.Faker('slug')
+    name = factory.Sequence(lambda n: f'tag{n}')
+    slug = factory.Sequence(lambda n: f'tag-{n}')
