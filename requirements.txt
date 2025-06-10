@@ -52,3 +52,5 @@ factory-boy==3.3.0
 faker==19.12.0
 pytest-mock==3.12.0
 google-generativeai
+
+whitenoise>=6.0.0

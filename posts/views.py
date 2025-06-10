@@ -1,4 +1,5 @@
 # posts/views.py
+from django.core.mail import send_mail
 from django.db import transaction
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -7,15 +8,17 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.contrib.auth import get_user_model
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.db.models import Count, Q
 from django.views.generic.detail import SingleObjectMixin
 from django.views import View
+from django.core.mail import send_mail
 import json
 
 from .models import Post, Comment, Tag, CommentReaction
+from .models import Post, Comment, Tag, PostImage
 from .forms import PostForm, CommentForm, PostImageFormSet
 from subscriptions.models import Subscription
 
@@ -260,8 +263,6 @@ class PostDetailWithComments(View):
 
 
 
-
-
 class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Comment
     template_name = 'posts/comment_confirm_delete.html'
@@ -269,6 +270,7 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def test_func(self):
         comment = self.get_object()
         return self.request.user == comment.author or self.request.user.is_staff
+
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -446,6 +448,48 @@ def comment_react(request, pk):
         defaults={'count': 0}
     )
 
+def submit_advice(request):
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        message = request.POST.get('message', '').strip()
+
+        if not all([name, email, message]):
+            return JsonResponse({
+                'status': 'error',
+                'title': 'Ошибка',
+                'message': 'Пожалуйста, заполните все поля',
+                'icon': 'error'
+            }, status=400)
+
+        try:
+            send_mail(
+                f'Новый совет от {name}',
+                f'Имя: {name}\nEmail: {email}\n\nСообщение:\n{message}',
+                'noreply@chatty.com',
+                ['chattyorangeeu@gmail.com'],
+                fail_silently=False,
+            )
+            return JsonResponse({
+                'status': 'success',
+                'title': 'Успешно!',
+                'message': 'Спасибо за ваш совет! Мы ценим ваше мнение.',
+                'icon': 'success'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'title': 'Ошибка',
+                'message': f'Произошла ошибка при отправке: {str(e)}',
+                'icon': 'error'
+            }, status=500)
+
+    return JsonResponse({
+        'status': 'error',
+        'title': 'Ошибка',
+        'message': 'Неверный метод запроса',
+        'icon': 'error'
+    }, status=400)
     if user in reaction.users.all():
         reaction.users.remove(user)
         reaction.count = max(0, reaction.count - 1)

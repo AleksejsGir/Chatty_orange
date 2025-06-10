@@ -628,6 +628,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Функция восстановления размеров чата
     function restoreChatSize() {
+        // 📱 НОВОЕ: На мобильных очищаем inline стили
+        if (window.innerWidth <= 768) {
+            console.log('Мобильное устройство - очищаем inline стили');
+            if (chatWidget) {
+                chatWidget.style.width = '';
+                chatWidget.style.height = '';
+                chatWidget.style.left = '';
+                chatWidget.style.right = '';
+                chatWidget.style.top = '';
+                chatWidget.style.bottom = '';
+            }
+            return; // Выходим, не восстанавливаем размеры
+        }
+
+        // 🖥️ На десктопе работает как обычно
         try {
             const savedWidth = localStorage.getItem('chattyOrangeChatWidth');
             const savedHeight = localStorage.getItem('chattyOrangeChatHeight');
@@ -651,13 +666,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log(`Восстановлены размеры чата: ${width}x${height}`);
                 }
             } else {
-                // Устанавливаем размеры по умолчанию
+                // Устанавливаем размеры по умолчанию ТОЛЬКО для десктопа
                 chatWidget.style.width = '500px';
                 chatWidget.style.height = '600px';
             }
         } catch (e) {
             console.log('Не удалось восстановить размеры чата:', e);
-            // Устанавливаем размеры по умолчанию при ошибке
+            // Устанавливаем размеры по умолчанию при ошибке ТОЛЬКО для десктопа
             chatWidget.style.width = '500px';
             chatWidget.style.height = '600px';
         }
