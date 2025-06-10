@@ -443,7 +443,6 @@ def feed_view(request):
         num_comments=Count('comments', distinct=True)
     )
 
-@csrf_exempt
 def submit_advice(request):
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
