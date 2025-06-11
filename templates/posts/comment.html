@@ -36,7 +36,10 @@
                     <p>{{ comment.text|linebreaksbr }}</p>
                 </div>
 
-                <!-- Блок реакций (перемещён сюда) -->
+                <!-- Место для динамически добавляемых форм ответа -->
+                <div class="replies-container mt-3"></div>
+
+                <!-- Блок реакций -->
                 <div class="emoji-reactions mb-2">
                     {% for reaction in comment.reactions.all %}
                         <span class="badge reaction-badge me-1 {% if request.user in reaction.users.all %}user-reaction{% endif %}"
@@ -53,9 +56,9 @@
                     <div class="reactions-container">
                         <button class="btn-action text-muted btn-reaction"
                                 data-comment-id="{{ comment.id }}"
-{#                                data-bs-toggle="tooltip"#}
-                                data-bs-placement="top">
-{#                                title="Реакция">#}
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                title="Реакция">
                             <i class="fa-regular fa-face-smile"></i>
                         </button>
                         <div class="quick-reactions-panel">
@@ -72,6 +75,7 @@
 
                     <!-- Ответ -->
                     <button class="btn-action text-muted btn-reply"
+                            data-comment-id="{{ comment.id }}"
                             data-bs-toggle="tooltip"
                             data-bs-placement="top"
                             title="Ответить">
@@ -108,17 +112,6 @@
                     {% endif %}
                 </div>
 
-                <!-- Блок реакций (перемещён сюда) -->
-{#                <div class="emoji-reactions mb-2">#}
-{#                    {% for reaction in comment.reactions.all %}#}
-{#                        <span class="badge reaction-badge me-1 {% if request.user in reaction.users.all %}user-reaction{% endif %}"#}
-{#                              data-emoji="{{ reaction.emoji }}"#}
-{#                              data-comment-id="{{ comment.id }}">#}
-{#                            {{ reaction.emoji }} {{ reaction.users.count }}#}
-{#                        </span>#}
-{#                    {% endfor %}#}
-{#                </div>#}
-
                 <!-- Форма редактирования -->
                 <div class="edit-form mt-3 d-none">
                     <form method="post"
@@ -130,20 +123,6 @@
                         <div class="mt-2">
                             <button type="submit" class="btn btn-primary btn-sm">Сохранить</button>
                             <button type="button" class="btn btn-secondary btn-sm cancel-edit">Отмена</button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Форма ответа -->
-                <div class="reply-form mt-3 d-none">
-                    <form method="post"
-                          action="{% url 'posts:comment-reply' parent_id=comment.id %}"
-                          class="mt-2">
-                        {% csrf_token %}
-                        {% bootstrap_form comment_form %}
-                        <div class="mt-2">
-                            <button type="submit" class="btn btn-primary btn-sm">Отправить</button>
-                            <button type="button" class="btn btn-secondary btn-sm cancel-reply">Отмена</button>
                         </div>
                     </form>
                 </div>

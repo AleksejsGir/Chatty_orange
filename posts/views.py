@@ -1,6 +1,7 @@
 # posts/views.py
 from django.core.mail import send_mail
 from django.db import transaction
+from django.template.loader import render_to_string
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.http import require_POST
@@ -17,8 +18,8 @@ from django.views import View
 from django.core.mail import send_mail
 import json
 
-from .models import Post, Comment, Tag, CommentReaction
-from .models import Post, Comment, Tag, PostImage
+from .models import CommentReaction
+from .models import Post, Comment, Tag
 from .forms import PostForm, CommentForm, PostImageFormSet
 from subscriptions.models import Subscription
 
@@ -417,30 +418,31 @@ class CommentUpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return self.object.post.get_absolute_url()
 
-class CommentReplyView(LoginRequiredMixin, CreateView):
-    model = Comment
-    fields = ['text']
-
-    def form_valid(self, form):
-        parent_comment = get_object_or_404(Comment, pk=self.kwargs['parent_id'])
-        comment = form.save(commit=False)
-        comment.author = self.request.user
-        comment.parent = parent_comment
-        comment.post = parent_comment.post
-        comment.save()
-        return redirect(comment.post.get_absolute_url())
+# class CommentReplyView(View):
+#     def post(self, request, parent_id):
+#         if not request.user.is_authenticated:
+#             return JsonResponse({'success': False, 'error': 'Authentication required'})
+#         parent_comment = Comment.objects.get(id=parent_id)
+#         comment_text = request.POST.get('text')
+#         new_comment = Comment.objects.create(
+#             author=request.user,
+#             text=comment_text,
+#             parent=parent_comment
+#         )
+#         html = render_to_string('posts/comment.html', {'comment': new_comment, 'level': parent_comment.level + 1})
+#         return JsonResponse({'success': True, 'html': html})
 
 # Обработчик реакций
 @require_POST
-def comment_react(request, pk):
-    comment = get_object_or_404(Comment, pk=pk)
+def comment_react(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
     emoji = request.POST.get('emoji')
 
     # Логика добавления/удаления реакции
     reaction, created = CommentReaction.objects.get_or_create(
         comment=comment,
-        emoji=emoji,
-        defaults={'count': 0}
+        user=request.user,
+        defaults={}
     )
 
     if request.user in reaction.users.all():
@@ -590,3 +592,43 @@ def toggle_reaction(request, comment_id):
         'action': action,
         'reactions': list(reactions)
     })
+
+
+@login_required
+@require_POST
+def comment_reply(request, parentId):
+    try:
+        parent_comment = get_object_or_404(Comment, id=parentId)
+        comment_text = request.POST.get('text', '').strip()
+
+        if not comment_text:
+            return JsonResponse({
+                'success': False,
+                'error': 'Текст комментария не может быть пустым'
+            })
+
+        # Создаем новый комментарий-ответ
+        new_comment = Comment.objects.create(
+            author=request.user,
+            text=comment_text,
+            parent=parent_comment,
+            post=parent_comment.post,
+            level=parent_comment.level + 1
+        )
+
+        # Рендерим HTML для нового комментария
+        html = render_to_string('posts/comment.html', {
+            'comment': new_comment,
+            'level': parent_comment.level + 1
+        })
+
+        return JsonResponse({
+            'success': True,
+            'html': html
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })

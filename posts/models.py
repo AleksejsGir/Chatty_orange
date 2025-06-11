@@ -137,7 +137,7 @@ class Comment(models.Model):
         default=True,
         verbose_name="Активен"
     )
-    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE)
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
     level = models.PositiveIntegerField(editable=False)
     def __str__(self):
         return f"Комментарий от {self.author} к посту {self.post.title}"
@@ -211,6 +211,8 @@ class CommentReaction(models.Model):
     )
     emoji = models.CharField(max_length=10)
     created_at = models.DateTimeField(auto_now_add=True)
+    reaction_type = models.CharField(max_length=10, default='like')
+    count = models.PositiveIntegerField(default=0)
 
     class Meta:
         unique_together = ('comment', 'user', 'emoji')

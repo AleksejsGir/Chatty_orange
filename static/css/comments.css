@@ -2,36 +2,10 @@
 
 /* Стили для кнопок действий с комментариями */
 .comment-actions {
-    margin-top: auto; /* Автоматический отступ сверху */
-    padding-top: 12px; /* Отступ от контента */
     opacity: 0.7;
     transition: opacity 0.3s ease;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-/* Реакции под текстом */
-.emoji-reactions {
-    position: static;
-    bottom: auto;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-    padding: 0;
-    margin-top: 2.5rem; /* Добавлен отступ сверху */
-    margin-bottom: 0.05rem; /* Уменьшен отступ снизу */
-}
-
-/* Уменьшаем отступы для вложенных комментариев */
-.nested-comment {
-    margin-left: 40px;
-    border-left: 2px solid #e9ecef;
-    padding-left: 15px;
-}
-
-/* Формы редактирования/ответа */
-.edit-form,
-.reply-form {
-    margin-top: 10px;
-    margin-bottom: 10px;
+    border-top: none;
+    margin-top: 1rem;
 }
 
 .comment-block:hover .comment-actions {
@@ -67,12 +41,25 @@
 }
 
 .reply-form {
-    display: none;
+    display: block;
     margin-top: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
 }
 
-.reply-form.active {
-    display: block;
+.reply-form.d-none {
+    display: none;
+}
+
+.reply-textarea {
+    min-height: 40px;
+    max-height: 200px;
+    overflow-y: auto;
+    width: 100%;
 }
 
 /* Стили для реакций */
@@ -100,7 +87,6 @@
 
 .reaction-badge .count {
     font-weight: 500;
-    /*font-size: 0.9rem;*/
 }
 
 /* Индикатор собственной реакции */
@@ -150,7 +136,6 @@
 }
 
 .btn-action:hover {
-    /*background: rgba(0, 0, 0, 0.08);*/
     transform: scale(1.15);
 }
 
@@ -186,6 +171,17 @@
     padding-top: 0.5rem;
 }
 
+.emoji-reactions {
+    position: static;
+    bottom: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    padding: 0;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
 /* Стили для панели быстрых реакций */
 .btn-reaction-quick {
     background: none;
@@ -210,7 +206,8 @@
 
 .quick-reactions-panel {
     position: absolute;
-    bottom: 100%;
+    top: 100%;
+    bottom: auto;
     left: 0;
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
@@ -220,7 +217,7 @@
     display: flex;
     gap: 8px;
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(5px);
     transition: all 0.3s ease;
     z-index: 10;
     pointer-events: none;
@@ -240,7 +237,7 @@
 /* Мобильные устройства: показ панели по клику */
 @media (max-width: 768px) {
     .reactions-container .quick-reactions-panel {
-        bottom: calc(100% + 5px);
+        top: calc(100% + 5px);
         left: -50%;
         transform: translateX(-50%);
     }
@@ -255,6 +252,7 @@
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     transition: all 0.3s ease;
     padding: 12px 15px;
+    min-height: 150px;
 }
 
 .comment-block.card:hover {
@@ -263,11 +261,15 @@
 }
 
 /* Стили для вложенных комментариев */
-/*.nested-comment {*/
-/*    margin-left: 40px;*/
-/*    border-left: 2px solid #e9ecef;*/
-/*    padding-left: 15px;*/
-/*}*/
+.replies {
+    margin-top: 1rem;
+}
+
+.nested-comment {
+    margin-left: 40px;
+    border-left: 2px solid #e9ecef;
+    padding-left: 15px;
+}
 
 /* Стили для форм */
 .edit-form {
@@ -286,4 +288,17 @@
 .edit-form.active {
     transform: translateY(0);
     opacity: 1;
+}
+
+/* Улучшение видимости формы ответа */
+.reply-form {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 12px;
+    transition: all 0.3s ease;
+}
+
+.reply-textarea:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
 }
