@@ -1,0 +1,140 @@
+# ========== GIT И РАЗРАБОТКА ==========
+.git
+.gitignore
+.gitattributes
+
+# IDE и редакторы
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ========== PYTHON ==========
+# Кеш Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Виртуальные окружения (НЕ нужны в образе)
+.venv/
+venv/
+env/
+ENV/
+
+# Тестирование
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# ========== DJANGO ==========
+# Локальная SQLite база (НЕ нужна в продакшене)
+db.sqlite3
+db.sqlite3-journal
+
+# Собранные статические файлы (пересобираются в образе командой collectstatic)
+staticfiles/
+static_root/
+
+# ВАЖНО: static/ папка с исходными файлами НУЖНА! (НЕ исключаем)
+
+# Пользовательские медиа файлы (монтируются как volume)
+media/
+
+# Логи (создаются в контейнере)
+*.log
+logs/
+
+# ========== ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ ==========
+# КРИТИЧЕСКИ ВАЖНО: исключаем все .env файлы с секретами!
+.env
+.env.*
+!.env.example
+
+# ========== DOCKER ==========
+# Docker файлы для разработки (НЕ нужны в образе)
+docker-compose.yml
+docker-compose.override.yml
+Dockerfile
+
+# ВАЖНО: НЕ исключаем production файлы:
+# Dockerfile.prod ✅ (нужен для сборки)
+# docker-compose.prod.yml ✅ (не копируется в образ, но нужен на сервере)
+# entrypoint.prod.sh ✅ (монтируется как volume)
+
+# ========== NGINX И CERTBOT ==========
+# Nginx конфиги монтируются как volumes, но пусть будут в образе на всякий случай
+# nginx/ ✅ (НЕ исключаем)
+# certbot/ ✅ (НЕ исключаем)
+
+# ========== ДОКУМЕНТАЦИЯ ==========
+# Документация не нужна в production образе
+README.md
+*.md
+docs/
+SPRINT_*.md
+ТЗ.pdf
+S*.md
+
+# Файлы проекта (кроме requirements.txt!)
+*.pdf
+*.txt
+!requirements.txt  # requirements.txt КРИТИЧЕСКИ ВАЖЕН!
+!entrypoint.prod.sh  # entrypoint скрипт НУЖЕН!
+
+# ========== ОПЕРАЦИОННАЯ СИСТЕМА ==========
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# ========== ВРЕМЕННЫЕ И BACKUP ФАЙЛЫ ==========
+# Временные файлы
+*.tmp
+*.temp
+.temporary/
+
+# Backup файлы
+*.backup
+*.bak
+*.orig
+
+# ========== БЕЗОПАСНОСТЬ ==========
+# Сертификаты и ключи (если есть локальные)
+*.pem
+*.key
+*.crt
+
+# Приватные ключи SSH
+*.ssh/
+ssh-key-*
+
+# ========== БАЗЫ ДАННЫХ ==========
+# Dumps баз данных
+*.sql
+*.dump
+
+# ========== ТЕСТИРОВАНИЕ ==========
+# Тестовые файлы (не нужны в продакшене)
+test_*.py
+*_test.py
+tests/fixtures/
+conftest.py
+
+# ========== ДРУГИЕ ИСКЛЮЧЕНИЯ ==========
+# Файлы проектов PyCharm
+*.iml
+
+# Локальные конфигурации
+local_settings.py
+
+# Кеш npm (если используется)
+node_modules/
+package-lock.json
