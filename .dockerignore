@@ -80,7 +80,11 @@ S*.md
 
 # Файлы проекта (кроме requirements.txt!)
 *.pdf
-*.txt
+# Исключаем конкретные .txt файлы вместо всех:
+*.backup.txt
+*.temp.txt
+test*.txt
+# НЕ исключаем requirements.txt!
 !requirements.txt  # requirements.txt КРИТИЧЕСКИ ВАЖЕН!
 !entrypoint.prod.sh  # entrypoint скрипт НУЖЕН!
 
