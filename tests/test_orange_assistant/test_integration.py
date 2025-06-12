@@ -142,8 +142,7 @@ class TestOrangeAssistantIntegration:
 
             assert response.status_code == 200
 
-    @patch('orange_assistant.views.get_gemini_response')
-    def test_post_details_request_with_id_extraction(self, mock_gemini, authenticated_client):
+    def test_post_details_request_with_id_extraction(self, authenticated_client):
         """ИСПРАВЛЕНО: Тест запроса деталей поста с извлечением ID."""
         # Мокируем ответ для get_post_details вместо общего gemini
         with patch('orange_assistant.views.get_post_details') as mock_get_post_details:
@@ -479,10 +478,28 @@ class TestOrangeAssistantIntegration:
         assert len(anon_text) > 5
         assert len(auth_text) > 5
 
-    @patch('orange_assistant.views.get_gemini_response')
-    def test_additional_integration_scenarios(self, mock_gemini, authenticated_client):
+    def test_additional_integration_scenarios(self, authenticated_client):
         """НОВЫЙ ТЕСТ: Дополнительные интеграционные сценарии для покрытия."""
-        mock_gemini.return_value = "Дополнительный ответ"
+        action_to_function_map = {
+            'faq': 'get_faq_answer',
+            'feature_explanation': 'get_feature_explanation',
+            'interactive_tour_step': 'get_interactive_tour_step',
+            'post_creation_suggestion': 'get_post_creation_suggestion',
+            'check_post_content': 'check_post_content',
+            'generate_post_ideas': 'generate_post_ideas',
+            'analyze_sentiment': 'analyze_sentiment',
+            # Добавляем остальные action_types, которые могут быть вызваны во views.py
+            'subscription_recommendations': 'get_subscription_recommendations',
+            'analyze_profile': 'analyze_profile_stats',
+            'find_post_by_keyword': 'find_post_by_keyword',
+            'get_post_details': 'get_post_details',
+            'find_user_by_username': 'find_user_by_username',
+            'get_user_activity': 'get_user_activity'
+            # 'general_chat' обрабатывается через self.handle_natural_language_query,
+            # который внутри может вызывать get_gemini_response или другие функции.
+            # Для general_chat патчить get_gemini_response может быть осмысленно,
+            # но этот тест сфокусирован на прямых action_type.
+        }
 
         # Тестируем различные action_types
         test_scenarios = [
@@ -496,12 +513,24 @@ class TestOrangeAssistantIntegration:
         ]
 
         for scenario in test_scenarios:
-            with patch(f'orange_assistant.views.{scenario["action_type"].replace("_", "_")}') as mock_func:
-                # Некоторые функции уже имеют правильные имена, для остальных используем общий mock
-                if scenario['action_type'] in ['faq', 'feature_explanation', 'interactive_tour_step']:
-                    mock_func.return_value = f"Ответ для {scenario['action_type']}"
-                else:
-                    mock_gemini.return_value = f"Ответ для {scenario['action_type']}"
+            action = scenario['action_type']
+            function_name_to_patch = action_to_function_map.get(action)
+
+            if not function_name_to_patch:
+                # Если для какого-то action_type нет прямого маппинга на функцию
+                # (например, 'general_chat' или если это ошибка в тесте),
+                # то можно пропустить или обработать особо.
+                # Для данного теста предполагаем, что все action_type в test_scenarios имеют маппинг.
+                # Если это не так, тест нужно будет доработать.
+                # Пока что, если имя не найдено, используем старый подход, но это должно быть исправлено.
+                # В идеале, все action_type в test_scenarios должны иметь свой обработчик.
+                # Однако, чтобы избежать падения, если action не в карте, можно оставить старый патч
+                # или явно пропустить. Для чистоты, мы ожидаем, что все используемые action есть в карте.
+                # Если function_name_to_patch is None, это ошибка в настройке теста или карты.
+                assert function_name_to_patch, f"Function name not found in map for action: {action}"
+
+            with patch(f'orange_assistant.views.{function_name_to_patch}') as mock_func:
+                mock_func.return_value = f"Ответ для {action}"
 
                 response = authenticated_client.post(
                     self.chat_url,

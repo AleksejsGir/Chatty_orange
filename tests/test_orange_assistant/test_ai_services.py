@@ -76,16 +76,17 @@ class TestAIServices:
         result = get_gemini_response("Тестовый промпт")
         assert "Ключ API для сервиса ИИ не настроен" in result
 
-    @patch('orange_assistant.ai_services.genai')
-    def test_get_gemini_response_api_error(self, mock_genai):
+    @override_settings(GOOGLE_API_KEY="test_key")
+    @patch('orange_assistant.ai_services.genai.configure')
+    def test_get_gemini_response_api_error(self, mock_genai_configure):
         """ИСПРАВЛЕНО: Тест обработки ошибки API."""
-        # Создаем правильную структуру mock для вызова configure
-        mock_genai.configure = Mock(side_effect=Exception("API Error"))
+        # Мокируем ошибку при вызове configure
+        mock_genai_configure.side_effect = Exception("API Error from configure")
 
         result = get_gemini_response("Тестовый промпт")
 
         assert "Произошла ошибка при обращении к сервису ИИ" in result
-        assert "API Error" in result
+        assert "Подробности: API Error from configure" in result
 
     @patch('orange_assistant.ai_services.get_gemini_response')
     def test_find_post_by_keyword_found(self, mock_gemini):
