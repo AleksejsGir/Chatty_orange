@@ -130,7 +130,7 @@
         </div>
     </div>
 
-    {% if comment.replies.all %}
+    {% if comment.replies.all or not comment.replies.all %}
         <div class="replies mt-3">
             {% for reply in comment.replies.all %}
                 {% include 'posts/comment.html' with comment=reply level=level|add:1 %}

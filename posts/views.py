@@ -596,9 +596,9 @@ def toggle_reaction(request, comment_id):
 
 @login_required
 @require_POST
-def comment_reply(request, parentId):
+def comment_reply(request, parent_id):
     try:
-        parent_comment = get_object_or_404(Comment, id=parentId)
+        parent_comment = get_object_or_404(Comment, id=parent_id)
         comment_text = request.POST.get('text', '').strip()
 
         if not comment_text:
