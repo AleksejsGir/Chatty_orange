@@ -29,6 +29,7 @@ User = get_user_model()
 class TestAIServices:
     """Тесты для AI сервисов Orange Assistant."""
 
+    @override_settings(GOOGLE_API_KEY='test-api-key')
     @patch('orange_assistant.ai_services.genai')
     def test_get_gemini_response_success(self, mock_genai):
         """Тест успешного получения ответа от Gemini AI."""
@@ -46,6 +47,7 @@ class TestAIServices:
         mock_genai.configure.assert_called_once()
         mock_genai.GenerativeModel.assert_called_once_with('gemini-2.0-flash')
 
+    @override_settings(GOOGLE_API_KEY='test-api-key')
     @patch('orange_assistant.ai_services.genai')
     def test_get_gemini_response_with_candidates(self, mock_genai):
         """Тест получения ответа через candidates."""

@@ -309,124 +309,123 @@ class ChatWithAIView(View):
             ip = request.META.get('REMOTE_ADDR')
         return ip
 
-    def extract_username(self, user_input: str) -> str:
-        """Извлекает имя пользователя из текста."""
-        lower_input = user_input.lower().strip()
+    def extract_username(self, user_input):
+        """
+        Извлекает имя пользователя из текста.
 
-        patterns_to_try = [
-            r'(?:найди|найти|ищи|искать)\s+(?:(?:пользователя|юзера)\s+)?([A-Za-z0-9_А-Яа-я-]+)',
-            r'пользователь\s+([A-Za-z0-9_А-Яа-я-]+)',
-            r'профиль\s+([A-Za-z0-9_А-Яа-я-]+)',
-            r'@([A-Za-z0-9_А-Яа-я-]+)',
-            r'в\s+профиле\s+([A-Za-z0-9_А-Яа-я-]+)',
-            r'кто\s+такой\s+([A-Za-z0-9_А-Яа-я-]+)',
-        ]
-
-        for pattern in patterns_to_try:
-            match = re.search(pattern, lower_input, re.IGNORECASE)
-            if match:
-                potential_username = match.group(1)
-                # Проверка: минимум 2 символа, не чисто числовое
-                if len(potential_username) >= 2 and not potential_username.isdigit():
-                    return potential_username.lower()
-
-        # Если не нашли через регулярки, пробуем простой подход
-        words = lower_input.split()  # Используем lower_input
-        for i, word in enumerate(words):
-            # word уже в lower_case, т.к. от lower_input.split()
-            if word in ['пользователя', 'юзера', 'пользователь', 'профиль'] and i + 1 < len(words):
-                potential_username = words[i + 1].replace('@', '').strip()
-                # Проверка: минимум 2 символа, не чисто числовое
-                # И чтобы оно не было одним из ключевых слов для поиска
-                if (len(potential_username) >= 3 and
-                        not potential_username.isdigit() and
-                        potential_username not in [
-                            'пользователя', 'юзера', 'пользователь', 'профиль', 'про',
-                            'о', 'об', 'по', 'найди', 'найти', 'ищи', 'искать',
-                            'имя', 'логин', 'ник', 'аккаунт'  # Добавленные слова
-                        ]):
-                    return potential_username.lower()
-        return None
-
-    def extract_keyword_for_posts(self, user_input: str) -> str:
-        """Извлекает ключевое слово для поиска постов."""
-        lower_input = user_input.lower().strip()
-        stop_words = ["текст", "слово", "фраза", "и", "в", "на", "о", "об", "по", "про", "не", "бы", "же", "то", "это",
-                      "тут"]
-
-        # ВАЖНО: Сначала проверяем, не является ли это запросом постов пользователя
-        user_posts_indicators = [
-            'статьи у', 'посты у', 'какие статьи у', 'какие посты у',
-            'статьи пользователя', 'посты пользователя',
-            'статьи от', 'посты от',
-            'что писал', 'что писала'
-        ]
-
-        # Если это запрос постов пользователя, НЕ извлекаем ключевое слово
-        if any(indicator in lower_input for indicator in user_posts_indicators):
-            logger.info("This is a user posts query, not extracting keyword")
+        Для начинающих: этот метод использует регулярные выражения (regex)
+        для поиска имен пользователей в тексте запроса.
+        """
+        if not user_input:
             return None
 
-        # Сначала пробуем найти текст в скобках или кавычках
-        bracket_match = re.search(r'[(\[]([^)\]]+)[)\]]', lower_input)
-        if bracket_match:
-            keyword = bracket_match.group(1).strip()
-            logger.info(f"Found keyword in brackets: '{keyword}'")
-            return keyword
+        text = user_input.lower().strip()
 
-        # Ищем ключевое слово после предлогов
-        # stop_words и user_posts_indicators остаются как были определены ранее в методе
-        # bracket_match логика также остается
+        # Стоп-слова которые НЕ являются именами пользователей
+        stop_words = ['имя', 'логин', 'ник', 'название', 'нейм']
 
-        keyword_patterns = [
-            r'про\s+((?!\d+$)[A-Za-zА-Яа-я0-9\s_-]{3,})',
-            r'о\s+((?!\d+$)[A-Za-zА-Яа-я0-9\s_-]{3,})',
-            r'об\s+((?!\d+$)[A-Za-zА-Яа-я0-9\s_-]{3,})',
-            r'по\s+теме\s+((?!\d+$)[A-Za-zА-Яа-я0-9\s_-]{3,})',
-            r'на\s+тему\s+((?!\d+$)[A-Za-zА-Яа-я0-9\s_-]{3,})',
-            r'(?:покажи|найди|найти|ищи|искать)\s+(?:пост|посты|стать|статьи)\s+((?!\d+$)[A-Za-zА-Яа-я0-9\s_-]{2,}[A-Za-zА-Яа-я_-]+[A-Za-zА-Яа-я0-9\s_-]*|[A-Za-zА-Яа-я_-]{3,})',
-            r'пост\s+((?!\d+$)[A-Za-zА-Яа-я0-9\s_-]{2,}[A-Za-zА-Яа-я_-]+[A-Za-zА-Яа-я0-9\s_-]*|[A-Za-zА-Яа-я_-]{3,})',
-            r'посты\s+((?!\d+$)[A-Za-zА-Яа-я0-9\s_-]{2,}[A-Za-zА-Яа-я_-]+[A-Za-zА-Яа-я0-9\s_-]*|[A-Za-zА-Яа-я_-]{3,})',
-            r'статьи?\s+((?!\d+$)[A-Za-zА-Яа-я0-9\s_-]{2,}[A-Za-zА-Яа-я_-]+[A-Za-zА-Яа-я0-9\s_-]*|[A-Za-zА-Яа-я_-]{3,})'
+        # Паттерны для поиска имен пользователей
+        # Для начинающих: r'...' - это "сырая" строка, где \ не экранируется
+        patterns = [
+            r'найди?\s+(?:пользователя|юзера)\s+([a-zA-Z0-9_-]{2,})',
+            r'найти?\s+(?:пользователя|юзера)\s+([a-zA-Z0-9_-]{2,})',
+            r'ищи?\s+(?:пользователя|юзера)\s+([a-zA-Z0-9_-]{2,})',
+            r'искать?\s+(?:пользователя|юзера)\s+([a-zA-Z0-9_-]{2,})',
+            r'пользователь\s+([a-zA-Z0-9_-]{2,})',
+            r'профиль\s+([a-zA-Z0-9_-]{2,})',
+            r'@([a-zA-Z0-9_-]{2,})',
+            r'в\s+профиле\s+([a-zA-Z0-9_-]{2,})',
+            r'кто\s+такой\s+([a-zA-Z0-9_-]{2,})',
+            r'кто\s+такая\s+([a-zA-Z0-9_-]{2,})',
+            # ДОБАВЛЕНО: Простой паттерн для таких запросов как "найди user123"
+            r'найди\s+([a-zA-Z0-9_-]{2,})',
         ]
-        # Обновленные паттерны:
-        # - (?!\d+$) - не должно быть чисто числовым.
-        # - {3,} или сложный паттерн для минимум 3 символов или содержащий буквы.
-        #   ([A-Za-zА-Яа-я0-9\s_-]{2,}[A-Za-zА-Яа-я_-]+[A-Za-zА-Яа-я0-9\s_-]*|[A-Za-zА-Яа-я_-]{3,})
-        #   означает: (минимум 2 символа + буква/_) ИЛИ (минимум 3 буквы/_) - чтобы избежать очень коротких числовых с пробелами.
 
-        for pattern in keyword_patterns:
-            match = re.search(pattern, lower_input)
+        for pattern in patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                username = match.group(1).lower()
+
+                # Проверки валидности
+                if len(username) < 2:  # Слишком короткое
+                    continue
+                if username.isdigit():  # Только цифры
+                    continue
+                if username in stop_words:  # Стоп-слово
+                    continue
+
+                return username
+
+        return None
+
+    def extract_keyword_for_posts(self, user_input):
+        """
+        Извлекает ключевые слова для поиска постов.
+
+        Для начинающих: этот метод отличает общий поиск постов
+        от поиска постов конкретного пользователя.
+        """
+        if not user_input:
+            return None
+
+        text = user_input.lower().strip()
+
+        # Проверяем, не является ли это запросом постов пользователя
+        user_posts_indicators = [
+            r'статьи\s+у\s+\w+',
+            r'посты\s+у\s+\w+',
+            r'какие\s+(?:статьи|посты)\s+у\s+\w+',
+            r'(?:статьи|посты)\s+пользователя\s+\w+',
+            r'(?:статьи|посты)\s+от\s+\w+',
+            r'что\s+писал\w*\s+\w+',
+        ]
+
+        for indicator in user_posts_indicators:
+            if re.search(indicator, text, re.IGNORECASE):
+                return None  # Это запрос постов пользователя
+
+        # Стоп-слова для ключевых слов
+        stop_words = ['текст', 'слово', 'и', 'или', 'а', 'в']
+
+        # Паттерны для извлечения ключевых слов
+        patterns = [
+            r'[(\[](.*?)[)\]]',  # В скобках: (Django) или [Python]
+            r'(?:посты?|статьи|пост)\s+про\s+(.+)',
+            r'(?:посты?|статьи|пост)\s+о\s+(.+)',
+            r'(?:посты?|статьи|пост)\s+об\s+(.+)',
+            r'найди?\s+(?:статьи|посты?)\s+по\s+теме\s+(.+)',
+            r'покажи?\s+(?:статьи|посты?)\s+на\s+тему\s+(.+)',
+            # ИСПРАВЛЕНО: Более общие паттерны в конце
+            r'найди?\s+(?:пост|статьи|посты?)\s+([a-zA-Zа-яёА-ЯЁ0-9.\s]+)',
+            r'покажи?\s+(?:пост|статьи|посты?)\s+([a-zA-Zа-яёА-ЯЁ0-9.\s]+)',
+            r'ищи?\s+(?:пост|статьи|посты?)\s+([a-zA-Zа-яёА-ЯЁ0-9.\s]+)',
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
             if match:
                 keyword = match.group(1).strip()
-                keyword = re.sub(r'[?!.,:;]+$', '', keyword).strip()  # Добавил strip после sub
 
-                if not keyword:
+                # Очищаем от знаков препинания только в конце
+                keyword = re.sub(r'[!?.,:;.]*$', '', keyword).strip()
+
+                # Дополнительная очистка для специфичных паттернов
+                # Убираем лишние предлоги из начала
+                keyword = re.sub(r'^(теме|тему)\s+', '', keyword).strip()
+
+                # Проверки валидности
+                if len(keyword) < 2:
+                    continue
+                if keyword.isdigit():  # Только цифры - не ключевое слово
+                    continue
+                if keyword.lower() in stop_words:
+                    continue
+                # Проверяем что не содержит только цифры с предлогами
+                if re.match(r'^(про|о|об)\s+\d+$', keyword):
                     continue
 
-                # Явная проверка, если lookahead не справился или для других паттернов
-                if keyword.isdigit():
-                    continue
+                return keyword.lower()
 
-                # Проверка на стоп-слова и минимальную длину (ужесточена в регулярках, но можно оставить)
-                # Длина < 3 уже почти невозможна с новыми регулярками, если они правильно написаны.
-                # Основной акцент на stop_words.
-                is_stop_word = False
-                for sw in stop_words:
-                    if keyword == sw or keyword.startswith(sw + " ") or keyword.endswith(
-                            " " + sw) or f" {sw} " in keyword:
-                        # Более строгая проверка на стоп-слова (если ключевое слово само является стоп-словом)
-                        # или если оно состоит из нескольких слов, но основное - стоп-слово (это сложнее).
-                        # Пока ограничимся точным совпадением.
-                        if keyword == sw:
-                            is_stop_word = True
-                            break
-                if is_stop_word:
-                    continue
-
-                # Если ключевое слово прошло все проверки
-                if len(keyword) >= 2:  # Минимальная длина 2 для не стоп-слов
-                    return keyword
         return None
 
     def handle_natural_language_query(self, user_input: str, user_info: dict) -> str:
