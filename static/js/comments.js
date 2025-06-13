@@ -16,43 +16,32 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-// Обработчик кнопки "Ответить"
+    // Обработчик кнопки "Ответить" - ПЕРЕРАБОТАННЫЙ КОД
     document.querySelectorAll('.btn-reply').forEach(button => {
         button.addEventListener('click', function() {
             const commentBlock = this.closest('.comment-block');
             const repliesContainer = commentBlock.querySelector('.replies-container');
 
             // Закрываем все другие открытые формы ответа
-            document.querySelectorAll('.reply-form').forEach(form => {
-                if (!form.closest('.comment-block').isSameNode(commentBlock)) {
-                    form.classList.add('d-none');
-                }
-            });
-
-            // Проверяем, есть ли уже открытая форма в этом контейнере
-            let existingForm = repliesContainer.querySelector('.reply-form:not(.d-none)');
-            if (existingForm) {
-                existingForm.classList.add('d-none');
-            }
+            document.querySelectorAll('.reply-form').forEach(form => form.remove());
 
             // Создаём новую форму ответа
             const parentId = this.dataset.commentId;
             const replyForm = document.createElement('div');
-            replyForm.className = 'reply-form d-none mt-3';
+            replyForm.className = 'reply-form mt-3';
             const csrfToken = getCookie('csrftoken');
             replyForm.innerHTML = `
-            <form method="post" action="/comments/${parentId}/reply/" class="mt-2">
-                <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
-                <textarea name="text" class="form-control reply-textarea" rows="1" placeholder="Напишите ответ..." style="resize: vertical;"></textarea>
-                <div class="mt-2">
-                    <button type="submit" class="btn btn-primary btn-sm">Сохранить</button>
-                    <button type="button" class="btn btn-secondary btn-sm cancel-reply">Отмена</button>
-                </div>
-            </form>
-        `;
+                <form method="post" action="/comments/${parentId}/reply/" class="mt-2">
+                    <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                    <textarea name="text" class="form-control reply-textarea" rows="2" placeholder="Напишите ответ..." style="resize: vertical;" required></textarea>
+                    <div class="mt-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm">Отправить</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm cancel-reply">Отмена</button>
+                    </div>
+                </form>
+            `;
 
             repliesContainer.appendChild(replyForm);
-            replyForm.classList.remove('d-none');
 
             // Динамическое расширение textarea
             const textarea = replyForm.querySelector('.reply-textarea');
@@ -64,38 +53,68 @@ document.addEventListener('DOMContentLoaded', function() {
             // Фокусируемся на поле ввода
             textarea.focus();
 
-            // Обработчик отправки формы
+            // Обработчик отправки формы - ПЕРЕРАБОТАННЫЙ КОД
             replyForm.querySelector('form').addEventListener('submit', function(e) {
                 e.preventDefault();
-                const formData = new FormData(this);
-                fetch(this.action, {
+                const form = this;
+                const formData = new FormData(form);
+
+                // Показываем индикатор загрузки
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Отправка...';
+
+                fetch(form.action, {
                     method: 'POST',
                     body: formData,
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest'
                     }
                 })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            const newComment = document.createElement('div');
-                            newComment.innerHTML = data.html;
-                            const replies = commentBlock.querySelector('.replies');
-                            if (!replies) {
-                                const repliesDiv = document.createElement('div');
-                                repliesDiv.className = 'replies mt-3';
-                                commentBlock.appendChild(repliesDiv);
-                                repliesDiv.appendChild(newComment.firstChild);
-                            } else {
-                                replies.appendChild(newComment.firstChild);
-                            }
-                            replyForm.remove();
-                            commentBlock.style.minHeight = (commentBlock.scrollHeight + 100) + 'px';
-                        } else {
-                            console.error('Error adding reply:', data.error);
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        const newComment = document.createElement('div');
+                        newComment.innerHTML = data.html;
+
+                        // Находим или создаем контейнер для ответов
+                        let repliesContainer = commentBlock.querySelector('.replies');
+                        if (!repliesContainer) {
+                            repliesContainer = document.createElement('div');
+                            repliesContainer.className = 'replies mt-3';
+                            commentBlock.appendChild(repliesContainer);
                         }
-                    })
-                    .catch(error => console.error('Error submitting reply:', error));
+
+                        // Вставляем новый комментарий
+                        repliesContainer.prepend(newComment.firstElementChild);
+                        replyForm.remove();
+
+                        // Анимация появления
+                        newComment.firstElementChild.style.opacity = 0;
+                        newComment.firstElementChild.style.transform = 'translateY(20px)';
+                        setTimeout(() => {
+                            newComment.firstElementChild.style.transition = 'opacity 0.3s, transform 0.3s';
+                            newComment.firstElementChild.style.opacity = 1;
+                            newComment.firstElementChild.style.transform = 'translateY(0)';
+                        }, 10);
+                    } else {
+                        alert(`Ошибка: ${data.error}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error submitting reply:', error);
+                    alert('Произошла ошибка при отправке комментария');
+                })
+                .finally(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                });
             });
 
             // Обработчик кнопки "Отмена"

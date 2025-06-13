@@ -612,7 +612,7 @@ def comment_reply(request, parent_id):
             author=request.user,
             text=comment_text,
             parent=parent_comment,
-            post=parent_comment.post,
+            post=parent_comment.post,  # КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ
             level=parent_comment.level + 1
         )
 
