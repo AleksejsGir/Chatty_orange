@@ -1,4 +1,4 @@
-name: Django Tests
+name: Django Tests with Docker
 
 on:
   push:
@@ -10,58 +10,71 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpass
-          POSTGRES_DB: testdb
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-
-    - name: Install dependencies
+    - name: Create .env file for CI
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-
-    - name: Create .env file
-      run: |
-        echo "SECRET_KEY=test-secret-key-for-ci" >> .env
+        echo "SECRET_KEY=test-secret-key-for-ci-docker" > .env
         echo "DEBUG=True" >> .env
         echo "DB_ENGINE=django.db.backends.postgresql" >> .env
-        echo "DB_NAME=testdb" >> .env
-        echo "DB_USER=testuser" >> .env
-        echo "DB_PASSWORD=testpass" >> .env
-        echo "DB_HOST=localhost" >> .env
+        echo "DB_NAME=chatty" >> .env
+        echo "DB_USER=postgres" >> .env
+        echo "DB_PASSWORD=postgres" >> .env
+        echo "DB_HOST=db" >> .env
         echo "DB_PORT=5432" >> .env
+        echo "GOOGLE_API_KEY=test-api-key-for-ci-testing" >> .env
+        echo "ALLOWED_HOSTS=localhost,testserver,127.0.0.1" >> .env
+
+    - name: Build and start services
+      run: |
+        docker-compose up -d db
+        docker-compose build web
+
+    - name: Wait for database
+      run: |
+        timeout 60s bash -c 'until docker-compose exec -T db pg_isready -U postgres; do sleep 2; done'
 
     - name: Run migrations
       run: |
-        python manage.py migrate
+        docker-compose run --rm web python manage.py migrate
 
-    - name: Run tests
+    - name: Run tests with coverage
       run: |
-        pytest --cov=. --cov-report=xml
+        docker-compose run --rm \
+          -v $(pwd):/app \
+          web pytest \
+          --cov=. \
+          --cov-report=xml:/app/coverage.xml \
+          --cov-report=term-missing \
+          --cov-fail-under=60
+
+    - name: Show coverage file
+      if: always()
+      run: |
+        ls -la coverage.xml || echo "Coverage file not found"
+        cat coverage.xml | head -20 || echo "Cannot read coverage file"
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
+      if: always()
       with:
         file: ./coverage.xml
-        fail_ci_if_error: true
+        fail_ci_if_error: false
         verbose: true
         token: ${{ secrets.CODECOV_TOKEN }}
         slug: AleksejsGir/Chatty_orange
+
+    - name: Show test results summary
+      if: always()
+      run: |
+        echo "🐳 Docker tests completed!"
+        docker-compose ps
+        echo "📊 Coverage report generated"
+
+    - name: Cleanup
+      if: always()
+      run: |
+        docker-compose down -v
+        docker system prune -f --volumes

@@ -28,10 +28,9 @@ def get_gemini_response(prompt: str) -> str:
         logger.error("GOOGLE_API_KEY не настроен в settings.py.")
         return "Ошибка: Ключ API для сервиса ИИ не настроен."
 
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-2.0-flash')
-
     try:
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-2.0-flash')
         response = model.generate_content(prompt)
         if response.parts:
             return "".join(part.text for part in response.parts if hasattr(part, 'text'))
@@ -277,7 +276,7 @@ def get_post_details(post_id: int, user_info: dict) -> str:
         post_details = f"""
 📰 **{post.title}**
 ✍️ Автор: @{author_username}
-❤️ Лайков: {likes_count}
+👍 Лайков: {likes_count}
 
 📝 **Содержание:**
 {post.text[:500]}{'...' if len(post.text) > 500 else ''} 
@@ -346,7 +345,7 @@ def find_user_by_username(username: str, user_info: dict) -> str:
 
 📰 {last_post_info}
 
-💡 Хочешь подписаться на этого автора? Перейди в его профиль!"""
+💡 Хочешь подписаться на этого автора? Перейди в его профиль @{found_user.username}!"""
 
     except CustomUser.DoesNotExist:
         logger.info(f"Пользователь с именем '{username}' не найден.")

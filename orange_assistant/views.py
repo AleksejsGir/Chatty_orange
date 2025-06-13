@@ -51,7 +51,7 @@ def check_rate_limit(user_identifier, max_requests=15, window=60):
     return True, len(requests)
 
 
-@method_decorator(ensure_csrf_cookie, name='dispatch')  #  БЕЗОПАСНО: требует CSRF токен
+@method_decorator(ensure_csrf_cookie, name='dispatch')  # БЕЗОПАСНО: требует CSRF токен
 class ChatWithAIView(View):
     """
      БЕЗОПАСНЫЙ view для взаимодействия с ИИ-помощником.
@@ -309,91 +309,122 @@ class ChatWithAIView(View):
             ip = request.META.get('REMOTE_ADDR')
         return ip
 
-    def extract_username(self, user_input: str) -> str:
-        """Извлекает имя пользователя из текста."""
-        lower_input = user_input.lower().strip()
+    def extract_username(self, user_input):
+        """
+        Извлекает имя пользователя из текста.
 
-        # Паттерны для извлечения имени
-        patterns_to_try = [
-            # "найди пользователя Orange"
-            r'(?:найди|найти|ищи|искать|покажи)\s+(?:пользователя|юзера)\s+([A-Za-z0-9_А-Яа-я-]+)',
-            # "пользователь Orange"
-            r'пользователь\s+([A-Za-z0-9_А-Яа-я-]+)',
-            # "профиль Orange"
-            r'профиль\s+([A-Za-z0-9_А-Яа-я-]+)',
-            # "@Orange"
-            r'@([A-Za-z0-9_А-Яа-я-]+)',
-            # "в профиле Orange"
-            r'в\s+профиле\s+([A-Za-z0-9_А-Яа-я-]+)',
-            # "кто такой Orange"
-            r'кто\s+такой\s+([A-Za-z0-9_А-Яа-я-]+)',
+        Для начинающих: этот метод использует регулярные выражения (regex)
+        для поиска имен пользователей в тексте запроса.
+        """
+        if not user_input:
+            return None
+
+        text = user_input.lower().strip()
+
+        # Стоп-слова которые НЕ являются именами пользователей
+        stop_words = ['имя', 'логин', 'ник', 'название', 'нейм']
+
+        # Паттерны для поиска имен пользователей
+        # Для начинающих: r'...' - это "сырая" строка, где \ не экранируется
+        patterns = [
+            r'найди?\s+(?:пользователя|юзера)\s+([a-zA-Z0-9_-]{2,})',
+            r'найти?\s+(?:пользователя|юзера)\s+([a-zA-Z0-9_-]{2,})',
+            r'ищи?\s+(?:пользователя|юзера)\s+([a-zA-Z0-9_-]{2,})',
+            r'искать?\s+(?:пользователя|юзера)\s+([a-zA-Z0-9_-]{2,})',
+            r'пользователь\s+([a-zA-Z0-9_-]{2,})',
+            r'профиль\s+([a-zA-Z0-9_-]{2,})',
+            r'@([a-zA-Z0-9_-]{2,})',
+            r'в\s+профиле\s+([a-zA-Z0-9_-]{2,})',
+            r'кто\s+такой\s+([a-zA-Z0-9_-]{2,})',
+            r'кто\s+такая\s+([a-zA-Z0-9_-]{2,})',
+            # ДОБАВЛЕНО: Простой паттерн для таких запросов как "найди user123"
+            r'найди\s+([a-zA-Z0-9_-]{2,})',
         ]
 
-        for pattern in patterns_to_try:
-            match = re.search(pattern, lower_input, re.IGNORECASE)
+        for pattern in patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
             if match:
-                return match.group(1)
+                username = match.group(1).lower()
 
-        # Если не нашли через регулярки, пробуем простой подход
-        words = user_input.split()
-        for i, word in enumerate(words):
-            if word.lower() in ['пользователя', 'юзера', 'пользователь', 'профиль'] and i + 1 < len(words):
-                return words[i + 1].replace('@', '').strip()
+                # Проверки валидности
+                if len(username) < 2:  # Слишком короткое
+                    continue
+                if username.isdigit():  # Только цифры
+                    continue
+                if username in stop_words:  # Стоп-слово
+                    continue
+
+                return username
 
         return None
 
-    def extract_keyword_for_posts(self, user_input: str) -> str:
-        """Извлекает ключевое слово для поиска постов."""
-        lower_input = user_input.lower().strip()
+    def extract_keyword_for_posts(self, user_input):
+        """
+        Извлекает ключевые слова для поиска постов.
 
-        # ВАЖНО: Сначала проверяем, не является ли это запросом постов пользователя
-        user_posts_indicators = [
-            'статьи у', 'посты у', 'какие статьи у', 'какие посты у',
-            'статьи пользователя', 'посты пользователя',
-            'статьи от', 'посты от',
-            'что писал', 'что писала'
-        ]
-
-        # Если это запрос постов пользователя, НЕ извлекаем ключевое слово
-        if any(indicator in lower_input for indicator in user_posts_indicators):
-            logger.info("This is a user posts query, not extracting keyword")
+        Для начинающих: этот метод отличает общий поиск постов
+        от поиска постов конкретного пользователя.
+        """
+        if not user_input:
             return None
 
-        # Сначала пробуем найти текст в скобках или кавычках
-        bracket_match = re.search(r'[(\[]([^)\]]+)[)\]]', user_input)
-        if bracket_match:
-            keyword = bracket_match.group(1).strip()
-            logger.info(f"Found keyword in brackets: '{keyword}'")
-            return keyword
+        text = user_input.lower().strip()
 
-        # Ищем ключевое слово после предлогов
-        keyword_patterns = [
-            r'про\s+(.+)',
-            r'о\s+(.+)',
-            r'об\s+(.+)',
-            r'по\s+теме\s+(.+)',
-            r'на\s+тему\s+(.+)',
-            # Для "найди пост XXXX"
-            r'(?:найди|найти|ищи|искать)\s+(?:пост|посты|стать|статьи)\s+(.+)',
-            # Просто последние слова после "пост"
-            r'пост\s+(.+)',
-            r'посты\s+(.+)',
-            r'статьи?\s+(.+)'
+        # Проверяем, не является ли это запросом постов пользователя
+        user_posts_indicators = [
+            r'статьи\s+у\s+\w+',
+            r'посты\s+у\s+\w+',
+            r'какие\s+(?:статьи|посты)\s+у\s+\w+',
+            r'(?:статьи|посты)\s+пользователя\s+\w+',
+            r'(?:статьи|посты)\s+от\s+\w+',
+            r'что\s+писал\w*\s+\w+',
         ]
 
-        for pattern in keyword_patterns:
-            match = re.search(pattern, lower_input)
+        for indicator in user_posts_indicators:
+            if re.search(indicator, text, re.IGNORECASE):
+                return None  # Это запрос постов пользователя
+
+        # Стоп-слова для ключевых слов
+        stop_words = ['текст', 'слово', 'и', 'или', 'а', 'в']
+
+        # Паттерны для извлечения ключевых слов
+        patterns = [
+            r'[(\[](.*?)[)\]]',  # В скобках: (Django) или [Python]
+            r'(?:посты?|статьи|пост)\s+про\s+(.+)',
+            r'(?:посты?|статьи|пост)\s+о\s+(.+)',
+            r'(?:посты?|статьи|пост)\s+об\s+(.+)',
+            r'найди?\s+(?:статьи|посты?)\s+по\s+теме\s+(.+)',
+            r'покажи?\s+(?:статьи|посты?)\s+на\s+тему\s+(.+)',
+            # ИСПРАВЛЕНО: Более общие паттерны в конце
+            r'найди?\s+(?:пост|статьи|посты?)\s+([a-zA-Zа-яёА-ЯЁ0-9.\s]+)',
+            r'покажи?\s+(?:пост|статьи|посты?)\s+([a-zA-Zа-яёА-ЯЁ0-9.\s]+)',
+            r'ищи?\s+(?:пост|статьи|посты?)\s+([a-zA-Zа-яёА-ЯЁ0-9.\s]+)',
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
             if match:
                 keyword = match.group(1).strip()
-                # Убираем знаки препинания в конце
-                keyword = re.sub(r'[?!.,:;]+$', '', keyword)
 
-                # ВАЖНО: Проверяем, не является ли извлеченное слово "у username"
-                if keyword.startswith('у '):
-                    logger.info(f"Skipping 'у username' pattern: '{keyword}'")
-                    return None
+                # Очищаем от знаков препинания только в конце
+                keyword = re.sub(r'[!?.,:;.]*$', '', keyword).strip()
 
-                return keyword
+                # Дополнительная очистка для специфичных паттернов
+                # Убираем лишние предлоги из начала
+                keyword = re.sub(r'^(теме|тему)\s+', '', keyword).strip()
+
+                # Проверки валидности
+                if len(keyword) < 2:
+                    continue
+                if keyword.isdigit():  # Только цифры - не ключевое слово
+                    continue
+                if keyword.lower() in stop_words:
+                    continue
+                # Проверяем что не содержит только цифры с предлогами
+                if re.match(r'^(про|о|об)\s+\d+$', keyword):
+                    continue
+
+                return keyword.lower()
 
         return None
 
@@ -521,34 +552,10 @@ class ChatWithAIView(View):
         if any(pattern in lower_input for pattern in general_post_search_patterns):
             logger.info("Detected general post search query")
             keyword = self.extract_keyword_for_posts(user_input)
-            if keyword:
+            if keyword:  # Если ключевое слово найдено (не None)
                 logger.info(f"Searching posts with keyword: '{keyword}'")
                 return find_post_by_keyword(keyword, user_info)
-            else:
-                return """🔍 Укажите тему для поиска. Примеры:
-
-    **Поиск по теме:**
-    • 'Найди посты про путешествия'
-    • 'Найди пост (QLED телевизоры)'
-
-    **Посты пользователя:**
-    • 'Какие статьи у Orange?'
-    • 'Посты пользователя Alek'
-    • 'Что писал Orange?'"""
-
-        # === ПОИСК ПОЛЬЗОВАТЕЛЕЙ ===
-        user_search_patterns = [
-            'найди пользователя', 'найти пользователя', 'ищи пользователя',
-            'найди юзера', 'профиль', 'кто такой'
-        ]
-
-        if any(pattern in lower_input for pattern in user_search_patterns):
-            username = self.extract_username(user_input)
-            if username:
-                logger.info(f"Searching user: '{username}'")
-                return find_user_by_username(username, user_info)
-            else:
-                return "❌ Не удалось извлечь имя пользователя. Попробуйте: 'Найди пользователя [имя]'"
+            # Если keyword is None, ничего не делаем, позволяем запросу пройти к следующим блокам
 
         # === ДЕТАЛИ ПОСТА ===
         post_detail_patterns = [
@@ -567,6 +574,20 @@ class ChatWithAIView(View):
                     pass
 
             return "🔢 Укажите ID поста. Например: 'Расскажи о посте 5' или 'Покажи пост 123'"
+
+        # === ПОИСК ПОЛЬЗОВАТЕЛЕЙ ===
+        user_search_patterns = [
+            'найди пользователя', 'найти пользователя', 'ищи пользователя',
+            'найди юзера', 'профиль', 'кто такой'
+        ]
+
+        if any(pattern in lower_input for pattern in user_search_patterns):
+            username = self.extract_username(user_input)
+            if username:
+                logger.info(f"Searching user: '{username}'")
+                return find_user_by_username(username, user_info)
+            else:
+                return "❌ Не удалось извлечь имя пользователя. Попробуйте: 'Найди пользователя [имя]'"
 
         # === АКТИВНОСТЬ ПОЛЬЗОВАТЕЛЯ ===
         activity_patterns = [
