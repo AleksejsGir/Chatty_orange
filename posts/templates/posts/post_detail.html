@@ -150,20 +150,18 @@
                     </div>
                 </article>
 
-                {# --- Секция комментариев ---  #}
+                <!-- Секция комментариев -->
                 <div id="comments" class="mt-5 border-top pt-4">
                     <h3 class="mb-4">Комментарии <span class="badge bg-secondary rounded-pill">{{ post.comments.count|default:"0" }}</span></h3>
 
-                    {# Список комментариев #}
                     {% if comments %}
                         <div class="comments-list">
                             {% for comment in comments %}
-                                {# Включаем шаблон комментария с передачей уровня вложенности #}
                                 {% include 'posts/comment.html' with comment=comment level=0 %}
                             {% endfor %}
                         </div>
 
-                        {# Пагинация комментариев #}
+                        <!-- Пагинация комментариев -->
                         {% if comments.paginator.num_pages > 1 %}
                             <nav aria-label="Comments pagination">
                                 <ul class="pagination justify-content-center">
@@ -177,9 +175,9 @@
                                     {% endif %}
 
                                     <li class="page-item active">
-                    <span class="page-link">
-                        Страница {{ comments.number }} из {{ comments.paginator.num_pages }}
-                    </span>
+                        <span class="page-link">
+                            Страница {{ comments.number }} из {{ comments.paginator.num_pages }}
+                        </span>
                                     </li>
 
                                     {% if comments.has_next %}

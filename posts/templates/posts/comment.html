@@ -40,7 +40,7 @@
                 <div class="replies-container mt-3"></div>
 
                 <!-- Блок реакций -->
-                <div class="emoji-reactions mb-2">
+                <div class="comment-reactions mb-2"> <!-- ИЗМЕНЕННЫЙ КЛАСС -->
                     {% for reaction in comment.reactions.all %}
                         <span class="badge reaction-badge me-1 {% if request.user in reaction.users.all %}user-reaction{% endif %}"
                               data-emoji="{{ reaction.emoji }}"
@@ -98,6 +98,7 @@
                     {% if user == comment.author or user.is_staff %}
                         <form method="post"
                               action="{% url 'posts:comment-delete' pk=comment.pk %}"
+                              {% csrf_token %}
                               class="d-inline">
                             {% csrf_token %}
                             <button type="submit"
@@ -112,14 +113,15 @@
                     {% endif %}
                 </div>
 
-                <!-- Форма редактирования -->
+{#              <!-- Форма редактирования -->#}
                 <div class="edit-form mt-3 d-none">
                     <form method="post"
-                          action="{% url 'posts:comment-update' pk=comment.pk %}"
-                          class="edit-comment-form"
-                          data-comment-id="{{ comment.id }}">
-                        {% csrf_token %}
-                        <textarea name="text" class="form-control mb-2">{{ comment.text }}</textarea>
+                            action="{% url 'posts:comment-update' pk=comment.pk %}"
+                            {% csrf_token %}
+                            class="edit-comment-form"
+                            data-comment-id="{{ comment.id }}">
+                            {% csrf_token %}
+                            <textarea name="text" class="form-control mb-2">{{ comment.text }}</textarea>
                         <div class="mt-2">
                             <button type="submit" class="btn btn-primary btn-sm">Сохранить</button>
                             <button type="button" class="btn btn-secondary btn-sm cancel-edit">Отмена</button>

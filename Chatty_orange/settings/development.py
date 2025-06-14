@@ -8,7 +8,7 @@ from django.core.exceptions import ImproperlyConfigured
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'https://chattyorange.eu/']
 
 GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 

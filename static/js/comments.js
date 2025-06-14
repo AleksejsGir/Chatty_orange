@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Обработчик кнопки "Ответить" - ПЕРЕРАБОТАННЫЙ КОД
+   // Обработчик кнопки "Ответить" - ПЕРЕРАБОТАННЫЙ КОД
     document.querySelectorAll('.btn-reply').forEach(button => {
         button.addEventListener('click', function() {
             const commentBlock = this.closest('.comment-block');
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
             replyForm.className = 'reply-form mt-3';
             const csrfToken = getCookie('csrftoken');
             replyForm.innerHTML = `
-                <form method="post" action="/comments/${parentId}/reply/" class="mt-2">
+                <form method="post" action="/posts/comments/${parentId}/reply/" class="mt-2">
                     <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
                     <textarea name="text" class="form-control reply-textarea" rows="2" placeholder="Напишите ответ..." style="resize: vertical;" required></textarea>
                     <div class="mt-2 d-flex gap-2">

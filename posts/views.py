@@ -418,19 +418,19 @@ class CommentUpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return self.object.post.get_absolute_url()
 
-# class CommentReplyView(View):
-#     def post(self, request, parent_id):
-#         if not request.user.is_authenticated:
-#             return JsonResponse({'success': False, 'error': 'Authentication required'})
-#         parent_comment = Comment.objects.get(id=parent_id)
-#         comment_text = request.POST.get('text')
-#         new_comment = Comment.objects.create(
-#             author=request.user,
-#             text=comment_text,
-#             parent=parent_comment
-#         )
-#         html = render_to_string('posts/comment.html', {'comment': new_comment, 'level': parent_comment.level + 1})
-#         return JsonResponse({'success': True, 'html': html})
+class CommentReplyView(View):
+    def post(self, request, parent_id):
+        if not request.user.is_authenticated:
+            return JsonResponse({'success': False, 'error': 'Authentication required'})
+        parent_comment = Comment.objects.get(id=parent_id)
+        comment_text = request.POST.get('text')
+        new_comment = Comment.objects.create(
+            author=request.user,
+            text=comment_text,
+            parent=parent_comment
+        )
+        html = render_to_string('posts/comment.html', {'comment': new_comment, 'level': parent_comment.level + 1})
+        return JsonResponse({'success': True, 'html': html})
 
 # Обработчик реакций
 @require_POST
@@ -607,19 +607,20 @@ def comment_reply(request, parent_id):
                 'error': 'Текст комментария не может быть пустым'
             })
 
-        # Создаем новый комментарий-ответ
         new_comment = Comment.objects.create(
             author=request.user,
             text=comment_text,
             parent=parent_comment,
-            post=parent_comment.post,  # КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ
+            post=parent_comment.post,
             level=parent_comment.level + 1
         )
 
-        # Рендерим HTML для нового комментария
+        # Добавляем request в контекст и исправляем рендеринг
         html = render_to_string('posts/comment.html', {
             'comment': new_comment,
-            'level': parent_comment.level + 1
+            'level': parent_comment.level + 1,
+            'request': request,
+            'user': request.user  # Добавляем пользователя в контекст
         })
 
         return JsonResponse({
@@ -628,6 +629,8 @@ def comment_reply(request, parent_id):
         })
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()  # Печать полной трассировки
         return JsonResponse({
             'success': False,
             'error': str(e)
