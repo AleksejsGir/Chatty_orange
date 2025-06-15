@@ -238,27 +238,32 @@
     z-index: 9999;
 }
 
-/* Стили для панели смайликов (единый блок) */
+/* ИЗМЕНЕНИЕ 1: Позиция панели смайликов */
+/* Было: top: -50px; left: -20px; */
+/* Стало: вниз (ниже иконки) и влево (к началу поля) */
 .quick-reactions-panel {
     position: absolute;
-    top: 100%;
-    left: 0;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border-radius: 20px;
-    padding: 12px 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 12px;
+    top: 110%; /* Расположение ВНИЗ (под иконкой) */
+    left: -90px; /* Расположение ВЛЕВО (к началу поля) */
+    background: rgba(255, 255, 255, 0.05); /* Оригинальный фон */
+    backdrop-filter: blur(15px);
+    border-radius: 24px;
+    padding: 8px 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 8px;
     opacity: 0;
-    transform: translateY(5px);
+    transform: translateY(10px);
     transition: all 0.3s ease;
-    z-index: 1000;
+    z-index: 2000;
     pointer-events: none;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    max-width: 420px;
-    width: max-content;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    min-width: 280px;
+    width: auto;
+    white-space: nowrap;
+    max-height: 60px;
 }
 
 .reactions-container:hover .quick-reactions-panel,
@@ -271,44 +276,50 @@
 .btn-reaction-quick {
     background: none;
     border: none;
-    font-size: 1.8rem;
+    font-size: 1.4rem; /* Оригинальный размер */
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: all 0.2s ease;
     padding: 0;
     line-height: 1;
-    width: 40px;
-    height: 40px;
+    width: 36px; /* Оригинальный размер */
+    height: 36px; /* Оригинальный размер */
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
     margin: 0;
+    flex-shrink: 0;
+    opacity: 0.9;
 }
 
 .btn-reaction-quick:hover {
-    transform: scale(1.4);
-    background: rgba(0, 0, 0, 0.05);
+    transform: scale(1.5);
+    background: rgba(255, 255, 255, 0.2);
+    opacity: 1;
 }
 
-/* Мобильные устройства */
+/* ИЗМЕНЕНИЕ 2: Адаптация для мобильных */
+/* Сдвиг влево сохранен, но может потребоваться корректировка */
 @media (max-width: 768px) {
     .quick-reactions-panel {
-        grid-template-columns: repeat(4, 1fr);
-        max-width: 250px;
-        top: calc(100% + 5px);
-        left: -50%;
-        transform: translateX(-50%);
+        top: 100%; /* ВНИЗ (под иконкой) */
+        left: 0; /* ВЛЕВО (к началу поля) */
+        padding: 6px 12px;
+        gap: 6px;
+        min-width: 250px;
+        max-height: 55px;
     }
 
     .btn-reaction-quick {
-        font-size: 1.5rem;
-        width: 35px;
-        height: 35px;
+        font-size: 1.3rem;
+        width: 32px;
+        height: 32px;
     }
 }
 
 /* Стили для карточки комментария */
 .comment-block.card {
+    position: relative;
     border: none;
     border-radius: 12px;
     background-color: rgba(255, 255, 255, 0.1);
@@ -317,11 +328,14 @@
     transition: all 0.3s ease;
     padding: 12px 15px;
     min-height: 150px;
+    margin-bottom: 10px;
+    z-index: 10;
 }
 
 .comment-block.card:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transform: translateY(-2px);
+    z-index: 20;
 }
 
 /* Стили для вложенных комментариев */
@@ -369,20 +383,43 @@
 
 /* Стили для кнопки "Ответить" */
 .btn-reply.reply-button-container {
-    background-color: #f0f2f5;
+    background-color: rgba(240, 242, 245, 0.9);
     border-radius: 18px;
-    padding: 4px 12px;
-    border: none;
-    transition: background-color 0.2s;
+    padding: 6px 14px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
     display: inline-flex;
     align-items: center;
-    color: #65676B;
+    color: #4a4e54;
+    font-weight: 500;
+    gap: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .btn-reply.reply-button-container:hover {
     background-color: #e4e6e9;
-    color: #65676B;
+    color: #2d2f33;
     text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-reply.reply-button-container .count {
+    background-color: rgba(0, 0, 0, 0.08);
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-reply.reply-button-container:hover .count {
+    background-color: rgba(0, 0, 0, 0.15);
+    transform: scale(1.1);
 }
 
 /* Стили для контента комментария */
@@ -390,6 +427,17 @@
     padding-bottom: 0.1rem;
     margin-bottom: 0.1rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-weight: bold;
+    font-size: 1.05rem;
+    line-height: 1.4;
+}
+
+/* Курсив для ответов */
+.nested-comment .comment-content {
+    font-weight: normal;
+    font-style: italic;
+    color: #5a5e63;
+    font-size: 0.95rem;
 }
 
 /* Фикс для отображения реакций */
@@ -401,4 +449,26 @@
 
 .reaction-badge {
     flex-shrink: 0;
+}
+
+/* Улучшенный z-index для панели реакций */
+.reactions-container {
+    z-index: 100;
+    position: relative;
+}
+
+/* Анимация для кнопки реакций */
+.btn-reaction {
+    position: relative;
+    z-index: 101;
+}
+
+/* Подсветка при наведении на комментарий */
+.comment-block.card:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Дополнительное пространство для панели смайликов */
+.comment-block {
+    padding-top: 25px;
 }
