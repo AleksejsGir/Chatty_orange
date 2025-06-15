@@ -62,27 +62,47 @@
     width: 100%;
 }
 
-/* Стили для реакций */
+/* Стили для блока реакций */
 .reactions-container {
     position: relative;
     display: inline-block;
 }
+.reactions-summary {
+    background-color: rgba(0, 0, 0, 0.03);
+    border-radius: 16px;
+    padding: 4px 8px;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+    margin-top: 0.5rem;
+    padding-top: 0.3rem;
+}
 
+/* Стили для блока реакций */
 .reaction-badge {
-    background-color: var(--bs-gray-100);
+    cursor: pointer;
+    transition: transform 0.2s;
+    font-size: 1em;
+    padding: 4px 8px;
+    margin-right: 4px;
     border-radius: 1rem;
-    padding: 0.35rem 0.6rem;
-    font-size: 1rem;
+    background-color: rgba(240, 242, 245, 0.7); /* Полупрозрачный фон */
+    border: 1px solid rgba(0, 0, 0, 0.1); /* Тонкая граница */
     display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
-    cursor: pointer;
-    transition: all 0.2s;
+    gap: 4px;
+}
+.reaction-badge.user-reaction {
+    background-color: rgba(255, 165, 0, 0.2);
+    border: 1px solid rgba(255, 165, 0, 0.5);
 }
 
 .reaction-badge:hover {
-    background-color: var(--bs-gray-200);
-    transform: translateY(-2px);
+    transform: scale(1.1);
+    background-color: #e4e6e9;
+}
+.user-reaction {
+    background-color: #e6f7ff;
+    border: 1px solid #91d5ff;
 }
 
 .reaction-badge .count {
@@ -301,4 +321,86 @@
 .reply-textarea:focus {
     border-color: #86b7fe;
     box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+/* Стили для кнопки "Ответить" */
+.btn-reply.reply-button-container {
+    background-color: #f0f2f5;
+    border-radius: 18px;
+    padding: 4px 12px;
+    border: none;
+    transition: background-color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    color: #65676B;
+}
+
+.btn-reply.reply-button-container:hover {
+    background-color: #e4e6e9;
+    color: #65676B;
+    text-decoration: none;
+}
+
+/* Увеличение отступов между иконками */
+.comment-actions {
+    gap: 12px;
+}
+
+/* Увеличим отступ для блока реакций */
+.reactions-summary {
+    margin-top: 0.8rem;
+    padding-top: 0.5rem;
+}
+
+/* Стили для кнопок действий с комментариями */
+.comment-actions {
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+    border-top: none;
+    margin-top: 0.3rem; /* Уменьшил отступ */
+}
+
+.comment-block:hover .comment-actions {
+    opacity: 1;
+}
+
+/* Уменьшил отступы и размеры */
+.btn-reaction,
+.btn-reply-comment,
+.btn-edit-comment,
+.btn-delete-comment {
+    background: none;
+    border: none;
+    color: var(--text-medium);
+    padding: 0.15rem; /* Уменьшил padding */
+    font-size: 0.85rem; /* Уменьшил размер */
+    transition: all var(--transition-fast);
+    cursor: pointer;
+}
+
+/* Уменьшил отступы для разделительной линии */
+.comment-content {
+    padding-bottom: 0.1rem; /* Уменьшил отступ */
+    margin-bottom: 0.1rem; /* Уменьшил отступ */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Уменьшил отступ для блока реакций */
+.reactions-summary {
+    margin-top: 0.3rem; /* Уменьшил отступ */
+    padding-top: 0.3rem; /* Уменьшил отступ */
+}
+
+/* Стили для кнопок реакций */
+.reaction-badge {
+    cursor: pointer;
+    transition: transform 0.2s;
+    font-size: 1em; /* Нормальный размер */
+    padding: 4px 8px; /* Уменьшил padding */
+    margin-right: 4px;
+    border-radius: 1rem;
+    background-color: rgba(240, 242, 245, 0.7); /* Полупрозрачный фон */
+    border: 1px solid rgba(0, 0, 0, 0.1); /* Тонкая граница */
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }

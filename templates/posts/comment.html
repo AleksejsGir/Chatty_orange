@@ -32,16 +32,13 @@
                     </div>
                 {% endif %}
 
-                <div class="comment-content mb-3">
+                <div class="comment-content mb-2">
                     <p>{{ comment.text|linebreaksbr }}</p>
                 </div>
 
-                <!-- Место для динамически добавляемых форм ответа -->
-                <div class="replies-container mt-3"></div>
-
                 <!-- Блок реакций -->
-                <div class="emoji-reactions mb-2">
-                    {% for reaction in comment.reactions.all %}
+                <div class="reactions-summary mb-2" id="reactions-{{ comment.id }}">
+                    {% for reaction in comment.reactions.all|dictsortreversed:"users.count" %}
                         <span class="badge reaction-badge me-1 {% if request.user in reaction.users.all %}user-reaction{% endif %}"
                               data-emoji="{{ reaction.emoji }}"
                               data-comment-id="{{ comment.id }}">
@@ -50,7 +47,11 @@
                     {% endfor %}
                 </div>
 
-                <div class="comment-actions mt-2 d-flex align-items-center gap-1">
+                <!-- Контейнер для формы ответа -->
+                <div class="replies-container mt-2"></div>
+
+                <!-- Блок действий -->
+                <div class="comment-actions mt-2 d-flex align-items-center gap-3">
                     {% if user.is_authenticated %}
                     <!-- Реакции -->
                     <div class="reactions-container">
@@ -73,14 +74,19 @@
                     </div>
                     {% endif %}
 
-                    <!-- Ответ -->
-                    <button class="btn-action text-muted btn-reply"
+                    <!-- Кнопка "Ответить" только для корневых комментариев -->
+                    {% if level == 0 %}
+                    <button class="btn-reply reply-button-container"
                             data-comment-id="{{ comment.id }}"
                             data-bs-toggle="tooltip"
                             data-bs-placement="top"
                             title="Ответить">
-                        <i class="fa-regular fa-comment-dots"></i>
+                        <i class="fa-regular fa-comment-dots me-1"></i>
+                        {% if comment.replies_count > 0 %}
+                        <span class="badge bg-secondary rounded-pill ms-1">{{ comment.replies_count }}</span>
+                        {% endif %}
                     </button>
+                    {% endif %}
 
                     <!-- Редактирование -->
                     {% if user == comment.author or user.is_staff %}
@@ -130,11 +136,10 @@
         </div>
     </div>
 
-    {% if comment.replies.all %}
-        <div class="replies mt-3">
-            {% for reply in comment.replies.all %}
-                {% include 'posts/comment.html' with comment=reply level=level|add:1 %}
-            {% endfor %}
-        </div>
-    {% endif %}
+    <!-- Контейнер для ответов -->
+    <div class="replies mt-3 d-none">
+        {% for reply in comment.replies.all %}
+            {% include 'posts/comment.html' with comment=reply level=level|add:1 %}
+        {% endfor %}
+    </div>
 </div>

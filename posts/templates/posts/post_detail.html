@@ -144,7 +144,7 @@
                             {% endif %}
                             <span class="btn-interaction comment-button" title="Комментарии">
                             <i class="fa-regular fa-comment"></i>
-                            <span class="interaction-count">{{ post.comments.count|default:"0" }}</span>
+                            <span class="interaction-count">{{ root_comments_count }}</span>
                         </span>
                         </div>
                     </div>
@@ -152,7 +152,13 @@
 
                 <!-- Секция комментариев -->
                 <div id="comments" class="mt-5 border-top pt-4">
-                    <h3 class="mb-4">Комментарии <span class="badge bg-secondary rounded-pill">{{ post.comments.count|default:"0" }}</span></h3>
+                    <!-- Обновленный заголовок с раздельными счетчиками -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="mb-0">Комментарии: <span class="badge bg-primary rounded-pill">{{ root_comments_count }}</span></h3>
+                        <div>
+                            <span>Ответы: <span class="badge bg-secondary rounded-pill">{{ replies_count }}</span></span>
+                        </div>
+                    </div>
 
                     {% if comments %}
                         <div class="comments-list">
@@ -463,3 +469,4 @@
     });
 </script>
 {% endblock %}
+[file content end]

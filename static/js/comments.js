@@ -1,5 +1,6 @@
 // comments.js - Обработчики для действий с комментариями
 document.addEventListener('DOMContentLoaded', function() {
+    // Инициализация tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl, {trigger: 'hover'});
@@ -16,120 +17,157 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-   // Обработчик кнопки "Ответить" - ПЕРЕРАБОТАННЫЙ КОД
+    // Обработчик кнопки "Ответить"
     document.querySelectorAll('.btn-reply').forEach(button => {
         button.addEventListener('click', function() {
             const commentBlock = this.closest('.comment-block');
             const repliesContainer = commentBlock.querySelector('.replies-container');
+            const repliesBlock = commentBlock.querySelector('.replies');
 
-            // Закрываем все другие открытые формы ответа
-            document.querySelectorAll('.reply-form').forEach(form => form.remove());
+            // Проверяем, открыты ли уже ответы
+            const isExpanded = repliesBlock && !repliesBlock.classList.contains('d-none');
 
-            // Создаём новую форму ответа
-            const parentId = this.dataset.commentId;
-            const replyForm = document.createElement('div');
-            replyForm.className = 'reply-form mt-3';
-            const csrfToken = getCookie('csrftoken');
-            replyForm.innerHTML = `
-                <form method="post" action="/posts/comments/${parentId}/reply/" class="mt-2">
-                    <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
-                    <textarea name="text" class="form-control reply-textarea" rows="2" placeholder="Напишите ответ..." style="resize: vertical;" required></textarea>
-                    <div class="mt-2 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary btn-sm">Отправить</button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm cancel-reply">Отмена</button>
-                    </div>
-                </form>
-            `;
-
-            repliesContainer.appendChild(replyForm);
-
-            // Динамическое расширение textarea
-            const textarea = replyForm.querySelector('.reply-textarea');
-            textarea.addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = (this.scrollHeight) + 'px';
+            // Закрываем все другие открытые ответы и формы
+            document.querySelectorAll('.replies').forEach(replies => {
+                replies.classList.add('d-none');
+            });
+            document.querySelectorAll('.reply-form').forEach(form => {
+                form.remove();
             });
 
-            // Фокусируемся на поле ввода
-            textarea.focus();
+            // Переключаем состояние текущего блока ответов
+            if (repliesBlock) {
+                if (isExpanded) {
+                    repliesBlock.classList.add('d-none');
+                } else {
+                    repliesBlock.classList.remove('d-none');
+                }
+            }
 
-            // Обработчик отправки формы - ПЕРЕРАБОТАННЫЙ КОД
-            replyForm.querySelector('form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const form = this;
-                const formData = new FormData(form);
+            // Обработка формы ответа
+            if (isExpanded) {
+                // Если ответы уже открыты - удаляем форму
+                const existingForm = repliesContainer.querySelector('.reply-form');
+                if (existingForm) existingForm.remove();
+            } else {
+                // Создаем новую форму ответа
+                const parentId = this.dataset.commentId;
+                const replyForm = document.createElement('div');
+                replyForm.className = 'reply-form mt-3';
+                const csrfToken = getCookie('csrftoken');
+                replyForm.innerHTML = `
+                    <form method="post" action="/posts/comments/${parentId}/reply/" class="mt-2">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                        <textarea name="text" class="form-control reply-textarea" rows="2" placeholder="Напишите ответ..." style="resize: vertical;" required></textarea>
+                        <div class="mt-2 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">Отправить</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm cancel-reply">Отмена</button>
+                        </div>
+                    </form>
+                `;
 
-                // Показываем индикатор загрузки
-                const submitBtn = form.querySelector('button[type="submit"]');
-                const originalText = submitBtn.textContent;
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Отправка...';
+                repliesContainer.appendChild(replyForm);
 
-                fetch(form.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        const newComment = document.createElement('div');
-                        newComment.innerHTML = data.html;
+                // Прокручиваем к форме ответа
+                replyForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-                        // Находим или создаем контейнер для ответов
-                        let repliesContainer = commentBlock.querySelector('.replies');
-                        if (!repliesContainer) {
-                            repliesContainer = document.createElement('div');
-                            repliesContainer.className = 'replies mt-3';
-                            commentBlock.appendChild(repliesContainer);
-                        }
-
-                        // Вставляем новый комментарий
-                        repliesContainer.prepend(newComment.firstElementChild);
-                        replyForm.remove();
-
-                        // Анимация появления
-                        newComment.firstElementChild.style.opacity = 0;
-                        newComment.firstElementChild.style.transform = 'translateY(20px)';
-                        setTimeout(() => {
-                            newComment.firstElementChild.style.transition = 'opacity 0.3s, transform 0.3s';
-                            newComment.firstElementChild.style.opacity = 1;
-                            newComment.firstElementChild.style.transform = 'translateY(0)';
-                        }, 10);
-                    } else {
-                        alert(`Ошибка: ${data.error}`);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error submitting reply:', error);
-                    alert('Произошла ошибка при отправке комментария');
-                })
-                .finally(() => {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = originalText;
+                // Динамическое расширение textarea
+                const textarea = replyForm.querySelector('.reply-textarea');
+                textarea.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = (this.scrollHeight) + 'px';
                 });
-            });
 
-            // Обработчик кнопки "Отмена"
-            replyForm.querySelector('.cancel-reply').addEventListener('click', function() {
-                replyForm.remove();
-            });
-        });
-    });
+                // Фокусируемся на поле ввода
+                textarea.focus();
 
-    // Обработчик кнопки отмены ответа
-    document.querySelectorAll('.cancel-reply').forEach(button => {
-        button.addEventListener('click', function() {
-            const replyForm = this.closest('.reply-form');
-            if (replyForm) {
-                replyForm.remove();
+                // Обработчик отправки формы
+                replyForm.querySelector('form').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const form = this;
+                    const formData = new FormData(form);
+
+                    // Показываем индикатор загрузки
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    const originalText = submitBtn.textContent;
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Отправка...';
+
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            const newComment = document.createElement('div');
+                            newComment.innerHTML = data.html;
+
+                            // Находим контейнер для ответов
+                            let repliesBlock = commentBlock.querySelector('.replies');
+                            if (!repliesBlock) {
+                                repliesBlock = document.createElement('div');
+                                repliesBlock.className = 'replies mt-3';
+                                commentBlock.appendChild(repliesBlock);
+                            }
+
+                            // Убираем скрытие ответов
+                            repliesBlock.classList.remove('d-none');
+
+                            // Вставляем новый комментарий
+                            repliesBlock.prepend(newComment.firstElementChild);
+
+                            // Удаляем форму
+                            replyForm.remove();
+
+                            // Обновляем счетчик ответов
+                            const replyButton = commentBlock.querySelector('.btn-reply');
+                            if (replyButton) {
+                                const countBadge = replyButton.querySelector('.badge') || document.createElement('span');
+                                if (!replyButton.querySelector('.badge')) {
+                                    countBadge.className = 'badge bg-secondary ms-1';
+                                    replyButton.appendChild(countBadge);
+                                }
+
+                                // Получаем текущее количество ответов
+                                let currentCount = parseInt(countBadge.textContent) || 0;
+                                countBadge.textContent = currentCount + 1;
+                            }
+
+                            // Анимация появления
+                            newComment.firstElementChild.style.opacity = 0;
+                            newComment.firstElementChild.style.transform = 'translateY(20px)';
+                            setTimeout(() => {
+                                newComment.firstElementChild.style.transition = 'opacity 0.3s, transform 0.3s';
+                                newComment.firstElementChild.style.opacity = 1;
+                                newComment.firstElementChild.style.transform = 'translateY(0)';
+                            }, 10);
+                        } else {
+                            alert(`Ошибка: ${data.error}`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error submitting reply:', error);
+                        alert('Произошла ошибка при отправке комментария');
+                    })
+                    .finally(() => {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                    });
+                });
+
+                // Обработчик кнопки "Отмена"
+                replyForm.querySelector('.cancel-reply').addEventListener('click', function() {
+                    replyForm.remove();
+                });
             }
         });
     });
@@ -227,16 +265,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Функция переключения реакции (добавить/удалить)
+// Функция переключения реакции
 function toggleReaction(commentId, emoji) {
-    fetch(`/comments/${commentId}/react/`, {
+    fetch(`/posts/comments/${commentId}/toggle-reaction/`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
             'X-CSRFToken': getCookie('csrftoken'),
             'X-Requested-With': 'XMLHttpRequest'
         },
-        body: JSON.stringify({ emoji: emoji })
+        body: `emoji=${encodeURIComponent(emoji)}`
     })
     .then(response => {
         if (!response.ok) {
@@ -246,7 +284,7 @@ function toggleReaction(commentId, emoji) {
     })
     .then(data => {
         if (data.status === 'success') {
-            updateReactionUI(commentId, emoji, data.action, data.reactions);
+            updateReactionUI(commentId, data.reactions, data.user_reactions);
         } else {
             console.error('Error:', data.message);
         }
@@ -255,60 +293,50 @@ function toggleReaction(commentId, emoji) {
 }
 
 // Обновление UI после изменения реакции
-function updateReactionUI(commentId, emoji, action, reactions) {
-    const container = document.querySelector(`.comment-block[data-comment-id="${commentId}"] .emoji-reactions`);
+function updateReactionUI(commentId, reactions, userReactions) {
+    const container = document.querySelector(`.comment-block[data-comment-id="${commentId}"] .reactions-summary`);
     if (!container) return;
 
     // Очищаем текущие реакции
     container.innerHTML = '';
 
-    // Получаем список эмодзи, на которые пользователь уже отреагировал
-    fetch(`/posts/comment/${commentId}/user-reactions/`, {
-        method: 'GET',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
+    // Создаем словарь для группировки реакций
+    const groupedReactions = {};
+
+    // Группируем реакции по emoji
+    reactions.forEach(reaction => {
+        if (!groupedReactions[reaction.emoji]) {
+            groupedReactions[reaction.emoji] = {
+                count: 0,
+                emoji: reaction.emoji
+            };
         }
-    })
-    .then(response => {
-        if (response.status === 401) {
-            return []; // Пользователь не авторизован
-        }
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(userReactions => {
-        // Обновляем реакции на основе данных от сервера
-        reactions.forEach(reaction => {
-            if (reaction.count > 0) {
-                const badge = document.createElement('span');
-                badge.className = 'badge reaction-badge me-1';
-                badge.dataset.emoji = reaction.emoji;
-                badge.dataset.commentId = commentId;
-                badge.textContent = `${reaction.emoji} ${reaction.count}`;
+        groupedReactions[reaction.emoji].count += reaction.count;
+    });
 
-                // Добавляем класс user-reaction, если пользователь поставил эту реакцию
-                if (userReactions.includes(reaction.emoji)) {
-                    badge.classList.add('user-reaction');
-                }
+    // Добавляем обновленные реакции
+    Object.values(groupedReactions).forEach(reaction => {
+        if (reaction.count > 0) {
+            const badge = document.createElement('span');
+            badge.className = 'badge reaction-badge me-1';
 
-                // Анимация для добавленной реакции
-                if (action === 'added' && reaction.emoji === emoji) {
-                    badge.classList.add('added');
-                    setTimeout(() => badge.classList.remove('added'), 300);
-                }
-
-                container.appendChild(badge);
-
-                // Добавляем обработчик для новой реакции
-                badge.addEventListener('click', function() {
-                    toggleReaction(commentId, reaction.emoji);
-                });
+            // Добавляем класс user-reaction, если пользователь поставил эту реакцию
+            if (userReactions.includes(reaction.emoji)) {
+                badge.classList.add('user-reaction');
             }
-        });
-    })
-    .catch(error => console.error('Error fetching user reactions:', error));
+
+            badge.dataset.emoji = reaction.emoji;
+            badge.dataset.commentId = commentId;
+            badge.textContent = `${reaction.emoji} ${reaction.count}`;
+
+            // Добавляем обработчик
+            badge.addEventListener('click', function() {
+                toggleReaction(commentId, reaction.emoji);
+            });
+
+            container.appendChild(badge);
+        }
+    });
 }
 
 // Функция для получения CSRF токена

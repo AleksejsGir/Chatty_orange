@@ -41,7 +41,7 @@ class PostListView(ListView):
 
         # Базовый запрос с предварительной загрузкой автора и аннотациями
         queryset = Post.objects.select_related('author').annotate(
-            num_comments=Count('comments', filter=Q(comments__is_active=True) | Q(comments__isnull=True), distinct=True),
+            num_comments=Count('comments', filter=Q(comments__is_active=True, comments__parent=None) | Q(comments__isnull=True), distinct=True),
             num_likes=Count('likes', distinct=True),
             num_dislikes=Count('dislikes', distinct=True)
         )
@@ -124,7 +124,7 @@ class PostDetailView(DetailView):
     model = Post
     template_name = 'posts/post_detail.html'
     context_object_name = 'post'
-    paginate_comments_by = 10  # Количество комментариев на странице
+    paginate_comments_by = 10
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -132,20 +132,30 @@ class PostDetailView(DetailView):
 
         user = self.request.user
         if user.is_staff:
-            comments_qs = self.object.comments.all().order_by('-created_at')
+            comments_qs = self.object.comments.filter(parent=None).annotate(
+                replies_count=Count('replies', filter=Q(replies__is_active=True))
+            ).order_by('-created_at')
         else:
-            comments_qs = self.object.comments.filter(is_active=True).order_by('-created_at')
+            comments_qs = self.object.comments.filter(parent=None, is_active=True).annotate(
+                replies_count=Count('replies', filter=Q(replies__is_active=True))
+            ).order_by('-created_at')
 
         # Пагинация комментариев
         paginator = Paginator(comments_qs, self.paginate_comments_by)
         page_number = self.request.GET.get('comment_page')
         context['comments'] = paginator.get_page(page_number)
 
-        # Добавляем популярные теги
         context['popular_tags'] = Tag.get_popular_tags()
 
-        return context
+        # Добавляем подсчёт общего количества ответов
+        context['root_comments_count'] = comments_qs.count()  # Только корневые
+        post = self.object
+        if self.request.user.is_staff:
+            context['replies_count'] = post.comments.filter(parent__isnull=False).count()
+        else:
+            context['replies_count'] = post.comments.filter(parent__isnull=False, is_active=True).count()
 
+        return context
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
@@ -261,7 +271,6 @@ class PostDetailWithComments(View):
     def post(self, request, *args, **kwargs):
         view = PostCommentView.as_view()
         return view(request, *args, **kwargs)
-
 
 
 class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
@@ -435,32 +444,47 @@ class CommentReplyView(View):
 # Обработчик реакций
 @require_POST
 def comment_react(request, comment_id):
-    comment = get_object_or_404(Comment, id=comment_id)
-    emoji = request.POST.get('emoji')
+    try:
+        # Читаем данные из тела запроса
+        data = json.loads(request.body)
+        emoji = data.get('emoji')
+    except:
+        return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
 
-    # Логика добавления/удаления реакции
+    if not emoji:
+        return JsonResponse({'status': 'error', 'message': 'Emoji not provided'}, status=400)
+
+    comment = get_object_or_404(Comment, id=comment_id)
+
+    # Находим или создаем реакцию
     reaction, created = CommentReaction.objects.get_or_create(
         comment=comment,
-        user=request.user,
-        defaults={}
+        emoji=emoji
     )
 
+    # Переключаем реакцию пользователя
     if request.user in reaction.users.all():
         reaction.users.remove(request.user)
-        reaction.count -= 1
+        action = 'removed'
     else:
         reaction.users.add(request.user)
-        reaction.count += 1
+        action = 'added'
 
-    reaction.save()
+    # Получаем обновленные реакции
+    reactions = []
+    for r in comment.reactions.annotate(count=Count('users')):
+        reactions.append({
+            'emoji': r.emoji,
+            'count': r.count,
+            'user_reacted': request.user in r.users.all()
+        })
 
     return JsonResponse({
         'status': 'success',
-        'reactions': [
-            {'emoji': r.emoji, 'count': r.count}
-            for r in comment.reactions.all()
-        ]
+        'action': action,
+        'reactions': reactions
     })
+
 @csrf_exempt
 def submit_advice(request):
     if request.method == 'POST':
@@ -587,12 +611,17 @@ def toggle_reaction(request, comment_id):
     # Получаем обновленные агрегированные реакции
     reactions = comment.reactions.values('emoji').annotate(count=Count('id')).order_by('-count')
 
+    # Получаем ВСЕ реакции текущего пользователя для этого комментария
+    user_reactions = comment.reactions.filter(
+        user=request.user
+    ).values_list('emoji', flat=True)
+
     return JsonResponse({
         'status': 'success',
         'action': action,
-        'reactions': list(reactions)
+        'reactions': list(reactions),
+        'user_reactions': list(user_reactions)
     })
-
 
 @login_required
 @require_POST
@@ -615,22 +644,22 @@ def comment_reply(request, parent_id):
             level=parent_comment.level + 1
         )
 
-        # Добавляем request в контекст и исправляем рендеринг
+        # Рендерим комментарий с передачей request
         html = render_to_string('posts/comment.html', {
             'comment': new_comment,
             'level': parent_comment.level + 1,
-            'request': request,
-            'user': request.user  # Добавляем пользователя в контекст
+            'request': request
         })
 
         return JsonResponse({
             'success': True,
-            'html': html
+            'html': html,
+            'replies_count': parent_comment.replies.filter(is_active=True).count()
         })
 
     except Exception as e:
         import traceback
-        traceback.print_exc()  # Печать полной трассировки
+        traceback.print_exc()
         return JsonResponse({
             'success': False,
             'error': str(e)
