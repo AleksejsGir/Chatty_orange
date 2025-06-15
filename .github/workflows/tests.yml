@@ -14,6 +14,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
     - name: Create .env file for CI
       run: |
         echo "SECRET_KEY=test-secret-key-for-ci-docker" > .env
@@ -29,20 +32,20 @@ jobs:
 
     - name: Build and start services
       run: |
-        docker-compose up -d db
-        docker-compose build web
+        docker compose up -d db
+        docker compose build web
 
     - name: Wait for database
       run: |
-        timeout 60s bash -c 'until docker-compose exec -T db pg_isready -U postgres; do sleep 2; done'
+        timeout 60s bash -c 'until docker compose exec -T db pg_isready -U postgres; do sleep 2; done'
 
     - name: Run migrations
       run: |
-        docker-compose run --rm web python manage.py migrate
+        docker compose run --rm web python manage.py migrate
 
     - name: Run tests with coverage
       run: |
-        docker-compose run --rm \
+        docker compose run --rm \
           -v $(pwd):/app \
           web pytest \
           --cov=. \
@@ -54,7 +57,6 @@ jobs:
       if: always()
       run: |
         ls -la coverage.xml || echo "Coverage file not found"
-        cat coverage.xml | head -20 || echo "Cannot read coverage file"
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
@@ -70,11 +72,11 @@ jobs:
       if: always()
       run: |
         echo "🐳 Docker tests completed!"
-        docker-compose ps
+        docker compose ps
         echo "📊 Coverage report generated"
 
     - name: Cleanup
       if: always()
       run: |
-        docker-compose down -v
+        docker compose down -v
         docker system prune -f --volumes
