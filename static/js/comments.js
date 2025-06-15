@@ -1,10 +1,7 @@
 // comments.js - Обработчики для действий с комментариями
 document.addEventListener('DOMContentLoaded', function() {
-    // Инициализация tooltips
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl, {trigger: 'hover'});
-    });
+    // Инициализация всех компонентов при загрузке
+    initCommentComponents(document);
 
     // Обработчик кнопки "Реакция"
     document.querySelectorAll('.btn-reaction').forEach(button => {
@@ -17,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Обработчик кнопки "Ответить"
+   // Обработчик кнопки "Ответить"
     document.querySelectorAll('.btn-reply').forEach(button => {
         button.addEventListener('click', function() {
             const commentBlock = this.closest('.comment-block');
@@ -125,6 +122,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             // Вставляем новый комментарий
                             repliesBlock.prepend(newComment.firstElementChild);
 
+                            // Инициализируем компоненты нового комментария
+                            initCommentComponents(newComment);
+
                             // Удаляем форму
                             replyForm.remove();
 
@@ -172,27 +172,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Обработчики для кнопок быстрых реакций
-    document.querySelectorAll('.btn-reaction-quick').forEach(button => {
+    // Обработчик кнопки отмены ответа
+    document.querySelectorAll('.cancel-reply').forEach(button => {
         button.addEventListener('click', function() {
-            const emoji = this.dataset.emoji;
-            const commentId = this.dataset.commentId;
-            toggleReaction(commentId, emoji);
-
-            // Закрываем панель после выбора
-            const container = this.closest('.reactions-container');
-            if (container) {
-                container.classList.remove('active');
+            const replyForm = this.closest('.reply-form');
+            if (replyForm) {
+                replyForm.remove();
             }
-        });
-    });
-
-    // Обработчики для существующих реакций
-    document.querySelectorAll('.reaction-badge').forEach(badge => {
-        badge.addEventListener('click', function() {
-            const emoji = this.dataset.emoji;
-            const commentId = this.dataset.commentId;
-            toggleReaction(commentId, emoji);
         });
     });
 
@@ -265,6 +251,121 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Функция инициализации компонентов комментария
+function initCommentComponents(rootElement) {
+    // Инициализация tooltips
+    const tooltipTriggerList = [].slice.call(rootElement.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl, {trigger: 'hover'});
+    });
+
+    // Обработчик кнопки "Реакция"
+    rootElement.querySelectorAll('.btn-reaction').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const container = this.closest('.reactions-container');
+            if (container) {
+                container.classList.toggle('active');
+            }
+        });
+    });
+
+    // Обработчики для кнопок быстрых реакций
+    rootElement.querySelectorAll('.btn-reaction-quick').forEach(button => {
+        button.addEventListener('click', function() {
+            const emoji = this.dataset.emoji;
+            const commentId = this.dataset.commentId;
+
+            // Добавляем класс анимации к кнопке
+            this.classList.add('reaction-triggered');
+            setTimeout(() => {
+                this.classList.remove('reaction-triggered');
+            }, 400);
+
+            // Создаем эффект салюта
+            createReactionAnimation(this, emoji);
+
+            // Тогглим реакцию
+            toggleReaction(commentId, emoji);
+
+            // Закрываем панель после выбора
+            const container = this.closest('.reactions-container');
+            if (container) {
+                container.classList.remove('active');
+            }
+        });
+    });
+
+    // Обработчики для существующих реакций
+    rootElement.querySelectorAll('.reaction-badge').forEach(badge => {
+        badge.addEventListener('click', function() {
+            const emoji = this.dataset.emoji;
+            const commentId = this.dataset.commentId;
+
+            // Добавляем класс анимации к баджу
+            this.classList.add('reaction-triggered');
+            setTimeout(() => {
+                this.classList.remove('reaction-triggered');
+            }, 400);
+
+            // Создаем эффект салюта
+            createReactionAnimation(this, emoji);
+
+            // Тогглим реакцию
+            toggleReaction(commentId, emoji);
+        });
+    });
+}
+
+// Функция для создания эффекта частиц
+function createReactionAnimation(element, emoji) {
+    const rect = element.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    const container = document.createElement('div');
+    container.className = 'reaction-animation-container';
+    container.style.position = 'fixed';
+    container.style.left = `${centerX}px`;
+    container.style.top = `${centerY}px`;
+    container.style.zIndex = '10000';
+    container.style.pointerEvents = 'none';
+
+    // Создаем 16 частиц для эффекта "брызг"
+    const particlesCount = 16;
+    const emojis = [emoji, '✨', '🌟', '💫']; // Разные символы для частиц
+
+    for (let i = 0; i < particlesCount; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 80 + Math.random() * 60;
+        const size = 0.8 + Math.random() * 0.7;
+        const duration = 0.6 + Math.random() * 0.4;
+        const delay = Math.random() * 0.2;
+
+        const particle = document.createElement('div');
+        particle.className = 'reaction-particle';
+        particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        particle.style.setProperty('--tx', Math.cos(angle));
+        particle.style.setProperty('--ty', Math.sin(angle));
+        particle.style.setProperty('--distance', `${distance}px`);
+        particle.style.fontSize = `${size}rem`;
+        particle.style.animationDuration = `${duration}s`;
+        particle.style.animationDelay = `${delay}s`;
+
+        container.appendChild(particle);
+    }
+
+    document.body.appendChild(container);
+
+    // Удаляем через 1.5 секунды
+    setTimeout(() => {
+        if (container.parentNode) {
+            container.parentNode.removeChild(container);
+        }
+    }, 1500);
+}
+
+
 // Функция переключения реакции
 function toggleReaction(commentId, emoji) {
     fetch(`/posts/comments/${commentId}/toggle-reaction/`, {
@@ -300,22 +401,8 @@ function updateReactionUI(commentId, reactions, userReactions) {
     // Очищаем текущие реакции
     container.innerHTML = '';
 
-    // Создаем словарь для группировки реакций
-    const groupedReactions = {};
-
-    // Группируем реакции по emoji
-    reactions.forEach(reaction => {
-        if (!groupedReactions[reaction.emoji]) {
-            groupedReactions[reaction.emoji] = {
-                count: 0,
-                emoji: reaction.emoji
-            };
-        }
-        groupedReactions[reaction.emoji].count += reaction.count;
-    });
-
     // Добавляем обновленные реакции
-    Object.values(groupedReactions).forEach(reaction => {
+    reactions.forEach(reaction => {
         if (reaction.count > 0) {
             const badge = document.createElement('span');
             badge.className = 'badge reaction-badge me-1';
@@ -331,6 +418,16 @@ function updateReactionUI(commentId, reactions, userReactions) {
 
             // Добавляем обработчик
             badge.addEventListener('click', function() {
+                // Анимация при клике
+                this.classList.add('reaction-triggered');
+                setTimeout(() => {
+                    this.classList.remove('reaction-triggered');
+                }, 400);
+
+                // Создаем эффект салюта
+                createReactionAnimation(this, reaction.emoji);
+
+                // Тогглим реакцию
                 toggleReaction(commentId, reaction.emoji);
             });
 

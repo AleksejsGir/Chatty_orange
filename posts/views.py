@@ -588,30 +588,29 @@ def toggle_reaction(request, comment_id):
     if not emoji:
         return JsonResponse({'status': 'error', 'message': 'Emoji not provided'})
 
-    # Проверяем существующую реакцию текущего пользователя
-    reaction = CommentReaction.objects.filter(
+    # Проверяем существующую реакцию
+    reaction, created = CommentReaction.objects.get_or_create(
         comment=comment,
         user=request.user,
         emoji=emoji
-    ).first()
+    )
 
-    if reaction:
-        # Удаляем реакцию, если она уже существует
+    if not created:
+        # Если реакция уже существует - удаляем
         reaction.delete()
         action = 'removed'
     else:
-        # Создаем новую реакцию
-        CommentReaction.objects.create(
-            comment=comment,
-            user=request.user,
-            emoji=emoji
-        )
         action = 'added'
 
-    # Получаем обновленные агрегированные реакции
-    reactions = comment.reactions.values('emoji').annotate(count=Count('id')).order_by('-count')
+    # Получаем обновленные реакции
+    reactions = []
+    for r in comment.reactions.values('emoji').annotate(count=Count('id')):
+        reactions.append({
+            'emoji': r['emoji'],
+            'count': r['count']
+        })
 
-    # Получаем ВСЕ реакции текущего пользователя для этого комментария
+    # Получаем реакции текущего пользователя
     user_reactions = comment.reactions.filter(
         user=request.user
     ).values_list('emoji', flat=True)
@@ -619,7 +618,7 @@ def toggle_reaction(request, comment_id):
     return JsonResponse({
         'status': 'success',
         'action': action,
-        'reactions': list(reactions),
+        'reactions': reactions,
         'user_reactions': list(user_reactions)
     })
 

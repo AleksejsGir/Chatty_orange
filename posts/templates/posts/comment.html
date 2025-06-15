@@ -37,8 +37,8 @@
                 </div>
 
                 <!-- Блок реакций -->
-                <div class="reactions-summary mb-2" id="reactions-{{ comment.id }}">
-                    {% for reaction in comment.reactions.all|dictsortreversed:"users.count" %}
+                <div class="reactions-summary mb-2">
+                    {% for reaction in comment.reactions.all %}
                         <span class="badge reaction-badge me-1 {% if request.user in reaction.users.all %}user-reaction{% endif %}"
                               data-emoji="{{ reaction.emoji }}"
                               data-comment-id="{{ comment.id }}">
@@ -63,13 +63,32 @@
                             <i class="fa-regular fa-face-smile"></i>
                         </button>
                         <div class="quick-reactions-panel">
-                            <button class="btn-reaction-quick" data-emoji="😊" data-comment-id="{{ comment.id }}">😊</button>
+                            <!-- Основные смайлики -->
                             <button class="btn-reaction-quick" data-emoji="👍" data-comment-id="{{ comment.id }}">👍</button>
+                            <button class="btn-reaction-quick" data-emoji="👎" data-comment-id="{{ comment.id }}">👎</button>
                             <button class="btn-reaction-quick" data-emoji="❤️" data-comment-id="{{ comment.id }}">❤️</button>
+                            <button class="btn-reaction-quick" data-emoji="🔥" data-comment-id="{{ comment.id }}">🔥</button>
+                            <button class="btn-reaction-quick" data-emoji="🥰" data-comment-id="{{ comment.id }}">🥰</button>
+                            <button class="btn-reaction-quick" data-emoji="👏" data-comment-id="{{ comment.id }}">👏</button>
+                            <button class="btn-reaction-quick" data-emoji="😊" data-comment-id="{{ comment.id }}">😊</button>
+
+                            <!-- Дополнительные смайлики как в Telegram -->
                             <button class="btn-reaction-quick" data-emoji="😂" data-comment-id="{{ comment.id }}">😂</button>
+                            <button class="btn-reaction-quick" data-emoji="🤔" data-comment-id="{{ comment.id }}">🤔</button>
                             <button class="btn-reaction-quick" data-emoji="😮" data-comment-id="{{ comment.id }}">😮</button>
                             <button class="btn-reaction-quick" data-emoji="😢" data-comment-id="{{ comment.id }}">😢</button>
-                            <button class="btn-reaction-quick" data-emoji="🔥" data-comment-id="{{ comment.id }}">🔥</button>
+                            <button class="btn-reaction-quick" data-emoji="🎉" data-comment-id="{{ comment.id }}">🎉</button>
+                            <button class="btn-reaction-quick" data-emoji="💩" data-comment-id="{{ comment.id }}">💩</button>
+                            <button class="btn-reaction-quick" data-emoji="🙏" data-comment-id="{{ comment.id }}">🙏</button>
+
+                            <!-- Еще больше вариантов -->
+                            <button class="btn-reaction-quick" data-emoji="🤣" data-comment-id="{{ comment.id }}">🤣</button>
+                            <button class="btn-reaction-quick" data-emoji="😍" data-comment-id="{{ comment.id }}">😍</button>
+                            <button class="btn-reaction-quick" data-emoji="😎" data-comment-id="{{ comment.id }}">😎</button>
+                            <button class="btn-reaction-quick" data-emoji="🤯" data-comment-id="{{ comment.id }}">🤯</button>
+                            <button class="btn-reaction-quick" data-emoji="🥳" data-comment-id="{{ comment.id }}">🥳</button>
+                            <button class="btn-reaction-quick" data-emoji="🤮" data-comment-id="{{ comment.id }}">🤮</button>
+                            <button class="btn-reaction-quick" data-emoji="👌" data-comment-id="{{ comment.id }}">👌</button>
                         </div>
                     </div>
                     {% endif %}
