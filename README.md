@@ -302,8 +302,8 @@ docker-compose exec web pytest
       <sub>Backend Developer</sub>
     </td>
     <td align="center">
-      <a href="https://github.com/IgorPronin">
-        <img src="https://github.com/IgorPronin.png" width="100px;" alt="Igor Pronin"/>
+      <a href="https://github.com/IgorPronin978">
+        <img src="https://github.com/IgorPronin978.png" width="100px;" alt="Igor Pronin"/>
         <br />
         <sub><b>Igor Pronin</b></sub>
       </a>
