@@ -354,3 +354,4 @@ docker-compose exec web pytest
 ## 📄 Лицензия
 
 This project is licensed under the [Apache License 2.0](LICENSE).
+See the [NOTICE](NOTICE) file for attribution.
