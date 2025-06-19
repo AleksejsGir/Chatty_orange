@@ -1,8 +1,56 @@
 # 📘 Chatty Orange - Социальная сеть на Django
 
-Chatty Orange — полноценная социальная сеть, разработанная на Django. В этой платформе пользователи могут регистрироваться, создавать посты, комментировать, лайкать публикации и подписываться на интересных авторов.
+[![Django](https://img.shields.io/badge/Django-5.1.5-092E20?style=flat&logo=django)](https://www.djangoproject.com/)
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python)](https://www.python.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?style=flat&logo=postgresql)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat&logo=docker)](https://www.docker.com/)
+[![Google AI](https://img.shields.io/badge/Google-Gemini_API-4285F4?style=flat&logo=google)](https://ai.google.dev/)
 
-**Проект:** [https://chattyorange.eu](https://chattyorange.eu)
+Chatty Orange — полноценная социальная сеть, разработанная на Django с уникальным **ИИ-помощником**. Платформа позволяет пользователям создавать контент, общаться, подписываться на авторов и получать персонализированные рекомендации от искусственного интеллекта.
+
+**🌐:** [https://chattyorange.eu](https://chattyorange.eu)
+
+---
+
+## 📸 Демонстрация
+
+### 🏠 Главная страница
+Современный и привлекательный дизайн с призывом к действию и интуитивной навигацией.
+
+![Главная страница Chatty Orange](assets/home-page.png)
+
+*Особенности: адаптивный дизайн, брендинг с апельсиновой тематикой, четкие CTA-кнопки и видимый ИИ-помощник справа*
+
+### 📰 Лента постов
+Персонализированная лента с фильтрацией, популярными темами и рекомендациями для подписки.
+
+![Лента постов](assets/feed-page.png)
+
+*Технические особенности: пагинация Django, AJAX-лайки, система тегов, оптимизированные запросы с `select_related`*
+
+### 📝 Детальная страница поста
+Полное отображение контента с комментариями, лайками и интерактивными элементами.
+
+![Страница поста](assets/post-detail.png)
+
+*Функционал: система комментариев, счетчики лайков, AJAX-взаимодействие, SEO-оптимизированные URL*
+
+### ✏️ Редактор постов
+Мощный редактор с поддержкой Rich Text, тегов и множественной загрузки изображений.
+
+![Редактирование поста](assets/post-edit.png)
+
+*Django формы: ModelForm с кастомными виджетами, валидация на клиенте и сервере, обработка файлов*
+
+### 👤 Профиль пользователя
+Персональные страницы с статистикой, постами и возможностью подписки.
+
+![Профиль пользователя](assets/profile-page.png)
+
+*Архитектура: Class-Based Views, система подписок Many-to-Many, статистика через агрегацию Django ORM*
+
+---
+
 
 ## 🍊 Апельсиновый Помощник - ИИ-ассистент
 
@@ -240,15 +288,68 @@ docker-compose exec web pytest
 - [Руководство пользователя](user_guide.md)
 - [ИИ-помощник: техническая документация](ИИ-помощник%20в%20Chatty%20Orange.md)
 
-## 👨‍💻 Авторы
+## 👨‍💻 Команда разработки
 
-- Aleksejs Giruckis - [GitHub](https://github.com/AleksejsGir/Chatty_orange)
-- Igor Pronin - [GitHub](https://github.com/AleksejsGir/Chatty_orange)
-- Victor Yerokhov - [GitHub](https://github.com/AleksejsGir/Chatty_orange)
-- Maxim Schneider - [GitHub](https://github.com/AleksejsGir/Chatty_orange)
-- Ivan Miakinnov - [GitHub](https://github.com/AleksejsGir/Chatty_orange)
-- Eugen Maljas - [GitHub](https://github.com/AleksejsGir/Chatty_orange)
-
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/AleksejsGir">
+        <img src="https://github.com/AleksejsGir.png" width="100px;" alt="Aleksejs Giruckis"/>
+        <br />
+        <sub><b>Aleksejs Giruckis</b></sub>
+      </a>
+      <br />
+      <sub>Backend Developer</sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/IgorPronin">
+        <img src="https://github.com/IgorPronin.png" width="100px;" alt="Igor Pronin"/>
+        <br />
+        <sub><b>Igor Pronin</b></sub>
+      </a>
+      <br />
+      <sub>Backend Developer</sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/ViktorYerokhov">
+        <img src="https://github.com/ViktorYerokhov.png" width="100px;" alt="Victor Yerokhov"/>
+        <br />
+        <sub><b>Victor Yerokhov</b></sub>
+      </a>
+      <br />
+      <sub>Backend Developer</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/MSSkorpion">
+        <img src="https://github.com/MSSkorpion.png" width="100px;" alt="Maxim Schneider"/>
+        <br />
+        <sub><b>Maxim Schneider</b></sub>
+      </a>
+      <br />
+      <sub>Backend Developer</sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/Iv-m1">
+        <img src="https://github.com/Iv-m1.png" width="100px;" alt="Ivan Miakinnov"/>
+        <br />
+        <sub><b>Ivan Miakinnov</b></sub>
+      </a>
+      <br />
+      <sub>Backend Developer</sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/EugenMaljas">
+        <img src="https://github.com/EugenMaljas.png" width="100px;" alt="Eugen Maljas"/>
+        <br />
+        <sub><b>Eugen Maljas</b></sub>
+      </a>
+      <br />
+      <sub>Backend Developer</sub>
+    </td>
+  </tr>
+</table>
 
 ## 📄 Лицензия
 
