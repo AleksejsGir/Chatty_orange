@@ -4,7 +4,7 @@
 {% block content %}
 <h1>Чат с {{ interlocutor.username }}</h1>
 
-<div class="border rounded p-3 mb-3" style="height: 400px; overflow-y: scroll;">
+<div id="chat-box" class="border rounded p-3 mb-3" style="height: 400px; overflow-y: auto;">
   {% for msg in messages %}
     <div class="mb-2 {% if msg.sender == user %}text-end{% else %}text-start{% endif %}">
       <small class="text-muted">
@@ -14,14 +14,57 @@
                   {% if msg.sender == user %}bg-primary text-white{% else %}bg-light{% endif %}">
         {{ msg.text }}
       </div>
+
+      {# Если это ваше сообщение — показываем кнопки редактирования и удаления #}
+      {% if msg.sender == user %}
+        <div class="mt-1">
+          <a href="{% url 'chat:message_edit' msg.pk %}" class="btn btn-sm btn-link">Изменить</a>
+          <a href="{% url 'chat:message_delete' msg.pk %}" class="btn btn-sm btn-link text-danger">Удалить</a>
+        </div>
+      {% endif %}
     </div>
   {% endfor %}
 </div>
 
-<form method="post">
+<form method="post" id="chat-form">
   {% csrf_token %}
   {{ form.text }}
-  <button type="submit" class="btn btn-success mt-2">Отправить</button>
+  <button type="submit" id="send-btn" class="btn btn-success mt-2">Отправить</button>
 </form>
+{% endblock %}
 
+{% block extra_js %}
+  {{ block.super }}
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 1. Автопрокрутка
+      const box = document.getElementById('chat-box');
+      box.scrollTop = box.scrollHeight;
+
+      // 2. Клиентская блокировка кнопки «Отправить»
+      const sendBtn = document.getElementById('send-btn');
+      // last_ts приходит из контекста ChatDetailView, это timestamp последнего сообщения в секундах
+      const lastTs = {{ last_ts }};
+      const nowTs = Math.floor(Date.now() / 1000);
+      const elapsed = nowTs - lastTs;
+      // сколько ещё ждать до 10 секунд
+      const wait = 2 - elapsed;
+
+      if (wait > 0) {
+        sendBtn.disabled = true;
+        let remaining = wait;
+        const originalText = sendBtn.textContent;
+
+        const timerId = setInterval(() => {
+          if (remaining <= 0) {
+            clearInterval(timerId);
+            sendBtn.disabled = false;
+            sendBtn.textContent = originalText;
+          } else {
+            sendBtn.textContent = `Подождите ${remaining--}s`;
+          }
+        }, 1000);
+      }
+    });
+  </script>
 {% endblock %}

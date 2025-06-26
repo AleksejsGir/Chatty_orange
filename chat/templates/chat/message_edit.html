@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Редактировать сообщение{% endblock %}
+
+{% block content %}
+<h1>Редактировать сообщение</h1>
+<form method="post">
+  {% csrf_token %}
+  {{ form.text }}
+  <button type="submit" class="btn btn-primary mt-2">Сохранить</button>
+  <a href="{% url 'chat:chat_detail' object.recipient.username %}" class="btn btn-secondary mt-2">Отмена</a>
+</form>
+{% endblock %}

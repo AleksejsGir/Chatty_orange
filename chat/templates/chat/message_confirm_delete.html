@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Удалить сообщение{% endblock %}
+
+{% block content %}
+<h1>Удалить сообщение?</h1>
+<p>Вы точно хотите удалить это сообщение?</p>
+<form method="post">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-danger">Да, удалить</button>
+  <a href="{% url 'chat:chat_detail' object.recipient.username %}" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}

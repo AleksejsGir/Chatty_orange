@@ -58,6 +58,17 @@
             {# Правая часть навбара #}
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
                 {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="{% url 'chat:chat_list' %}">
+                            <i class="fa fa-comments"></i>
+                            {% if unread_message_count %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    {{ unread_message_count }}
+                                </span>
+                            {% endif %}
+                        </a>
+                    </li>
+
                     <li class="nav-item me-2">
                         <a class="nav-link create-post-btn px-2" href="{% url 'posts:post-create' %}" title="Создать пост">
                             <i class="fa-solid fa-plus-circle"></i> <span class="d-none d-lg-inline">Создать</span>
