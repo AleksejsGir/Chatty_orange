@@ -66,6 +66,9 @@
                             Редактировать профиль
                         </a>
                     {% else %}
+                        <a href="{% url 'chat:chat_detail' profile_user.username %}" class="btn btn-outline-primary">
+                            Написать сообщение
+                        </a>
                         <!-- Кнопка подписки/отписки -->
                         <form action="{% url 'subscriptions:toggle' username=profile_user.username %}" method="post">
                             {% csrf_token %}
@@ -217,7 +220,7 @@
         </div>
     </div>
 </div>
-
+</div>
 {% endblock %}
 {% block scripts %}
 <script src="{% static 'js/subscriptions.js' %}"></script>

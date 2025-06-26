@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Чат с {{ interlocutor.username }}{% endblock %}
+
+{% block content %}
+<h1>Чат с {{ interlocutor.username }}</h1>
+
+<div class="border rounded p-3 mb-3" style="height: 400px; overflow-y: scroll;">
+  {% for msg in messages %}
+    <div class="mb-2 {% if msg.sender == user %}text-end{% else %}text-start{% endif %}">
+      <small class="text-muted">
+        {{ msg.sender.username }} • {{ msg.timestamp|date:"H:i, d.m.Y" }}
+      </small>
+      <div class="p-2 d-inline-block rounded
+                  {% if msg.sender == user %}bg-primary text-white{% else %}bg-light{% endif %}">
+        {{ msg.text }}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.text }}
+  <button type="submit" class="btn btn-success mt-2">Отправить</button>
+</form>
+
+{% endblock %}

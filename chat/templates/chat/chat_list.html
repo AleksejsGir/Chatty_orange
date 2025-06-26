@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Мои чаты{% endblock %}
+
+{% block content %}
+<h1>Мои чаты</h1>
+<ul class="list-group">
+  {% for chat in chats %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      <a href="{% url 'chat:chat_detail' chat.user.username %}">
+        {{ chat.user.username }}
+      </a>
+      {% if chat.unread %}
+        <span class="badge bg-primary rounded-pill">{{ chat.unread }}</span>
+      {% endif %}
+    </li>
+  {% empty %}
+    <li class="list-group-item">У вас ещё нет сообщений.</li>
+  {% endfor %}
+</ul>
+{% endblock %}
