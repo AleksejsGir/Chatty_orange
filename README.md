@@ -1,13 +1,15 @@
-# 📘 Chatty - Социальная сеть на Django
+# 📘 Chatty Orange - Социальная сеть на Django
 
-Chatty — учебная социальная сеть, разработанная на Django. В этой платформе пользователи могут регистрироваться, создавать посты, комментировать, лайкать публикации и подписываться на интересных авторов.
+Chatty Orange — полноценная социальная сеть, разработанная на Django. В этой платформе пользователи могут регистрироваться, создавать посты, комментировать, лайкать публикации и подписываться на интересных авторов.
+
+**Проект:** [https://chattyorange.eu](https://chattyorange.eu)
 
 ## 🎯 Функциональность
 
 - **Аутентификация:**
-  - Регистрация по email (с имитацией подтверждения)
+  - Регистрация по email с подтверждением
   - Авторизация по email и паролю
-  - Сброс пароля (с имитацией email-отправки)
+  - Сброс пароля
 
 - **Профиль пользователя:**
   - Просмотр и редактирование профиля
@@ -19,31 +21,55 @@ Chatty — учебная социальная сеть, разработанн�
   - Прикрепление изображений к постам
   - Комментирование постов
   - Лайки постов
+  - Теги для категоризации контента
   - Просмотр ленты всех постов и ленты подписок
 
 - **Подписки:**
   - Подписка/отписка на других пользователей
   - Персонализированная лента постов от авторов, на которых вы подписаны
+  - Просмотр списков подписчиков и подписок
+
+- **Администрирование:**
+  - Панель администратора для модерации контента
+  - Управление пользователями, постами и комментариями
+  - Аналитика активности пользователей
 
 ## 🛠️ Технологический стек
 
 - **Язык программирования:** Python 3.11
-- **Веб-фреймворк:** Django 4.2.10
-- **Шаблоны:** Django Templates + Bootstrap 5
+- **Веб-фреймворк:** Django 5.1.5
+- **Шаблоны:** Django Templates + Bootstrap 5 + CSS
+- **Frontend:** JavaScript (для интерактивных элементов)
 - **ORM:** Django ORM
 - **База данных:** PostgreSQL 15
-- **Хранение файлов:** локально
+- **Хранение файлов:** локально/MinIO
 - **Контейнеризация:** Docker + Docker Compose
+- **Веб-сервер:** Nginx + Gunicorn
+- **SSL:** Let's Encrypt
 - **Тестирование:** Pytest / Unittest
 - **Контроль версий:** Git + GitHub
+- **CI/CD:** Docker Hub
 
 ## 📂 Структура проекта
 
-Подробная информация о структуре проекта доступна в файле [Project_structure.md](Project_structure.md), где описана организация каталогов и файлов проекта, а также рекомендации по поддержанию архитектуры.
+Проект имеет модульную структуру и следует принципам Django-приложений:
+
+```
+chatty/
+├── Chatty_orange/          # Основное приложение (настройки)
+├── users/                  # Управление пользователями
+├── posts/                  # Посты, комментарии, лайки
+├── subscriptions/          # Подписки и лента
+├── templates/              # Глобальные шаблоны
+├── static/                 # Статические файлы
+└── media/                  # Загружаемые файлы
+```
+
+Подробная информация о структуре проекта доступна в файле [Project_structure.md](Project_structure.md).
 
 ## 🚀 Установка и запуск
 
-### С использованием Docker Compose (рекомендуется)
+### Продакшен-развертывание
 
 1. Клонируйте репозиторий:
    ```bash
@@ -51,51 +77,52 @@ Chatty — учебная социальная сеть, разработанн�
    cd Chatty_orange
    ```
 
-2. Создайте файл `.env` в корневой директории проекта (можно скопировать из `.env.sample`):
+2. Создайте файл `.env.prod` в корневой директории проекта:
    ```
-    # Django Settings
-    DEBUG=True
-    # Пример генерации ключа в python: Введите код прямо в терминале PyCharm!
-    # py -3 -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-    
-    SECRET_KEY='****************' # ЗАМЕНИТЬ НА НАСТОЯЩИЙ КЛЮЧ!
-    
-    # Database Settings (PostgreSQL)
-    DB_ENGINE=django.db.backends.postgresql
-    DB_NAME=*******
-    DB_USER=*******
-    DB_PASSWORD=******* # Используйте более надежный пароль для реальных проектов
-    DB_HOST=db # Имя сервиса базы данных в docker-compose.yml
-    DB_PORT=5432
+   # Django Settings
+   DJANGO_SETTINGS_MODULE=Chatty_orange.settings.production
+   DJANGO_DEBUG=False
+   SECRET_KEY=your_secure_secret_key
+   
+   # Domain and Host Settings
+   DJANGO_ALLOWED_HOSTS=yourdomain.com www.yourdomain.com
+   CSRF_TRUSTED_ORIGINS=https://yourdomain.com https://www.yourdomain.com
+   
+   # Database Settings
+   DB_ENGINE=django.db.backends.postgresql
+   DB_NAME=chatty_db
+   DB_USER=db_user
+   DB_PASSWORD=secure_password
+   DB_HOST=db_prod
+   DB_PORT=5432
+   
+   # Email Settings
+   EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+   EMAIL_HOST=smtp.gmail.com
+   EMAIL_PORT=587
+   EMAIL_USE_TLS=True
+   EMAIL_HOST_USER=your_email@gmail.com
+   EMAIL_HOST_PASSWORD=your_app_password
+   DEFAULT_FROM_EMAIL=Your Site <your_email@gmail.com>
+   
+   # Gunicorn Settings
+   GUNICORN_CMD_ARGS=--workers 3 --bind 0.0.0.0:8000 --timeout 120
    ```
 
-3.  **Соберите Docker-образы:** Этот шаг установит все зависимости, включая Pillow, и применит конфигурацию Docker Compose.
-    ```bash
-    docker-compose build
-    # При первой сборке или если возникнут проблемы, используйте --no-cache:
-    # docker-compose build --no-cache
-    ```
+3. Запустите проект с использованием Docker Compose:
+   ```bash
+   docker compose -f docker-compose.prod.yml up -d
+   ```
 
-4.  **Запустите контейнеры:** Docker Compose создаст необходимые сети и тома (включая том для чистой базы данных PostgreSQL).
-    ```bash
-    docker-compose up -d
-    ```
-    *Сервис `web` дождется, пока сервис `db` будет готов к приему подключений (благодаря `healthcheck`).*
+4. Выполните миграции и создайте суперпользователя:
+   ```bash
+   docker compose -f docker-compose.prod.yml exec web_prod python manage.py migrate
+   docker compose -f docker-compose.prod.yml exec web_prod python manage.py createsuperuser
+   ```
 
-5.  **Выполните миграции базы данных:** Эта команда создаст все необходимые таблицы в базе данных, включая таблицы для кастомной модели пользователя.
-    ```bash
-    docker-compose exec web python manage.py migrate
-    ```
+5. Приложение будет доступно по настроенному домену с SSL-сертификатом.
 
-6.  **Создайте суперпользователя:** Это позволит вам войти в панель администратора Django.
-    ```bash
-    docker-compose exec web python manage.py createsuperuser
-    ```
-
-7.  **Приложение будет доступно** в вашем браузере по адресу: http://localhost:8000
-    *   Админка Django доступна по адресу: http://localhost:8000/admin/
-
-### Локальный запуск (без Docker)
+### Локальная разработка
 
 1. Клонируйте репозиторий:
    ```bash
@@ -103,90 +130,75 @@ Chatty — учебная социальная сеть, разработанн�
    cd Chatty_orange
    ```
 
-2. Создайте и активируйте виртуальное окружение:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Linux/macOS
-   venv\Scripts\activate  # Windows
+2. Создайте файл `.env` в корневой директории проекта:
+   ```
+   # Django Settings
+   DEBUG=True
+   SECRET_KEY=dev_secret_key
+   
+   # Database Settings
+   DB_ENGINE=django.db.backends.postgresql
+   DB_NAME=chatty_db_dev
+   DB_USER=chatty_user
+   DB_PASSWORD=password
+   DB_HOST=db
+   DB_PORT=5432
    ```
 
-3. Установите зависимости:
+3. Запустите проект с использованием Docker Compose для разработки:
    ```bash
-   pip install -r requirements.txt
+   docker-compose up -d
    ```
 
-4. Создайте файл `.env` с необходимыми переменными окружения.
-
-5. Настройте локальную базу данных PostgreSQL и укажите соответствующие параметры в `.env`.
-
-6. Выполните миграции:
+4. Выполните миграции и создайте суперпользователя:
    ```bash
-   python manage.py migrate
+   docker-compose exec web python manage.py migrate
+   docker-compose exec web python manage.py createsuperuser
    ```
 
-7. Создайте суперпользователя:
-   ```bash
-   python manage.py createsuperuser
-   ```
-
-8. Запустите сервер разработки:
-   ```bash
-   python manage.py runserver
-   ```
-
-9. Приложение будет доступно по адресу: http://127.0.0.1:8000
+5. Приложение будет доступно по адресу: http://localhost:8000
 
 ## 🧪 Тестирование
 
-Для запуска тестов выполните:
+Проект использует [Pytest](https://pytest.org/) для написания и запуска тестов. Тесты помогают обеспечить стабильность и надежность кода.
+
+Для запуска всех тестов локально (предполагается, что вы находитесь в активированном окружении с установленными зависимостями, как описано в [TESTING.md](TESTING.md)):
 
 ```bash
-# Для Docker
-docker-compose exec web python manage.py test
-
-# Локально
-python manage.py test
-```
-
-Или с использованием pytest:
-
-```bash
-# Для Docker
-docker-compose exec web pytest
-
-# Локально
 pytest
 ```
+Более подробную информацию о настройке тестового окружения, различных вариантах запуска тестов (включая запуск отдельных тестов, генерацию отчетов о покрытии), используемых инструментах и структуре тестов вы можете найти в файле [TESTING.md](TESTING.md).
+
+Тесты также автоматически запускаются в CI/CD  при каждом push и pull request в основные ветки, используя GitHub Actions. Отчеты о покрытии кода загружаются в Codecov.
+
+
+
+
 
 ## 📊 Архитектура проекта
 
 Проект реализован в монолитной архитектуре и состоит из следующих приложений:
 
-- **chatty_orange** - базовые настройки, общие функции и утилиты
-- **users** - управление пользователями, профили, аутентификация 
-- **posts** - модели и представления для постов, комментариев и лайков (будет реализовано в следующем спринте)
-- **subscriptions** - логика подписок и формирования персонализированной ленты (будет реализовано в следующем спринте)
+- **Chatty_orange** - базовые настройки, разделенные на модули для разработки и продакшена
+- **users** - управление пользователями, профили, аутентификация
+- **posts** - модели и представления для постов, комментариев и лайков
+- **subscriptions** - логика подписок и формирования персонализированной ленты
 
-Для более детального ознакомления со структурой проекта, см. файл [Project_structure.md](Project_structure.md).
+## 📚 Документация API и руководства
 
-## 📋 Текущий прогресс
+- [Структура проекта](Project_structure.md)
+- [Руководство по развертыванию](deployment_guide.md)
+- [Руководство пользователя](user_guide.md)
 
-Первый спринт (S1) включает следующие задачи:
+## 👨‍💻 Авторы
 
-✅ Создание репозитория и базовой структуры проекта  
-✅ Настройка Docker и PostgreSQL для проекта  
-✅ Подключение Bootstrap и создание базовых шаблонов  
-✅ Расширение модели пользователя  
-✅ Реализация регистрации, логина и выхода  
-✅ Настройка сброса пароля  
-✅ Создание главной страницы  
-✅ Реализация страницы профиля пользователя  
+- Aleksejs Giruckis - [GitHub](https://github.com/AleksejsGir/Chatty_orange)
+- Igor Pronin - [GitHub](https://github.com/AleksejsGir/Chatty_orange)
+- Victor Yerokhov - [GitHub](https://github.com/AleksejsGir/Chatty_orange)
+- Maxim Schneider - [GitHub](https://github.com/AleksejsGir/Chatty_orange)
+- Ivan Miakinnov - [GitHub](https://github.com/AleksejsGir/Chatty_orange)
 
-## 🔧 Инструменты для разработки
 
-- PyCharm / VS Code
-- DBeaver / pgAdmin (для работы с PostgreSQL)
-- Docker Desktop
 
 ## 📄 Лицензия
 

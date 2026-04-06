@@ -1,7 +1,7 @@
 # posts/views.py
 from django.db import transaction
 from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
@@ -12,23 +12,13 @@ from django.http import JsonResponse
 from django.db.models import Count, Q
 from django.views.generic.detail import SingleObjectMixin
 from django.views import View
+from django.core.mail import send_mail
 
 from .models import Post, Comment, Tag, PostImage
 from .forms import PostForm, CommentForm, PostImageFormSet
 from subscriptions.models import Subscription  # Добавляем импорт модели подписок
 
-
-
-
-# from django.shortcuts import render, redirect
-# from django.http import HttpResponse
-
-
-
-
-
 from django.shortcuts import render
-
 
 User = get_user_model()  # Получаем модель пользователя
 
@@ -40,60 +30,69 @@ class PostListView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        # self.search_query = self.request.GET.get('q', '').strip()
-        # Инициализация атрибутов по умолчанию
+        # Инициализация атрибутов для поиска по умолчанию
         self.search_query = self.request.GET.get('q', '').strip()
-        self.search_terms = self.search_query.split() if self.search_query else []
+        self.search_terms = []
 
-        # Поиск по ID если введены только цифры
-        if self.search_query.isdigit():
-            return queryset.filter(pk=int(self.search_query))
-
-        # Основная логика поиска
-        if self.search_query:
-            search_terms = self.search_query.split()
-            found = False
-            current_terms = search_terms.copy()
-            queryset = Post.objects.none()  # Начинаем с пустого queryset
-
-            # Поиск фразы с уменьшением слов
-            while len(current_terms) > 0:
-                phrase = ' '.join(current_terms)
-                phrase_query = Q(title__icontains=phrase) | Q(text__icontains=phrase)
-                qs = Post.objects.filter(phrase_query)
-
-                if qs.exists():
-                    queryset = qs
-                    found = True
-                    break
-                else:
-                    current_terms.pop()
-
-            # Если фраза не найдена - ищем отдельные слова
-            if not found:
-                query = Q()
-                for term in search_terms:
-                    if len(term) > 1 or term.isdigit():
-                        query |= Q(title__icontains=term) | Q(text__icontains=term)
-                queryset = Post.objects.filter(query).distinct()
-
-        # Аннотации и сортировка
-        user = self.request.user
-        annotation_filter = Q() if user.is_staff else Q(comments__is_active=True)
-
-        return queryset.annotate(
-            num_comments=Count('comments', filter=annotation_filter, distinct=True),
+        # Базовый запрос с предварительной загрузкой автора и аннотациями
+        queryset = Post.objects.select_related('author').annotate(
+            num_comments=Count('comments', filter=Q(comments__is_active=True) | Q(comments__isnull=True),
+                               distinct=True),  # Скорректировано для корректного подсчета
             num_likes=Count('likes', distinct=True),
             num_dislikes=Count('dislikes', distinct=True)
-        ).select_related('author').order_by('-pub_date')
+        )
+
+        # Логика поиска
+        if self.search_query:
+            if self.search_query.isdigit():
+                # Поиск по ID, если введены только цифры
+                # Этот результат является окончательным, остальные фильтры не применяются
+                self.search_terms = []  # ID поиск не использует search_terms в шаблоне
+                return queryset.filter(pk=int(self.search_query))
+            else:
+                # Текстовый поиск
+                self.search_terms = self.search_query.split()
+                search_query_obj = Q()
+                # Поиск по целой фразе
+                search_query_obj |= Q(title__icontains=self.search_query)
+                search_query_obj |= Q(text__icontains=self.search_query)
+
+                # Поиск по отдельным словам (если фраза не дала результатов или для расширения)
+                # Можно добавить более сложную логику, как была ранее, если потребуется
+                # Например, поиск по всем словам, или по части слов.
+                # Текущая реализация ищет фразу целиком ИЛИ отдельные слова.
+                for term in self.search_terms:
+                    if len(term) > 1:  # Игнорируем слишком короткие слова
+                        search_query_obj |= Q(title__icontains=term)
+                        search_query_obj |= Q(text__icontains=term)
+
+                queryset = queryset.filter(search_query_obj).distinct()
+
+        # Логика фильтрации (применяется к результатам поиска или ко всем постам)
+        filter_param = self.request.GET.get('filter', 'latest')
+
+        if filter_param == 'subscriptions':
+            if self.request.user.is_authenticated:
+                subscribed_author_ids = Subscription.objects.filter(
+                    subscriber=self.request.user
+                ).values_list('author_id', flat=True)
+                queryset = queryset.filter(author_id__in=subscribed_author_ids).order_by('-pub_date')
+            else:
+                queryset = Post.objects.none()
+        elif filter_param == 'popular':
+            queryset = queryset.order_by('-num_likes', '-pub_date')
+        else:  # 'latest' или любой другой/не указанный параметр
+            queryset = queryset.order_by('-pub_date')
+
+        return queryset
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context.update({
             'current_filter': self.request.GET.get('filter', 'latest'),
             'popular_tags': Tag.get_popular_tags(),
-            'search_query': self.search_query,
-            'search_terms': self.search_terms
+            'search_query': getattr(self, 'search_query', ''),
+            'search_terms': getattr(self, 'search_terms', [])
         })
 
         if self.request.user.is_authenticated:
@@ -166,9 +165,13 @@ class PostCreateView(LoginRequiredMixin, CreateView):
             self.object = form.save()
             image_formset.instance = self.object
             image_formset.save()
+
+            self.success_url = f"{self.object.get_absolute_url()}?from=created"
+
             return super().form_valid(form)
         else:
             return self.form_invalid(form)
+
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
@@ -195,13 +198,19 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
             self.object = form.save()
             image_formset.instance = self.object
             image_formset.save()
-            return super().form_valid(form)
-        else:
-            return self.form_invalid(form)
+
+            # ✅ Сохраняем `from` и делаем редирект на пост с этим параметром
+            from_param = self.request.GET.get('from') or self.request.POST.get('from')
+            if from_param:
+                return redirect(f"{self.object.get_absolute_url()}?from={from_param}")
+            return redirect(self.object.get_absolute_url())
+
+        return self.form_invalid(form)
 
     def test_func(self):
         post = self.get_object()
         return self.request.user == post.author
+
 
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
@@ -213,12 +222,39 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return self.request.user == post.author
 
 
+# class PostCommentView(LoginRequiredMixin, SingleObjectMixin, View):
+#     model = Post
+#     form_class = CommentForm
+#
+#     def post(self, request, *args, **kwargs):
+#         self.object = self.get_object()
+#         form = self.form_class(request.POST)
+#
+#         if form.is_valid():
+#             comment = form.save(commit=False)
+#             comment.post = self.object
+#             comment.author = request.user
+#             comment.save()
+#
+#             # Сначала пытаемся взять параметр из POST (hidden input)
+#             from_param = request.POST.get('from') or request.GET.get('from')
+#             if from_param:
+#                 return redirect(f"{self.object.get_absolute_url()}?from={from_param}#comments")
+#
+#             # Иначе просто возвращаем на пост с якорем #comments
+#             return redirect(self.object.get_absolute_url() + '#comments')
+#
+#             # Если форма невалидна, возвращаем обратно с ошибками
+#         return self.render_to_response(
+#             self.get_context_data(post=self.object, comment_form=form)
+#         )
+
 class PostCommentView(LoginRequiredMixin, SingleObjectMixin, View):
     model = Post
     form_class = CommentForm
 
     def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
+        self.object = self.get_object()            # пост, к которому добавляем комментарий
         form = self.form_class(request.POST)
 
         if form.is_valid():
@@ -226,14 +262,18 @@ class PostCommentView(LoginRequiredMixin, SingleObjectMixin, View):
             comment.post = self.object
             comment.author = request.user
             comment.save()
+
+            # Сначала смотрим в POST, потом в GET
+            from_param = request.POST.get('from') or request.GET.get('from')
+            if from_param:
+                return redirect(f"{self.object.get_absolute_url()}?from={from_param}#comments")
+
+            # Если from не передан, просто возвращаем на якорь #comments
             return redirect(self.object.get_absolute_url() + '#comments')
 
-        # Если форма невалидна, вернемся к детальному просмотру с ошибками
+        # Если форма невалидна, показываем страницу с ошибками
         return self.render_to_response(
-            self.get_context_data(
-                post=self.object,
-                comment_form=form
-            )
+            self.get_context_data(post=self.object, comment_form=form)
         )
 
 
@@ -247,6 +287,9 @@ class PostDetailWithComments(View):
         return view(request, *args, **kwargs)
 
 
+
+
+
 class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Comment
     template_name = 'posts/comment_confirm_delete.html'
@@ -255,12 +298,25 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         comment = self.get_object()
         return self.request.user == comment.author or self.request.user.is_staff
 
-    def get_success_url(self):
-        return self.object.post.get_absolute_url() + '#comments'
+    # def get_success_url(self):
+    #     from_param = self.request.POST.get('from') or self.request.GET.get('from')
+    #     if from_param:
+    #         return f"{self.object.post.get_absolute_url()}?from={from_param}#comments"
+    #     return self.object.post.get_absolute_url() + '#comments'
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        post_url = self.object.post.get_absolute_url()
+        from_param = request.POST.get('from') or request.GET.get('from')
+        self.object.delete()
+
+        if from_param:
+            return redirect(f"{post_url}?from={from_param}#comments")
+        return redirect(f"{post_url}#comments")
 
 
 # posts/views.py (PostLikeView)
-@method_decorator(csrf_exempt, name='dispatch')
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class PostLikeView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         post = get_object_or_404(Post, pk=kwargs.get('pk'))
@@ -292,7 +348,7 @@ class PostLikeView(LoginRequiredMixin, View):
 
 
 # posts/views.py (PostDislikeView)
-@method_decorator(csrf_exempt, name='dispatch')
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class PostDislikeView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         post = get_object_or_404(Post, pk=kwargs.get('pk'))
@@ -321,6 +377,7 @@ class PostDislikeView(LoginRequiredMixin, View):
             'total_dislikes': post.dislikes.count(),
             'total_likes': post.likes.count()
         })
+
 
 class TagPostListView(ListView):
     model = Post
@@ -363,37 +420,21 @@ class TagPostListView(ListView):
         return context
 
 
-
-
-
-    # def add_comment(request, pk):
-    #     post = Post.objects.get(pk=pk)
-    #     if request.method == 'POST':
-    #         form = CommentForm(request.POST)
-    #         if form.is_valid():
-    #             comment = form.save(commit=False)
-    #             comment.post = post
-    #             comment.save()
-    #             return redirect('posts:post-detail', pk=post.pk)
-    #     else:
-    #         form = CommentForm()
-    #
-    #     return render(request, 'posts/add_comment.html', {'form': form, 'post': post})
-
-
-
-
 def terms_of_use(request):
     return render(request, 'posts/terms_of_use.html')
+
 
 def privacy_policy(request):
     return render(request, 'posts/privacy_policy.html')
 
+
 class TermsOfUseView(TemplateView):
     template_name = 'terms_of_use.html'
 
+
 class PrivacyPolicyView(TemplateView):
     template_name = 'privacy_policy.html'
+
 
 def feed_view(request):
     posts = Post.objects.annotate(
@@ -402,3 +443,45 @@ def feed_view(request):
         num_comments=Count('comments', distinct=True)
     )
 
+def submit_advice(request):
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        message = request.POST.get('message', '').strip()
+
+        if not all([name, email, message]):
+            return JsonResponse({
+                'status': 'error',
+                'title': 'Ошибка',
+                'message': 'Пожалуйста, заполните все поля',
+                'icon': 'error'
+            }, status=400)
+
+        try:
+            send_mail(
+                f'Новый совет от {name}',
+                f'Имя: {name}\nEmail: {email}\n\nСообщение:\n{message}',
+                'noreply@chatty.com',
+                ['chattyorangeeu@gmail.com'],
+                fail_silently=False,
+            )
+            return JsonResponse({
+                'status': 'success',
+                'title': 'Успешно!',
+                'message': 'Спасибо за ваш совет! Мы ценим ваше мнение.',
+                'icon': 'success'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'title': 'Ошибка',
+                'message': f'Произошла ошибка при отправке: {str(e)}',
+                'icon': 'error'
+            }, status=500)
+
+    return JsonResponse({
+        'status': 'error',
+        'title': 'Ошибка',
+        'message': 'Неверный метод запроса',
+        'icon': 'error'
+    }, status=400)

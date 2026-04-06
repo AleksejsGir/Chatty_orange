@@ -1,0 +1,70 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Orange Assistant</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #FFA500; /* Orange background */
+            color: #FFFFFF; /* White text */
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        .container {
+            background-color: #FFFFFF; /* White container background */
+            color: #333333; /* Dark text for container content */
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 70%;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #FF8C00; /* Darker orange button */
+            color: #FFFFFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #FFA500; /* Lighter orange on hover */
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to Orange Assistant</h1>
+    <div class="container">
+        <p>Ask me anything!</p>
+        <input type="text" id="userInput" placeholder="Type your question here...">
+        <button onclick="askQuestion()">Ask</button>
+        <p id="response"></p>
+    </div>
+
+    <script>
+        function askQuestion() {
+            // In a real application, you would send this to a backend
+            // and get a real response. For this demo, we'll use a placeholder.
+            const userInput = document.getElementById('userInput').value;
+            const responseText = "Orange Assistant is thinking... (This is a demo response)";
+            document.getElementById('response').innerText = responseText;
+        }
+    </script>
+</body>
+</html>

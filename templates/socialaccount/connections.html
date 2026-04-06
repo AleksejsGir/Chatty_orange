@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load allauth socialaccount %}
+
+{% block title %}{% trans "Подключенные аккаунты" %} - Chatty{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card profile-card shadow-sm">
+                <div class="card-header profile-card-title">
+                    <i class="fa-solid fa-share-nodes fa-fw me-2"></i>{% trans "Управление подключенными аккаунтами" %}
+                </div>
+                <div class="card-body profile-card-content p-4">
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <p class="text-muted mb-4">
+                        {% blocktrans %}
+                        Вы можете подключить аккаунты социальных сетей для быстрого входа в Chatty.
+                        {% endblocktrans %}
+                    </p>
+
+                    {% if form.accounts %}
+                        <h5 class="mb-3">{% trans "Подключенные аккаунты" %}</h5>
+                        <form method="post" action="{% url 'socialaccount_connections' %}">
+                            {% csrf_token %}
+
+                            <div class="list-group mb-4">
+                                {% for base_account in form.accounts %}
+                                    {% with base_account.get_provider_account as account %}
+                                        <div class="list-group-item">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="mb-1">
+                                                        <i class="fa-brands fa-{{ account.get_brand_id }} me-2"></i>
+                                                        {{ account.get_provider.name }}
+                                                    </h6>
+                                                    <small class="text-muted">{{ account }}</small>
+                                                </div>
+                                                <div>
+                                                    <label class="form-check-label" for="id_account_{{ base_account.id }}">
+                                                        <input type="checkbox"
+                                                               name="account"
+                                                               value="{{ base_account.id }}"
+                                                               id="id_account_{{ base_account.id }}"
+                                                               class="form-check-input">
+                                                        <span class="text-danger">{% trans "Отключить" %}</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endwith %}
+                                {% endfor %}
+                            </div>
+
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                <i class="fa-solid fa-unlink me-1"></i> {% trans "Отключить выбранные" %}
+                            </button>
+                        </form>
+                    {% else %}
+                        <div class="alert alert-info" role="alert">
+                            <i class="fa-solid fa-info-circle me-2"></i>
+                            {% trans "У вас нет подключенных аккаунтов социальных сетей." %}
+                        </div>
+                    {% endif %}
+
+                    <hr class="my-4">
+
+                    <h5 class="mb-3">{% trans "Добавить аккаунт" %}</h5>
+
+                    <div class="row g-3">
+                        {% get_providers as socialaccount_providers %}
+                        {% for provider in socialaccount_providers %}
+                            <div class="col-md-6">
+                                <a href="{% provider_login_url provider.id process='connect' %}"
+                                   class="btn btn-outline-secondary w-100">
+                                    <i class="fa-brands fa-{{ provider.id }} me-2"></i>
+                                    {% trans "Подключить" %} {{ provider.name }}
+                                </a>
+                            </div>
+                        {% empty %}
+                            <p class="text-muted">
+                                {% trans "Подключение социальных сетей временно недоступно." %}
+                            </p>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <a href="{% url 'users:profile' username=user.username %}" class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-arrow-left me-1"></i> {% trans "Вернуться в профиль" %}
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

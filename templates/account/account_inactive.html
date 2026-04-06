@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Аккаунт неактивен" %} - Chatty{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="card profile-card shadow-sm text-center">
+                <div class="card-header profile-card-title justify-content-center text-warning">
+                    <i class="fa-solid fa-user-lock fa-fw me-2"></i>{% trans "Аккаунт временно недоступен" %}
+                </div>
+                <div class="card-body profile-card-content p-4">
+
+                    <p class="lead mb-4">
+                        {% trans "Ваш аккаунт временно неактивен." %}
+                    </p>
+
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                        {% blocktrans %}
+                        Это может быть связано с необходимостью подтверждения email адреса
+                        или временной блокировкой администратором.
+                        {% endblocktrans %}
+                    </div>
+
+                    <p class="text-muted">
+                        {% blocktrans %}
+                        Если у вас есть вопросы, пожалуйста, свяжитесь с поддержкой.
+                        {% endblocktrans %}
+                    </p>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="{% url 'home' %}" class="btn btn-secondary">
+                            <i class="fa-solid fa-home me-1"></i> {% trans "На главную" %}
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

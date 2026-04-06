@@ -59,4 +59,4 @@ Thumbs.db
 
 # --- Docker ---
 # Файл для локальных переопределений Docker Compose
-# docker-compose.override.yml
+# docker-compose.override.yml.idea/

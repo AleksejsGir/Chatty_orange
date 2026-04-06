@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load allauth account %}
+{% load django_bootstrap5 %}
+
+{% block title %}{% trans "Управление email адресами" %} - Chatty{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card profile-card shadow-sm">
+                <div class="card-header profile-card-title">
+                    <i class="fa-solid fa-envelope fa-fw me-2"></i>{% trans "Управление email адресами" %}
+                </div>
+                <div class="card-body profile-card-content p-4">
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <h5 class="mb-3">{% trans "Ваши email адреса" %}</h5>
+
+                    {% if user.emailaddress_set.all %}
+                        <form method="post" action="{% url 'account_email' %}">
+                            {% csrf_token %}
+
+                            <div class="list-group mb-4">
+                                {% for emailaddress in user.emailaddress_set.all %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio"
+                                                           name="email" value="{{ emailaddress.email }}"
+                                                           id="email_{{ forloop.counter }}"
+                                                           {% if emailaddress.primary %}checked{% endif %}>
+                                                    <label class="form-check-label" for="email_{{ forloop.counter }}">
+                                                        {{ emailaddress.email }}
+                                                        {% if emailaddress.primary %}
+                                                            <span class="badge bg-primary ms-2">{% trans "Основной" %}</span>
+                                                        {% endif %}
+                                                        {% if not emailaddress.verified %}
+                                                            <span class="badge bg-warning text-dark ms-2">{% trans "Не подтвержден" %}</span>
+                                                        {% else %}
+                                                            <span class="badge bg-success ms-2">{% trans "Подтвержден" %}</span>
+                                                        {% endif %}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button class="btn btn-sm btn-primary" type="submit" name="action_primary">
+                                    <i class="fa-solid fa-star me-1"></i> {% trans "Сделать основным" %}
+                                </button>
+                                <button class="btn btn-sm btn-info" type="submit" name="action_send">
+                                    <i class="fa-solid fa-paper-plane me-1"></i> {% trans "Отправить подтверждение" %}
+                                </button>
+                                <button class="btn btn-sm btn-danger" type="submit" name="action_remove">
+                                    <i class="fa-solid fa-trash me-1"></i> {% trans "Удалить" %}
+                                </button>
+                            </div>
+                        </form>
+                    {% else %}
+                        <p class="text-muted">{% trans "У вас нет добавленных email адресов." %}</p>
+                    {% endif %}
+
+                    <hr class="my-4">
+
+                    <h5 class="mb-3">{% trans "Добавить email адрес" %}</h5>
+
+                    <form method="post" action="{% url 'account_email' %}">
+                        {% csrf_token %}
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-8">
+                                {{ form.email|add_class:"form-control" }}
+                            </div>
+                            <div class="col-md-4">
+                                <button class="btn btn-primary w-100" type="submit" name="action_add">
+                                    <i class="fa-solid fa-plus me-1"></i> {% trans "Добавить" %}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="mt-4 text-center">
+                        <a href="{% url 'users:profile' username=user.username %}" class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-arrow-left me-1"></i> {% trans "Вернуться в профиль" %}
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
