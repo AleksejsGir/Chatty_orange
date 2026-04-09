@@ -126,8 +126,8 @@ ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
 ACCOUNT_LOGOUT_ON_GET = False
 ACCOUNT_EMAIL_SUBJECT_PREFIX = '[Chatty] '
 
-#ACCOUNT_AUTHENTICATION_METHOD = 'email'  # Использовать email для входа
-#ACCOUNT_USERNAME_REQUIRED = False  # Не требовать username при регистрации через Google
+ACCOUNT_AUTHENTICATION_METHOD = 'email'  # Использовать email для входа
+ACCOUNT_USERNAME_REQUIRED = False  # Не требовать username при регистрации через Google
 ACCOUNT_UNIQUE_EMAIL = True  # Email должен быть уникальным
 # SOCIALACCOUNT_LOGIN_ON_GET = False  # Требовать POST для безопасности
 
@@ -231,7 +231,7 @@ JAZZMIN_SETTINGS = {
     "use_google_fonts_cdn": True,  # Использовать Google Fonts CDN
     "show_ui_builder": False,  # Показать конструктор интерфейса
 
-    'default_theme_mode': 'auto',  # 'auto' / 'light' / 'dark'
+#    'default_theme_mode': 'auto',  # 'auto' / 'light' / 'dark'
 }
 
 JAZZMIN_UI_TWEAKS = {
@@ -255,7 +255,7 @@ JAZZMIN_UI_TWEAKS = {
     "sidebar_nav_legacy_style": False,
     "sidebar_nav_flat_style": True,
     "theme": "cyborg",
-#    "dark_mode_theme": "cyborg",
+    "dark_mode_theme": "cyborg",
     "button_classes": {
         "primary": "btn-primary",
         "secondary": "btn-secondary",
