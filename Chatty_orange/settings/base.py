@@ -126,8 +126,8 @@ ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
 ACCOUNT_LOGOUT_ON_GET = False
 ACCOUNT_EMAIL_SUBJECT_PREFIX = '[Chatty] '
 
-ACCOUNT_AUTHENTICATION_METHOD = 'email'  # Использовать email для входа
-ACCOUNT_USERNAME_REQUIRED = False  # Не требовать username при регистрации через Google
+#ACCOUNT_AUTHENTICATION_METHOD = 'email'  # Использовать email для входа
+#ACCOUNT_USERNAME_REQUIRED = False  # Не требовать username при регистрации через Google
 ACCOUNT_UNIQUE_EMAIL = True  # Email должен быть уникальным
 # SOCIALACCOUNT_LOGIN_ON_GET = False  # Требовать POST для безопасности
 
