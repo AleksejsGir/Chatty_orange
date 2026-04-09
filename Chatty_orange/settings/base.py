@@ -230,6 +230,8 @@ JAZZMIN_SETTINGS = {
     "custom_js": None,  # Пользовательский JS
     "use_google_fonts_cdn": True,  # Использовать Google Fonts CDN
     "show_ui_builder": False,  # Показать конструктор интерфейса
+
+    'default_theme_mode': 'auto',  # 'auto' / 'light' / 'dark'
 }
 
 JAZZMIN_UI_TWEAKS = {
@@ -253,7 +255,7 @@ JAZZMIN_UI_TWEAKS = {
     "sidebar_nav_legacy_style": False,
     "sidebar_nav_flat_style": True,
     "theme": "cyborg",
-    "dark_mode_theme": "cyborg",
+#    "dark_mode_theme": "cyborg",
     "button_classes": {
         "primary": "btn-primary",
         "secondary": "btn-secondary",
